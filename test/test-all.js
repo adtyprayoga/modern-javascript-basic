@@ -264,6 +264,18 @@ assertEqual(
 const defaultValidator = new PesertaValidator();
 assertEqual(defaultValidator.minScore, 60, "Default minScore is 60");
 assertEqual(defaultValidator.maxScore, 100, "Default maxScore is 100");
+
+// Static rules: the validator class is the single source of the pass/fail rule
+assertEqual(PesertaValidator.PASSING_SCORE, 80, "Passing score is 80");
+assertEqual(PesertaValidator.STATUS, ["LULUS", "TIDAK LULUS"], "Status list");
+assertEqual(PesertaValidator.getStatus(80), "LULUS", "80 is LULUS (boundary)");
+assertEqual(PesertaValidator.getStatus(79), "TIDAK LULUS", "79 is TIDAK LULUS (boundary)");
+assertEqual(PesertaValidator.getStatus(), "TIDAK LULUS", "Default score 0 is TIDAK LULUS");
+assert(PesertaValidator.isValidStatus("LULUS"), "includes() accepts LULUS");
+assert(PesertaValidator.isValidStatus("TIDAK LULUS"), "includes() accepts TIDAK LULUS");
+assert(!PesertaValidator.isValidStatus("lulus"), "includes() is case-sensitive");
+assert(!PesertaValidator.isValidStatus("BELUM LULUS"), "Old label is no longer valid");
+assert(!PesertaValidator.isValidStatus(undefined), "undefined is not a status");
 console.log();
 
 // ============================================================================

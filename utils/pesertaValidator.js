@@ -7,6 +7,32 @@
  */
 export class PesertaValidator {
   /**
+   * Nilai minimum untuk LULUS. Static field (ES2022): the rule belongs to the
+   * class itself, so other modules can read it without creating a validator.
+   */
+  static PASSING_SCORE = 80;
+
+  /** Daftar status yang sah. Every status shown to users must be in this list. */
+  static STATUS = ["LULUS", "TIDAK LULUS"];
+
+  /**
+   * Tentukan status dari nilai tes terakhir.
+   * @param {number} score - Nilai tes (default: 0)
+   * @returns {string} "LULUS" or "TIDAK LULUS"
+   */
+  static getStatus = (score = 0) =>
+    score >= PesertaValidator.PASSING_SCORE ? "LULUS" : "TIDAK LULUS";
+
+  /**
+   * Check whether a status is one of the allowed labels.
+   * ES2016 includes(): reads better than indexOf(status) !== -1 and compares
+   * with strict equality, so "lulus" (lowercase) is NOT a valid status.
+   * @param {string} status - Status to check
+   * @returns {boolean} True if status is in PesertaValidator.STATUS
+   */
+  static isValidStatus = (status) => PesertaValidator.STATUS.includes(status);
+
+  /**
    * Constructor with default parameters
    * @param {number} minScore - Minimum acceptable score (default: 60)
    * @param {number} maxScore - Maximum acceptable score (default: 100)
@@ -80,7 +106,7 @@ export class PesertaValidator {
  * @returns {PesertaValidator} Validator with passing threshold of 80
  */
 export const createPassingValidator = () => {
-  return new PesertaValidator(80, 100);
+  return new PesertaValidator(PesertaValidator.PASSING_SCORE, 100);
 };
 
 /**
