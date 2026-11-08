@@ -1,6 +1,6 @@
 # Beginner's Step-by-Step Guide to ES6 Training System
 
-> **Don't Panic!** This guide will walk you through building the entire system from scratch, one small step at a time. By the end, you'll have mastered key ES6 features through practical application.
+> This is the concept reference. For complete guided coding from starter to finished application, follow [practice stages 00–11](latihan/README.md). Continue working in the same `latihan/proyek/` folder at every stage.
 
 ## 🎯 What You'll Build
 
@@ -12,7 +12,7 @@ A system that manages training participants with features like:
 - Load participant data from a JSON file
 - Display formatted reports
 
-**Time Estimate:** 4-5 hours at a comfortable pace
+**Class estimate:** two sessions of four hours for guided practice, including breaks. Adjust for learner pace.
 
 ---
 
@@ -877,7 +877,7 @@ loadPeserta()
   .catch((error) => console.error(error.message));
 ```
 
-**🎓 Try This:** Run `node latihan/solusi/07-async-try-catch.js`. It asks `loadPeserta` for a file that does not exist, so the `catch` branch runs:
+**🎓 Try This:** Run `node latihan/referensi/07-async-try-catch.js`. It asks `loadPeserta` for a file that does not exist, so the `catch` branch runs:
 ```
 Data tidak bisa dimuat, memakai daftar kosong
 Peserta pertama: tidak ada
@@ -940,7 +940,7 @@ npm test
 Latihan: 7/7 cocok
 ```
 
-The second part checks the exercise solutions in `latihan/solusi/` (see `EXERCISES.md`).
+The second part checks the exercise solutions in `latihan/referensi/` (see `EXERCISES.md`).
 
 **If a test fails:**
 ```
@@ -987,25 +987,27 @@ console.log(displayPeserta(name, score));                        // Phase 13: st
 
 ### Step 18.3: Try This
 
-Rina Sari took the test three times. Her scores are in `latihan/peserta-retake.json`: 70, 76, 82.
+Open [stage 05: Set, Map, and the last test](latihan/05-set-map-nilai-terakhir/README.md). Complete its challenge in your learner project. Rina's scores are 90 then 79; the expected last score is 79, even though 90 is higher.
 
-1. **Predict** her status before you run anything.
-2. Run the practice script:
-   ```bash
-   node latihan/coba-retake.js
-   # Tes 1: 70
-   # Tes 2: 76
-   # Tes 3: 82
-   # Nama: Rina Sari, Score: 82, Status: LULUS
-   ```
-3. Open `latihan/peserta-retake.json`, change the **last** score from 82 to 79, and run it again. Now the last line is `Nama: Rina Sari, Score: 79, Status: TIDAK LULUS`.
-4. Change it back to 82, because Exercise 01 in `EXERCISES.md` expects 82. Experimenting here never breaks `npm test`: the checker uses its own copy in `latihan/solusi/`.
+After writing the challenge file, run it from the repository root:
 
-**⚠️ Practice only in `latihan/`.** Never edit `data/peserta.json`, because `npm test` depends on it.
+```bash
+node latihan/proyek/tantangan-05.js
+```
+
+Expected output:
+
+```text
+Email unik: 1
+Nilai terakhir: 79
+Tanpa data: 0
+```
+
+Practice in your learner project. Keep the root data/peserta.json and the fixed files in latihan/referensi unchanged, because reference tests depend on them.
 
 ### Step 18.4: Next
 
-Do the seven exercises in `EXERCISES.md`, one for each point in the table above. Check your answers with `npm run cek-latihan`.
+Follow [practice stages 00–11](latihan/README.md) to build the entire application. Each folder contains complete code, expected output, and challenge solutions. At stage 11, run `npm --prefix latihan/proyek test` to check your application. `npm run cek-latihan` checks the seven original reference solutions only.
 
 ---
 

@@ -36,24 +36,27 @@ This project implements a complete training management solution showcasing **ES6
 
 | # | Requirement | Where in the code | Guide phase | Exercise |
 |---|---|---|---|---|
-| 1 | Lulus / Tidak Lulus from the last test score | `createPesertaMap` keeps the latest entry per email; `PesertaValidator.getStatus(score)` decides `LULUS` (≥ 80) or `TIDAK LULUS` | 8, 13, 18 | 01 |
-| 2 | const/let, default parameters | Every function has defaults (`pesertaList = []`); `main.js` uses `let` for data assigned inside `try` | 2, 4 | 02 |
-| 3 | Destructuring, object rest/spread | `loadPeserta` normalizes with `({ score, ...rest }) => ({ ...rest, score: score ?? 0 })`; `createPesertaMap` copies with `{ ...peserta }`; `class: className` renaming everywhere | 6, 14 | 03 |
-| 4 | Set for dedup, Map for index | `getUniqueEmails` (Set), `createPesertaMap` (Map keyed by email) | 7, 8 | 04 |
-| 5 | Validator class with export/import | `utils/pesertaValidator.js`, imported by `utils/pesertaFormatter.js` and `main.js` | 11, 12, 13 | 05 |
-| 6 | Status validation with `includes()` | `PesertaValidator.isValidStatus(status)`; `displayPeserta` never prints an unknown status | 13 | 06 |
-| 7 | async/await + try/catch, `?.` and `??` | `utils/pesertaLoader.js` reads `data/peserta.json`; `json?.peserta ?? []`, `score ?? 0`; formatters accept `null` via `peserta ?? {}` | 15, 16 | 07 |
+| 1 | Lulus / Tidak Lulus from the last test score | `createPesertaMap` keeps the latest entry per email; `PesertaValidator.getStatus(score)` decides `LULUS` (≥ 80) or `TIDAK LULUS` | 8, 13, 18 | [05](latihan/05-set-map-nilai-terakhir/README.md), [10](latihan/10-integrasi-aplikasi/README.md) |
+| 2 | const/let, default parameters | Every function has defaults (`pesertaList = []`); `main.js` uses `let` for data assigned inside `try` | 2, 4 | [01](latihan/01-data-const-let/README.md), [02](latihan/02-function-dan-output/README.md) |
+| 3 | Destructuring, object rest/spread | `loadPeserta` normalizes with `({ score, ...rest }) => ({ ...rest, score: score ?? 0 })`; `createPesertaMap` copies with `{ ...peserta }`; `class: className` renaming everywhere | 6, 14 | [03](latihan/03-destructuring-rest-spread/README.md) |
+| 4 | Set for dedup, Map for index | `getUniqueEmails` (Set), `createPesertaMap` (Map keyed by email) | 7, 8 | [05](latihan/05-set-map-nilai-terakhir/README.md) |
+| 5 | Validator class with export/import | `utils/pesertaValidator.js`, imported by `utils/pesertaFormatter.js` and `main.js` | 11, 12, 13 | [07](latihan/07-class-validator/README.md), [08](latihan/08-module-dan-formatter/README.md) |
+| 6 | Status validation with `includes()` | `PesertaValidator.isValidStatus(status)`; `displayPeserta` never prints an unknown status | 13 | [07](latihan/07-class-validator/README.md) |
+| 7 | async/await + try/catch, `?.` and `??` | `utils/pesertaLoader.js` reads `data/peserta.json`; `json?.peserta ?? []`, `score ?? 0`; formatters accept `null` via `peserta ?? {}` | 15, 16 | [09](latihan/09-async-loader/README.md) |
 
 ## 🎓 Learning Path
 
-| Step | File | What it is |
-|---|---|---|
-| 1 | [`QUICK_START.md`](QUICK_START.md) | Run the project in 5 minutes |
-| 2 | [`BEGINNER_GUIDE.md`](BEGINNER_GUIDE.md) | 18 phases, from data and `const`/`let` to async/await, ending with a walk through the whole study case (about 4–5 hours) |
-| 3 | [`EXERCISES.md`](EXERCISES.md) | 7 hands-on exercises, one per study case point, with solutions in `latihan/solusi/` |
-| 4 | [`CODE_HIGHLIGHTS.md`](CODE_HIGHLIGHTS.md) | The real code, annotated feature by feature |
-| — | [`COMMON_ERRORS.md`](COMMON_ERRORS.md) | Errors beginners hit, and how to fix them |
-| — | [`INSTRUCTOR_GUIDE.md`](INSTRUCTOR_GUIDE.md) | For trainers: a two-session teaching plan, demos, check questions, and assessment |
+Mulai dari [praktik proyek bertahap](latihan/README.md). Peserta menulis satu aplikasi di `latihan/proyek/` melalui tahap 00–11, dari program pembuka sampai laporan lengkap dan pengujian. Setiap tahap menyediakan kode lengkap, output, penjelasan, serta tantangan dengan penyelesaian.
+
+| Kebutuhan | Panduan |
+|---|---|
+| Menyiapkan lingkungan | [Quick start](QUICK_START.md) |
+| Membangun aplikasi sendiri | [Tahap 00–11](latihan/README.md) |
+| Mencari daftar latihan | [EXERCISES.md](EXERCISES.md) |
+| Mengajar dan membahas praktik | [instructor.md](instructor.md) |
+| Membaca penjelasan konsep | [Beginner guide](BEGINNER_GUIDE.md) |
+| Menelusuri kode referensi | [Code highlights](CODE_HIGHLIGHTS.md) |
+| Memperbaiki kesalahan umum | [Common errors](COMMON_ERRORS.md) |
 
 ## 🏗️ Architecture
 
@@ -70,13 +73,26 @@ modern-javascript-basic/
 │   ├── fixtures/               # Broken/empty JSON files for loader tests
 │   └── test-all.js             # Comprehensive unit tests
 ├── latihan/
-│   ├── peserta-retake.json     # Practice data: safe to edit (never edit data/peserta.json)
-│   ├── coba-retake.js          # Practice script for guide Step 18.3
-│   ├── solusi/                 # Exercise solutions, expected output, and their own data copy
-│   └── cek.js                  # Checks every solution's output
+│   ├── README.md               # Ordered practice index
+│   ├── 00-persiapan/           # Each numbered folder contains a full README
+│   ├── 01-data-const-let/
+│   ├── 02-function-dan-output/
+│   ├── 03-destructuring-rest-spread/
+│   ├── 04-perulangan-peserta/
+│   ├── 05-set-map-nilai-terakhir/
+│   ├── 06-filter-dan-statistik/
+│   ├── 07-class-validator/
+│   ├── 08-module-dan-formatter/
+│   ├── 09-async-loader/
+│   ├── 10-integrasi-aplikasi/
+│   ├── 11-pengujian-akhir/
+│   ├── proyek/                 # Learner starter; build here throughout the course
+│   ├── referensi/              # Seven original exercise solutions and fixed data
+│   ├── cek.js                  # Checks original solutions
+│   └── verifikasi-panduan.js   # Replays guide code in a temporary project
 ├── BEGINNER_GUIDE.md           # 18-phase step-by-step guide
-├── INSTRUCTOR_GUIDE.md         # How to teach it (for trainers)
-├── EXERCISES.md                # One exercise per study case point
+├── instructor.md              # How to teach it (for trainers)
+├── EXERCISES.md                # Ordered practice index
 ├── main.js                     # Application entry point
 ├── package.json                # Project configuration
 └── README.md                   # This file
@@ -100,6 +116,12 @@ npm test
 
 # Check only the exercise solutions
 npm run cek-latihan
+
+# Verify the code and outputs shown in the practice guides
+npm run cek-panduan
+
+# Run the learner project (starter first, complete after the practice)
+npm --prefix latihan/proyek start
 ```
 
 ## 📖 Feature Demonstrations
@@ -229,7 +251,11 @@ Expected output:
 Latihan: 7/7 cocok
 ```
 
-`npm test` runs the unit tests and then `latihan/cek.js`, which runs every exercise solution in `latihan/solusi/` and compares its output with the matching `.expected.txt` file. To check only the exercises, run `npm run cek-latihan`. The exercises themselves are in `EXERCISES.md`.
+`npm test` runs the reference application's unit tests and then `latihan/cek.js`, which checks the seven solutions in `latihan/referensi/` against their `.expected.txt` files. `npm run cek-latihan` checks only those solutions.
+
+`npm run cek-panduan` replays the numbered guides in a temporary learner project, checks every demonstrated output and challenge solution, runs the completed learner tests, and compares the final application output with the reference. It does not overwrite the learner starter or answers.
+
+After stage 11, use `npm --prefix latihan/proyek test` to test the learner's own application. Root tests and guide verification do not assess their current answers.
 
 ## 📊 Data Structure
 
@@ -326,7 +352,7 @@ This is an educational project. Feel free to:
 - Improve test coverage
 - Enhance documentation
 - Create additional utility functions
-- Add an exercise: put the solution in `latihan/solusi/NN-name.js` and its exact output in `latihan/solusi/NN-name.expected.txt`. `npm test` then checks it automatically
+- Update practice guides with complete file blocks, exact output, and challenge solutions; run `npm run cek-panduan` to check them.
 
 ## 📄 License
 

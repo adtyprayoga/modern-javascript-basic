@@ -9,10 +9,15 @@
 ### Installation
 No installation required - this project uses native ES6 modules.
 
+Buka terminal di root repository `modern-javascript-basic`, yaitu folder yang berisi README ini.
+
+Untuk praktik mengetik aplikasi sendiri, mulai dari [tahap 00](latihan/00-persiapan/README.md). Jalankan starter:
+
 ```bash
-# Navigate to project directory
-cd "es6 - Sistem Manajemen Peserta Training"
+npm --prefix latihan/proyek start
 ```
+
+Lanjutkan satu proyek yang sama melalui [tahap 00–11](latihan/README.md). Script test proyek peserta ditambahkan pada tahap 11. Perintah npm start dan npm test tanpa --prefix di bawah menjalankan aplikasi referensi.
 
 ## 🎯 Running the Project
 
@@ -69,7 +74,7 @@ es6-training-management/
 ├── test/
 │   ├── fixtures/               # Broken/empty JSON for loader tests
 │   └── test-all.js             # 79 unit tests
-├── latihan/                    # Exercises: solutions + checker (see EXERCISES.md)
+├── latihan/                    # Stages 00–11, learner starter, and reference exercises
 ├── main.js                     # Run this!
 └── package.json                # ES6 module config
 ```
@@ -197,19 +202,8 @@ This is a self-contained educational project. All code is well-commented and doc
 4. Consult the comprehensive README.md
 5. Run tests to identify which component has issues
 
-## 🎉 Success!
+## Periksa hasil akhir
 
-If you see this at the end of `npm start`:
+Output `npm start` berakhir pada daftar empat peserta dalam TASK 9. Aditya memakai nilai 88, Zaim 94, Milea 78, dan Pratama 95. Tiga peserta berstatus LULUS.
 
-```
-✅ ALL TASKS COMPLETED SUCCESSFULLY!
-🎉 Training Management System Demo Complete!
-```
-
-**Congratulations!** You've successfully run a complete ES6 training management system demonstrating all modern JavaScript features.
-
----
-
-**Happy Learning! 🚀**
-
-*Last Updated: November 10, 2025*
+Untuk menghasilkan aplikasi tersebut sendiri, lanjutkan [praktik tahap 00–11](latihan/README.md). Pada akhir praktik, jalankan aplikasi dan pengujian dengan `--prefix latihan/proyek` agar yang diperiksa adalah kode peserta.
