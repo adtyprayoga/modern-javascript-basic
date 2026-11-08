@@ -1,4 +1,4 @@
-# Modern JavaScript (ES6–ES2020) Training Management System
+# Modern JavaScript (ES6–ES2022) Training Management System
 
 > **Sistem Manajemen Peserta Training** - A comprehensive ES6+ study case project demonstrating modern JavaScript features through a practical training participant management system for Brainmatics.
 
@@ -34,20 +34,30 @@ This project implements a complete training management solution showcasing **ES6
 > Validasi status peserta dengan includes() (ES2016).
 > Muat data dengan async/await + try/catch; gunakan ?. dan ??.
 
-| # | Requirement | Where in the code |
+| # | Requirement | Where in the code | Guide phase | Exercise |
+|---|---|---|---|---|
+| 1 | Lulus / Tidak Lulus from the last test score | `createPesertaMap` keeps the latest entry per email; `PesertaValidator.getStatus(score)` decides `LULUS` (≥ 80) or `TIDAK LULUS` | 8, 13, 18 | 01 |
+| 2 | const/let, default parameters | Every function has defaults (`pesertaList = []`); `main.js` uses `let` for data assigned inside `try` | 2, 4 | 02 |
+| 3 | Destructuring, object rest/spread | `loadPeserta` normalizes with `({ score, ...rest }) => ({ ...rest, score: score ?? 0 })`; `createPesertaMap` copies with `{ ...peserta }`; `class: className` renaming everywhere | 6, 14 | 03 |
+| 4 | Set for dedup, Map for index | `getUniqueEmails` (Set), `createPesertaMap` (Map keyed by email) | 7, 8 | 04 |
+| 5 | Validator class with export/import | `utils/pesertaValidator.js`, imported by `utils/pesertaFormatter.js` and `main.js` | 11, 12, 13 | 05 |
+| 6 | Status validation with `includes()` | `PesertaValidator.isValidStatus(status)`; `displayPeserta` never prints an unknown status | 13 | 06 |
+| 7 | async/await + try/catch, `?.` and `??` | `utils/pesertaLoader.js` reads `data/peserta.json`; `json?.peserta ?? []`, `score ?? 0`; formatters accept `null` via `peserta ?? {}` | 15, 16 | 07 |
+
+## 🎓 Learning Path
+
+| Step | File | What it is |
 |---|---|---|
-| 1 | Lulus / Tidak Lulus from the last test score | `createPesertaMap` keeps the latest entry per email; `PesertaValidator.getStatus(score)` decides `LULUS` (≥ 80) or `TIDAK LULUS` |
-| 2 | const/let, default parameters | Every function has defaults (`pesertaList = []`); `main.js` uses `let` for data assigned inside `try` |
-| 3 | Destructuring, object rest/spread | `loadPeserta` normalizes with `({ score, ...rest }) => ({ ...rest, score: score ?? 0 })`; `createPesertaMap` copies with `{ ...peserta }`; `class: className` renaming everywhere |
-| 4 | Set for dedup, Map for index | `getUniqueEmails` (Set), `createPesertaMap` (Map keyed by email) |
-| 5 | Validator class with export/import | `utils/pesertaValidator.js`, imported by `utils/pesertaFormatter.js` and `main.js` |
-| 6 | Status validation with `includes()` | `PesertaValidator.isValidStatus(status)`; `displayPeserta` never prints an unknown status |
-| 7 | async/await + try/catch, `?.` and `??` | `utils/pesertaLoader.js` reads `data/peserta.json`; `json?.peserta ?? []`, `score ?? 0`; formatters accept `null` via `peserta ?? {}` |
+| 1 | [`QUICK_START.md`](QUICK_START.md) | Run the project in 5 minutes |
+| 2 | [`BEGINNER_GUIDE.md`](BEGINNER_GUIDE.md) | 18 phases, from data and `const`/`let` to async/await, ending with a walk through the whole study case (about 4–5 hours) |
+| 3 | [`EXERCISES.md`](EXERCISES.md) | 7 hands-on exercises, one per study case point, with solutions in `latihan/solusi/` |
+| 4 | [`CODE_HIGHLIGHTS.md`](CODE_HIGHLIGHTS.md) | The real code, annotated feature by feature |
+| — | [`COMMON_ERRORS.md`](COMMON_ERRORS.md) | Errors beginners hit, and how to fix them |
 
 ## 🏗️ Architecture
 
 ```
-es6-training-management/
+modern-javascript-basic/
 ├── data/
 │   └── peserta.json            # Raw participant data (loaded asynchronously)
 ├── utils/
@@ -62,6 +72,7 @@ es6-training-management/
 │   ├── peserta-retake.json     # Practice data (never edit data/peserta.json)
 │   ├── solusi/                 # Exercise solutions + expected output
 │   └── cek.js                  # Checks every solution's output
+├── BEGINNER_GUIDE.md           # 18-phase step-by-step guide
 ├── EXERCISES.md                # One exercise per study case point
 ├── main.js                     # Application entry point
 ├── package.json                # Project configuration
@@ -81,8 +92,11 @@ es6-training-management/
 # Run the main application
 npm start
 
-# Run all tests
+# Run all tests (unit tests, then the exercise check)
 npm test
+
+# Check only the exercise solutions
+npm run cek-latihan
 ```
 
 ## 📖 Feature Demonstrations
@@ -191,8 +205,10 @@ The project includes comprehensive unit tests covering:
 - ✅ Class filtering
 - ✅ Score calculations
 - ✅ Display formatting
-- ✅ Validator class functionality
-- ✅ Edge cases (empty arrays, undefined parameters)
+- ✅ Validator class functionality, including the pass/fail boundary (80 / 79)
+- ✅ Status validation with `includes()` (case-sensitive, unknown labels rejected)
+- ✅ Async loading: missing file, broken JSON, `null` or empty JSON, missing score
+- ✅ Edge cases (empty arrays, undefined and `null` parameters)
 
 Run tests with:
 ```bash
@@ -268,8 +284,9 @@ This project teaches:
 3. **Functional Programming** - Pure functions, immutability principles
 4. **Data Structures** - Efficient use of Set and Map
 5. **Class-based OOP** - Modern class syntax with arrow methods
-6. **Error Handling** - Default parameters and edge case management
-7. **Testing** - Unit test patterns for ES6 code
+6. **Error Handling** - Default parameters, `?.` / `??` for missing values, and try/catch around async loading
+7. **Asynchronous Code** - async/await and Promises for reading files
+8. **Testing** - Unit test patterns, plus exercise solutions checked against their expected output
 
 ## 🎯 Use Cases
 
@@ -280,6 +297,7 @@ The system demonstrates handling of:
 - ✅ Multi-class participant tracking
 - ✅ Statistical calculations
 - ✅ Formatted output generation
+- ✅ Loading data from a JSON file, with one clear error when it fails
 
 ## 📝 Output Examples
 
@@ -301,10 +319,11 @@ Aditya Prayoga mendapat score 88 - SESUAI STANDAR
 ## 🤝 Contributing
 
 This is an educational project. Feel free to:
-- Add new ES6 features demonstrations
+- Add new ES6+ feature demonstrations
 - Improve test coverage
 - Enhance documentation
 - Create additional utility functions
+- Add an exercise: put the solution in `latihan/solusi/NN-name.js` and its exact output in `latihan/solusi/NN-name.expected.txt`. `npm test` then checks it automatically
 
 ## 📄 License
 
@@ -313,7 +332,7 @@ MIT License - Feel free to use this for learning purposes.
 ## 👨‍🏫 Author
 
 **Brainmatics Training**  
-ES6 Study Case - Training Management System
+ES6+ Study Case - Training Management System
 
 ---
 
