@@ -1,0 +1,2965 @@
+diff --git a/CLAUDE.md b/CLAUDE.md
+index 59557de..5471e7b 100644
+--- a/CLAUDE.md
++++ b/CLAUDE.md
+@@ -11,19 +11,19 @@ Teaching material: an ES6+ study case ("Sistem Manajemen Peserta Training" for B
+ No dependencies, build step, or linter. Native ES modules (`"type": "module"`), Node 22+ (`engines` in `package.json`).
+ 
+ ```bash
+-npm start   # node main.js: runs the 9 demo "tasks" and prints to console
+-npm test    # node test/test-all.js, then node latihan/cek.js; exits 1 on any failure
++npm start   # node main.js: opens the interactive CRUD menu 0–8; enter 0 to exit
++npm test    # runs test-all, test-crud, test-store, test-menu, then latihan/cek.js
+ npm run cek-latihan   # only the original exercise solutions
+ npm run cek-panduan   # replay guide code and check the completed learner application
+ ```
+ 
+-The main learner path is `latihan/00-persiapan/` through `latihan/11-pengujian-akhir/`. Learners build one cumulative application in `latihan/proyek/`; the committed starter deliberately contains only package.json and the welcome main.js. Every stage README has full code, exact expected output, explanation, and complete challenge solutions. `instructor.md` links the stages and teaching activities.
++The main learner path is `latihan/00-persiapan/` through `latihan/13-pengujian-akhir/`. Learners build one cumulative application in `latihan/proyek/`; the committed starter deliberately contains only package.json and the welcome main.js. Every stage README has full code, exact expected output, explanation, and complete challenge solutions. `instructor.md` links the stages and teaching activities.
+ 
+-`npm run cek-panduan` replays the guide's HTML-marked file blocks in a temporary project, checks outputs and challenge solutions, copies the supplied test suite at stage 11, runs learner scripts, and compares final output with root main.js. It leaves the learner starter untouched. Maintain the `write`, `expected`, `challenge`, `challenge-output`, and `copy` markers when editing examples.
++`npm run cek-panduan` replays the guide's HTML-marked file blocks in a temporary project, checks outputs and challenge solutions, copies the supplied test suite at stage 13, runs learner scripts, and compares final output with root main.js. It leaves the learner starter untouched. Maintain the `write`, `expected`, `challenge`, `challenge-output`, `input`, and `copy` markers when editing examples.
+ 
+-`latihan/cek.js` runs the seven original solutions in `latihan/referensi/` from the OS temp directory and compares stdout with the paired `.expected.txt` files. Helpers and fixed JSON live beside those solutions. Reference solution edits can affect root npm test. Use `npm --prefix latihan/proyek test` after stage 11 to test learner code instead.
++`latihan/cek.js` runs the seven original solutions in `latihan/referensi/` from the OS temp directory and compares stdout with the paired `.expected.txt` files. Helpers and fixed JSON live beside those solutions. Reference solution edits can affect root npm test. Use `npm --prefix latihan/proyek test` after stage 13 to test learner code instead.
+ 
+-There is no test framework, so you cannot select a single test. `test/test-all.js` is top-level sequential code split into numbered `TEST SUITE` blocks. To check one function quickly, import it directly:
++The legacy suite uses a sequential runner; new CRUD/store/menu suites use node:test. `test/test-all.js` is top-level sequential code split into numbered `TEST SUITE` blocks. To check one function quickly, import it directly:
+ 
+ ```bash
+ node --input-type=module -e "import { getUniquePeserta } from './utils/pesertaProcessor.js'; import { loadPeserta } from './utils/pesertaLoader.js'; console.log(getUniquePeserta(await loadPeserta()))"
+@@ -31,12 +31,15 @@ node --input-type=module -e "import { getUniquePeserta } from './utils/pesertaPr
+ 
+ ## Architecture
+ 
+-`data/peserta.json` (`{ "peserta": [...] }`, with duplicate emails) → `utils/pesertaLoader.js` (async `loadPeserta`) → `utils/pesertaProcessor.js` (dedupe/filter/average) → `utils/pesertaFormatter.js` (strings) and `utils/pesertaValidator.js` (class) → `main.js` (orchestration and console output). `main.js` and the tests both load data with top-level `await loadPeserta()`. The only cross-module import inside `utils/` is the formatter importing `PesertaValidator`.
++`data/peserta.json` seeds `data/peserta.local.json` only when the working file is absent. `utils/pesertaStore.js` validates history and saves through a same-directory temporary file plus rename. `PESERTA_DATA_FILE` isolates test data. `utils/pesertaCrud.js` transforms arrays without mutation. The processor deduplicates, filters, and averages; formatter/validator produce reports consumed by the readline menu in `main.js`. Replace memory only after save succeeds. Preserve the existing loader API for lessons and legacy tests.
+ 
+ Non-obvious behavior:
++- **One entry is one test.** Normalized email identifies a participant; positive unique ID identifies a test. Retest appends even when the score falls. Update all biodata for an email without changing IDs/scores/order; delete all history after menu confirmation. Empty score input is invalid, while zero is accepted. Broken working JSON must never be silently replaced.
++- **Input is sequential.** One readline async iterator handles interactive and piped input. EOF cancels an unfinished form. Close the reader on exit. Guide input markers supply answers to the next execution of that file.
++
+ - **Dedup keeps the last occurrence.** `createPesertaMap` keys by email and relies on `Map.set` overwriting. `getUniquePeserta` is `[...createPesertaMap(list).values()]`, so insertion order is the *first* occurrence of each email, but the values come from the *last* occurrence.
+ - **Two different score concepts.** An instance of `PesertaValidator(min, max)` checks whether a score is in range (`SESUAI STANDAR` / `TIDAK SESUAI`). Pass/fail is a separate rule, defined once in the class's static members: `PASSING_SCORE = 80`, `STATUS`, `getStatus(score)`, and `isValidStatus(status)` (which uses `includes()`). The formatter imports these, so change the threshold or labels only there. `displayPeserta` replaces any status outside `STATUS` with the computed one.
+-- **The loader normalizes data.** `loadPeserta` returns `[]` when the JSON is `null` or has no `peserta` key, and turns a missing `score` into `0`. A missing file or broken JSON becomes one Indonesian `Error` that names the file, and `main.js` prints it and exits with code 1.
++- **The loader normalizes data.** `loadPeserta` returns `[]` when the JSON is `null` or has no `peserta` key, and turns a missing `score` into `0`. A missing file or broken JSON becomes one Indonesian `Error` that names the file, ; menu startup uses the stricter store and exits with code 1 on load failure.
+ - **Tests depend on the exact data.** They assert specific values from `data/peserta.json` (6 entries, 4 unique emails, the latest scores for Aditya and Zaim, and class averages), and the loader tests use the files in `test/fixtures/`. If you edit the data, update the tests too.
+ - **Output formats are exact and tested:** `Nama: X, Score: N, Status: S`, `📚 X - Class: C - Score: N`, `X mendapat score N - STATUS`.
+ 
+diff --git a/README.md b/README.md
+index efe30ae..367477f 100644
+--- a/README.md
++++ b/README.md
+@@ -1,13 +1,13 @@
+ # Modern JavaScript: Sistem Manajemen Peserta Training
+ 
+-Materi praktik JavaScript ES6–ES2022 untuk training Brainmatics. Peserta membangun satu aplikasi di `latihan/proyek/`, dari program pembuka sampai laporan peserta dan pengujian. Setiap tahap menyediakan kode lengkap, penjelasan, output, dan tantangan beserta penyelesaiannya.
++Materi praktik JavaScript ES6–ES2022 untuk training Brainmatics. Peserta membangun satu aplikasi di `latihan/proyek/`, dari program pembuka sampai menu CRUD peserta, penyimpanan JSON, dan pengujian. Setiap tahap menyediakan kode lengkap, penjelasan, output, dan tantangan beserta penyelesaiannya.
+ 
+ ## Mulai di sini
+ 
+ | Kebutuhan | Panduan |
+ |---|---|
+ | Menyiapkan Node.js dan menjalankan starter | [Quick start](docs/QUICK_START.md) |
+-| Membangun aplikasi sendiri | [Praktik tahap 00–11](latihan/README.md) |
++| Membangun aplikasi sendiri | [Praktik tahap 00–13](latihan/README.md) |
+ | Mengajar dan membahas praktik | [Panduan instruktur](instructor.md) |
+ | Memahami konsep JavaScript | [Beginner guide](docs/reference/BEGINNER_GUIDE.md) |
+ | Menelusuri implementasi referensi | [Code highlights](docs/reference/CODE_HIGHLIGHTS.md) |
+@@ -15,7 +15,7 @@ Materi praktik JavaScript ES6–ES2022 untuk training Brainmatics. Peserta memba
+ 
+ ## Studi Kasus
+ 
+-Kelola peserta training dan tentukan status dari nilai tes terakhir. Aplikasi membaca enam riwayat tes dari JSON dan menghasilkan empat peserta unik berdasarkan email.
++Kelola peserta training dan tentukan status dari nilai tes terakhir. Aplikasi terminal mencatat peserta dan tes ulang, mengubah biodata, menghapus seluruh riwayat, serta menampilkan laporan. Data contoh berisi enam tes dan empat peserta unik berdasarkan email.
+ 
+ | Ketentuan | Praktik |
+ |---|---|
+@@ -27,7 +27,11 @@ Kelola peserta training dan tentukan status dari nilai tes terakhir. Aplikasi me
+ | Validasi status dengan includes() | [Class validator](latihan/07-class-validator/README.md) |
+ | Muat JSON dengan async/await dan try/catch; gunakan ?. dan ?? | [Async loader](latihan/09-async-loader/README.md) |
+ 
+-Nilai minimal kelulusan adalah 80. Pemeriksaan rentang nilai oleh validator adalah aturan terpisah, dengan rentang bawaan 60–100. Laporan akhir berisi empat peserta dan tiga peserta LULUS.
++Nilai minimal kelulusan adalah 80. Pemeriksaan rentang nilai oleh validator adalah aturan terpisah, dengan rentang bawaan 60–100. Pada data contoh, empat peserta menghasilkan tiga peserta LULUS. Nilai terakhir mengikuti urutan tes, termasuk ketika nilainya turun.
++
++Data kerja tersimpan di `data/peserta.local.json` dan diabaikan Git. File kerja baru diinisialisasi dari `data/peserta.json` hanya jika belum ada. JSON rusak tidak ditimpa. `PESERTA_DATA_FILE` dapat mengisolasi lokasi data untuk pengujian. Aplikasi digunakan oleh satu proses lokal.
++
++Tahap akhir membangun [CRUD](latihan/10-crud-peserta/README.md), [penyimpanan JSON](latihan/11-penyimpanan-json/README.md), [menu terminal](latihan/12-menu-terminal/README.md), dan [pengujian](latihan/13-pengujian-akhir/README.md). Perkiraan kelas tiga sesi masing-masing empat jam, termasuk praktik dan jeda.
+ 
+ ## Jalankan proyek
+ 
+@@ -39,14 +43,14 @@ Untuk proyek peserta:
+ npm --prefix latihan/proyek start
+ ```
+ 
+-Starter menampilkan pesan pembuka. Lanjutkan [tahap 00](latihan/00-persiapan/README.md) untuk mulai menulis aplikasi. Setelah tahap 11, jalankan `npm --prefix latihan/proyek test` untuk menguji kode peserta.
++Starter menampilkan pesan pembuka. Lanjutkan [tahap 00](latihan/00-persiapan/README.md) untuk mulai menulis aplikasi. Setelah tahap 13, jalankan `npm --prefix latihan/proyek test` untuk menguji kode peserta.
+ 
+ Untuk aplikasi referensi dan pemeriksaan materi:
+ 
+ | Perintah | Hasil |
+ |---|---|
+-| `npm start` | Menampilkan aplikasi referensi dengan TASK 1–9. |
+-| `npm test` | Menjalankan 79 pengujian referensi dan memeriksa tujuh solusi tambahan. |
++| `npm start` | Membuka menu interaktif 0–8; pilih 0 untuk keluar. |
++| `npm test` | Menjalankan 79 pengujian lama, suite CRUD/file/menu, dan tujuh solusi tambahan. |
+ | `npm run cek-latihan` | Memeriksa tujuh solusi tambahan di `latihan/referensi/`. |
+ | `npm run cek-panduan` | Memeriksa kode dan output panduan dalam proyek sementara, lalu menguji aplikasi hasil praktik. |
+ 
+@@ -64,20 +68,20 @@ modern-javascript-basic/
+ │   ├── reference/            # Konsep, implementasi, dan kesalahan umum
+ │   └── archive/              # Studi kasus awal, ringkasan, dan rencana lama
+ ├── latihan/
+-│   ├── README.md             # Indeks utama tahap 00–11
+-│   ├── 00-persiapan/         # Awal praktik; folder bernomor berlanjut sampai 11
++│   ├── README.md             # Indeks utama tahap 00–13
++│   ├── 00-persiapan/         # Awal praktik; folder bernomor berlanjut sampai 13
+ │   ├── proyek/               # Satu proyek yang dikerjakan peserta
+ │   ├── referensi/            # Tujuh solusi latihan tambahan
+ │   ├── cek.js                # Pemeriksa solusi tambahan
+ │   └── verifikasi-panduan.js # Pemeriksa panduan bertahap
+ ├── data/                     # Data aplikasi referensi
+-├── utils/                    # Loader, processor, formatter, dan validator
++├── utils/                    # CRUD, store, loader, processor, formatter, validator
+ ├── test/                     # Pengujian dan fixture referensi
+ ├── main.js                   # Aplikasi referensi
+ └── package.json
+ ```
+ 
+-Alur aplikasi referensi adalah JSON → loader → processor → formatter dan validator → laporan di `main.js`. Saat memperbarui materi, pertahankan marker blok kode pada panduan dan jalankan `npm run cek-panduan`.
++Alur aplikasi referensi adalah file kerja JSON → store → CRUD dan processor → formatter serta validator → menu di `main.js`. Saat memperbarui materi, pertahankan marker blok kode pada panduan dan jalankan `npm run cek-panduan`.
+ 
+ ## Arsip
+ 
+diff --git a/docs/QUICK_START.md b/docs/QUICK_START.md
+index 42f28ca..3bba962 100644
+--- a/docs/QUICK_START.md
++++ b/docs/QUICK_START.md
+@@ -26,9 +26,9 @@ Output awal:
+ Mulai membangun Sistem Manajemen Peserta Training
+ ```
+ 
+-Buka [tahap 00: persiapan proyek](../latihan/00-persiapan/README.md), lalu ikuti [urutan tahap 00–11](../latihan/README.md). Ketik kode di satu folder `latihan/proyek/` dan cocokkan output sebelum melanjutkan.
++Buka [tahap 00: persiapan proyek](../latihan/00-persiapan/README.md), lalu ikuti [urutan tahap 00–13](../latihan/README.md). Ketik kode di satu folder `latihan/proyek/` dan cocokkan output sebelum melanjutkan.
+ 
+-Script pengujian proyek peserta baru ditambahkan pada tahap 11. Setelah tahap itu, jalankan:
++Script pengujian proyek peserta baru ditambahkan pada tahap 13. Setelah tahap itu, jalankan:
+ 
+ ```bash
+ npm --prefix latihan/proyek test
+@@ -42,7 +42,9 @@ Untuk melihat hasil akhir yang menjadi acuan:
+ npm start
+ ```
+ 
+-Aplikasi menampilkan TASK 1–9. Laporan akhirnya berisi empat peserta dengan nilai Aditya 88, Zaim 94, Milea 78, dan Pratama 95. Tiga peserta LULUS.
++Aplikasi membuka menu 0–8. Pilih 1 untuk melihat daftar, 2 untuk detail dan riwayat, 3 untuk tambah, 4 untuk ubah biodata, 5 untuk tes ulang, 6 untuk hapus, 7 untuk filter kelas, 8 untuk statistik, dan 0 untuk keluar.
++
++Pada file kerja baru, daftar berisi Aditya 88, Zaim 94, Milea 78, dan Pratama 95. Tiga peserta LULUS. Perubahan disimpan pada data/peserta.local.json dan tersedia setelah restart. File contoh data/peserta.json tetap utuh. JSON rusak dilaporkan sebagai error dan tidak ditimpa.
+ 
+ Untuk menguji aplikasi referensi dan tujuh solusi latihan tambahan:
+ 
+@@ -50,7 +52,7 @@ Untuk menguji aplikasi referensi dan tujuh solusi latihan tambahan:
+ npm test
+ ```
+ 
+-Hasil pengujian menunjukkan 79 pengujian lulus, nol gagal, dan `Latihan: 7/7 cocok`. Perintah ini menguji referensi, bukan kode peserta.
++Hasil pengujian mempertahankan 79 tes lama, menambahkan suite CRUD, store, dan menu, serta menunjukkan `Latihan: 7/7 cocok`. Semua suite harus lulus. Perintah ini menguji referensi, bukan kode peserta.
+ 
+ Untuk memeriksa kode serta output seluruh panduan dalam proyek sementara:
+ 
+diff --git a/docs/reference/BEGINNER_GUIDE.md b/docs/reference/BEGINNER_GUIDE.md
+index 7c34bf1..3fa5bbf 100644
+--- a/docs/reference/BEGINNER_GUIDE.md
++++ b/docs/reference/BEGINNER_GUIDE.md
+@@ -2,7 +2,9 @@
+ 
+ > Run commands from the repository root, the directory containing `package.json` and `main.js`. Code paths in this reference are relative to that root. Follow the [practice index](../../latihan/README.md) for guided coding.
+ 
+-> This is the concept reference. For complete guided coding from starter to finished application, follow [practice stages 00–11](../../latihan/README.md). Continue working in the same `latihan/proyek/` folder at every stage.
++> Snippets below explain individual concepts and are not the complete current main.js. The final application is an interactive CRUD menu, built in practice stages 10–13.
++
++> This is the concept reference. For complete guided coding from starter to finished application, follow [practice stages 00–13](../../latihan/README.md). Continue working in the same `latihan/proyek/` folder at every stage.
+ 
+ ## 🎯 What You'll Build
+ 
+@@ -13,8 +15,10 @@ A system that manages training participants with features like:
+ - Validate scores and decide LULUS / TIDAK LULUS from the last test score
+ - Load participant data from a JSON file
+ - Display formatted reports
++- Add participants, update all biodata, record retests, and delete full history
++- Save validated working JSON and reopen the terminal menu after restart
+ 
+-**Class estimate:** two sessions of four hours for guided practice, including breaks. Adjust for learner pace.
++**Class estimate:** three sessions of four hours for guided practice, including breaks. Adjust for learner pace.
+ 
+ ---
+ 
+@@ -127,7 +131,7 @@ console.log(b);  // ❌ ReferenceError: b is not defined
+ ### Step 2.5: Find It in Action
+ 
+ - `test/test-all.js`: `let testsPassed = 0;` and `let testsFailed = 0;` because the counters go up after every test
+-- `main.js`: `let rawPeserta;` because it is assigned inside `try { }`
++- `main.js`: `let riwayat;` because it is loaded inside try and replaced after a successful save
+ - Everywhere else: `const`
+ 
+ ---
+@@ -664,7 +668,7 @@ export const createPassingValidator = () => { ... };
+ 
+ ### Step 12.3: Importing
+ 
+-**In `main.js`:**
++**Standalone module example:**
+ ```javascript
+ // Import specific functions
+ import { getUniqueEmails, calculateAverageScore } from './utils/pesertaProcessor.js';
+@@ -774,7 +778,7 @@ console.log(sisanya);  // { id: 101, email: "aditya@brainmatics.com", score: 85
+ ### Step 14.3: Find It in Action
+ 
+ - `createPesertaMap()` stores `{ ...peserta }` (Step 8.4)
+-- `main.js` TASK 3 prints `sisanya`
++- The destructuring example in practice stage 03 prints `sisanya`
+ - `loadPeserta()` uses both at once (Phase 16):
+ 
+ ```javascript
+@@ -818,7 +822,7 @@ console.log(score);  // "tidak ditemukan"
+ 
+ ### Step 15.4: Find It in Action
+ 
+-- `main.js` TASK 5 prints `Score tidak-ada@brainmatics.com: tidak ditemukan`
++- Practice stage 09 reads a missing email with `?.` and `??`; menu detail reports an unknown participant as an error
+ - `createPesertaSummary(null)` works because it destructures `peserta ?? {}`. A default parameter (`peserta = {}`) only catches `undefined`, not `null`.
+ - `loadPeserta()` uses `json?.peserta ?? []` and `score ?? 0` (Phase 16)
+ 
+@@ -855,7 +859,7 @@ export const loadPeserta = async (fileUrl = new URL('../data/peserta.json', impo
+ 2. `await` waits for `readFile` to finish
+ 3. `try { ... } catch (error) { ... }` catches anything that goes wrong inside `try`
+ 
+-### Step 16.3: Use It in main.js
++### Step 16.3: Try the loader in a standalone script
+ 
+ ```javascript
+ let rawPeserta;   // let, not const: it gets its value inside try
+@@ -902,28 +906,15 @@ npm start
+ 3. Numbers make sense (4 unique emails from 6 entries)
+ 4. Calculations are correct
+ 
+-### Step 17.2: Read the Output Carefully
++### Step 17.2: Use the terminal menu
+ 
+-Each section teaches you something:
++The application waits for one menu choice at a time. Enter 1 to list unique participants, 2 for detail and full test history, or 8 for statistics. Enter 0 to exit.
+ 
+-```
+-📊 TASK 4: Unique Emails Using Set
+-------------------------------------------------------------
+-Found 4 unique emails:
+-  1. aditya@brainmatics.com
+-  2. zaim@brainmatics.com
+-  3. milea@brainmatics.com
+-  4. pratama@brainmatics.com
+-```
++On a fresh working file, there are four participants from six tests. Subsequent transactions change these counts. Menu 3 adds the first test; menu 5 appends a retest even when its score drops. Menu 4 updates biodata on every test, and menu 6 removes all history after confirmation.
+ 
+-**🎓 Ask yourself:** Why 4 emails from 6 entries? (Answer: 2 duplicates removed!)
++Changes live in `data/peserta.local.json`, which Git ignores. The seed `data/peserta.json` stays unchanged. `PESERTA_DATA_FILE` selects a separate working file for tests. Broken JSON produces an error and remains intact. Input that ends midway through a form cancels that operation.
+ 
+-**Also find these lines** (Phases 13–15):
+-```
+-Sisa properti (rest): {"id":101,"email":"aditya@brainmatics.com","score":85}
+-Score tidak-ada@brainmatics.com: tidak ditemukan
+-Validasi status (includes): "LULUS" → true, "lulus" → false
+-```
++The old destructuring and missing-value demonstrations remain in practice stages 03 and 09 as separate examples. The final menu uses those concepts through the application functions.
+ 
+ ### Step 17.3: Run the Tests
+ 
+@@ -942,7 +933,7 @@ npm test
+ Latihan: 7/7 cocok
+ ```
+ 
+-The second part checks the exercise solutions in `latihan/referensi/` (see [additional exercise references](../../latihan/referensi/README.md)).
++Additional CRUD, store, and menu suites run after the 79 legacy assertions. They use temporary working files and real Node processes. TAP timings vary; all tests must pass. The final part checks the exercise solutions in `latihan/referensi/` (see [additional exercise references](../../latihan/referensi/README.md)).
+ 
+ **If a test fails:**
+ ```
+@@ -1009,7 +1000,7 @@ Practice in your learner project. Keep the root data/peserta.json and the fixed
+ 
+ ### Step 18.4: Next
+ 
+-Follow [practice stages 00–11](../../latihan/README.md) to build the entire application. Each folder contains complete code, expected output, and challenge solutions. At stage 11, run `npm --prefix latihan/proyek test` to check your application. `npm run cek-latihan` checks the seven original reference solutions only.
++Follow [practice stages 00–13](../../latihan/README.md) to build the entire application. Each folder contains complete code, expected output, and challenge solutions. At stage 13, run `npm --prefix latihan/proyek test` to check your application. `npm run cek-latihan` checks the seven original reference solutions only.
+ 
+ ---
+ 
+diff --git a/docs/reference/CODE_HIGHLIGHTS.md b/docs/reference/CODE_HIGHLIGHTS.md
+index 79cf186..5723b17 100644
+--- a/docs/reference/CODE_HIGHLIGHTS.md
++++ b/docs/reference/CODE_HIGHLIGHTS.md
+@@ -2,6 +2,8 @@
+ 
+ > Run commands from the repository root, the directory containing `package.json` and `main.js`. Code paths in this reference are relative to that root. Follow the [practice index](../../latihan/README.md) for guided coding.
+ 
++> The current main.js opens the CRUD terminal menu. The standalone examples below explain individual JavaScript features. Follow [stages 10–13](../../latihan/10-crud-peserta/README.md) for the cumulative application code.
++
+ > **Study Guide:** This document highlights the ES6 features in each implementation with annotations explaining what each feature does and why it's used.
+ 
+ ---
+@@ -45,7 +47,7 @@ displayPeserta("Test", 90, "lulus"); // Invalid status → "LULUS" (computed fro
+ 
+ ## 🎯 Task 1.2: Destructuring with Renaming
+ 
+-### File: `main.js` (Example Section)
++### Standalone destructuring example
+ 
+ ```javascript
+ // ✨ ES6 FEATURE: Object Destructuring with Renaming
+@@ -419,7 +421,7 @@ console.log(`Score: ${score}`);  // "Score: 0" ✅
+ 
+ ## 🎯 Task 1.6c: Module System Integration
+ 
+-### File: `main.js`
++### Standalone integration example
+ 
+ ```javascript
+ // ✨ ES6 FEATURE: Named Imports
+@@ -508,7 +510,7 @@ pesertaList.map(({ score, ...rest }) => ({ ...rest, score: score ?? 0 }));
+ ```
+ 
+ ```javascript
+-// main.js TASK 3
++// Destructuring concept example (practice stage 03)
+ const { name, ...sisanya } = { id: 101, name: "Aditya", email: "aditya@brainmatics.com", score: 85 };
+ // sisanya → { id: 101, email: "aditya@brainmatics.com", score: 85 }
+ ```
+@@ -556,7 +558,7 @@ loadPeserta()
+ json?.peserta ?? []        // JSON.parse("null") is null → ?. gives undefined → ?? gives []
+ score ?? 0                 // undefined/null → 0, but a real 0 stays 0 (|| would also replace 0)
+ peserta ?? {}              // formatters accept null; a default parameter only catches undefined
+-pesertaMap.get("tidak-ada@brainmatics.com")?.score ?? "tidak ditemukan"  // main.js TASK 5
++pesertaMap.get("tidak-ada@brainmatics.com")?.score ?? "tidak ditemukan"  // Missing-value concept example (practice stage 09)
+ ```
+ 
+ | Expression | `||` result | `??` result |
+@@ -651,3 +653,11 @@ Nama: Aditya Prayoga, Score: 88, Status: LULUS
+ 📚 Aditya Prayoga - Class: JavaScript Fundamentals - Score: 88
+ Aditya Prayoga mendapat score 88 - SESUAI STANDAR
+ ```
++
++## Current CRUD and storage flow
++
++`utils/pesertaCrud.js` exports tambahPeserta, ubahPeserta, hapusPeserta, tambahNilai, and getRiwayatTes. These functions return new arrays and objects. Normalized email identifies a participant; ID identifies one test. Retests append in order, including lower scores. Biodata updates preserve IDs and scores across all tests.
++
++`utils/pesertaStore.js` validates structure, IDs, identity, and finite scores before loading or saving. It initializes a working file from the seed only on ENOENT. Saving writes a temporary file in the target directory, then renames it. main.js awaits save before replacing in-memory history or printing success.
++
++The menu uses one readline async iterator. List, filter, and statistics use unique participants with the last score. Detail shows every test. EOF cancels an incomplete form; deleting requires confirmation. The 60–100 validator range remains separate from the passing threshold of 80.
+diff --git a/docs/reference/COMMON_ERRORS.md b/docs/reference/COMMON_ERRORS.md
+index 2c5b2fb..2b0c9f3 100644
+--- a/docs/reference/COMMON_ERRORS.md
++++ b/docs/reference/COMMON_ERRORS.md
+@@ -679,4 +679,17 @@ Errors are learning opportunities. Each one you solve makes you a better program
+ 
+ ---
+ 
+-*Last Updated: November 10, 2025*
+\ No newline at end of file
++*Last Updated: November 10, 2025*
++## Terminal menu and working JSON
++
++If npm start waits at `Pilihan:`, enter a choice from 0 to 8. Enter 0 to exit. Automated runs must provide input and a timeout.
++
++If adding a participant reports `Email sudah terdaftar.`, inspect the current list. Email is trimmed and lowercased before comparison. Use menu 5 to record a retest for an existing participant. Menu 4 changes biodata, not scores.
++
++Empty score input is invalid. A literal 0 is valid. Scores must be finite numbers between 0 and 100. When changing biodata, an empty field keeps the existing value.
++
++If startup reports invalid working JSON, inspect data/peserta.local.json or the file selected by PESERTA_DATA_FILE. Keep the damaged file for diagnosis; the application does not overwrite it with seed data. Fix the data or choose a separate working file. The seed data/peserta.json remains the test reference.
++
++If saving fails, the application reports an error and retains its previous in-memory history. Check write access and the destination directory before retrying. If input ends during a form, the operation is cancelled and no partial data is saved.
++
++For a saved score that seems wrong, check test order. Scores 90 then 79 mean TIDAK LULUS because 79 is last. A subsequent 80 means LULUS. Detail displays all three tests after restart.
+diff --git a/instructor.md b/instructor.md
+index 7c12cca..d631a42 100644
+--- a/instructor.md
++++ b/instructor.md
+@@ -1,6 +1,6 @@
+ # Panduan instruktur: praktik sampai proyek selesai
+ 
+-Peserta membangun satu aplikasi di `latihan/proyek/`, dimulai dari program pembuka sampai laporan TASK 1–9 dan pengujian. Gunakan [indeks latihan](latihan/README.md) sebagai jalur utama. Setiap tahap berisi kode lengkap yang diketik peserta dan penyelesaian tantangan dalam bagian yang dapat dibuka.
++Peserta membangun satu aplikasi di `latihan/proyek/`, dimulai dari program pembuka sampai menu CRUD, file JSON, dan pengujian. Gunakan [indeks latihan](latihan/README.md) sebagai jalur utama. Setiap tahap berisi kode lengkap yang diketik peserta dan penyelesaian tantangan dalam bagian yang dapat dibuka.
+ 
+ ## Siapkan kelas
+ 
+@@ -14,7 +14,7 @@ npm run cek-panduan
+ npm --prefix latihan/proyek start
+ ```
+ 
+-Root test memeriksa 79 perilaku aplikasi referensi dan tujuh solusi tambahan. Pemeriksa panduan membangun proyek sementara dari kode yang ditampilkan pada README. Starter peserta hanya mencetak pesan pembuka dan sengaja belum berisi aplikasi selesai.
++Root test memeriksa 79 perilaku lama, suite CRUD/file/menu, dan tujuh solusi tambahan. Pemeriksa panduan membangun proyek sementara dari kode yang ditampilkan pada README. Starter peserta hanya mencetak pesan pembuka dan sengaja belum berisi aplikasi selesai.
+ 
+ Perbesar font editor dan terminal. Pastikan peserta bisa menemukan root repository dan folder proyeknya. Periksa kembali direktori terminal sebelum mendiagnosis kesalahan import.
+ 
+@@ -31,7 +31,7 @@ Peserta tetap mengetik dan menjalankan semua kode. Membuka kode lengkap tidak me
+ 
+ ## Urutan tahap
+ 
+-Estimasi awal dua sesi masing-masing empat jam, termasuk praktik dan jeda. Sesuaikan dengan kecepatan peserta; jangan melompati checkpoint agar mengejar jadwal.
++Estimasi awal tiga sesi masing-masing empat jam, termasuk praktik dan jeda. Sesuaikan dengan kecepatan peserta; jangan melompati checkpoint agar mengejar jadwal.
+ 
+ | Tahap | Folder dan petunjuk | Menit | Checkpoint |
+ |---|---|---|---|
+@@ -45,10 +45,12 @@ Estimasi awal dua sesi masing-masing empat jam, termasuk praktik dan jeda. Sesua
+ | 07 | [Class validator](latihan/07-class-validator/README.md) | 45 | Aturan kelulusan dibedakan dari pemeriksaan rentang. |
+ | 08 | [Module dan formatter](latihan/08-module-dan-formatter/README.md) | 45 | Processor, validator, dan formatter berjalan dari module peserta. |
+ | 09 | [Async loader](latihan/09-async-loader/README.md) | 50 | JSON dimuat dan kegagalan ditangani tanpa merusak data dasar. |
+-| 10 | [Integrasi aplikasi](latihan/10-integrasi-aplikasi/README.md) | 30 | Aplikasi peserta menampilkan TASK 1–9. |
+-| 11 | [Pengujian akhir](latihan/11-pengujian-akhir/README.md) | 35 | Suite pada module peserta lulus 79/79. |
++| 10 | [CRUD peserta](latihan/10-crud-peserta/README.md) | 75 | Lima fungsi mengolah array tanpa mengubah sumber. |
++| 11 | [Penyimpanan JSON](latihan/11-penyimpanan-json/README.md) | 60 | File kerja aman dan riwayat bertahan saat dibaca kembali. |
++| 12 | [Menu terminal](latihan/12-menu-terminal/README.md) | 80 | Semua pilihan menu berjalan dan menunggu penyimpanan. |
++| 13 | [Pengujian akhir](latihan/13-pengujian-akhir/README.md) | 35 | Suite lama, CRUD, store, dan menu lulus pada proyek peserta. |
+ 
+-Sesi 1: pembukaan 10 menit, tahap 00–07 selama 195 menit, jeda 20 menit, dan refleksi 15 menit. Sesi 2: ulasan 10 menit, tahap 08–11 selama 160 menit, jeda 20 menit, pembahasan akhir 30 menit, dan pendampingan 20 menit. Setiap sesi berjumlah 240 menit.
++Sesi 1 memakai 195 menit untuk tahap 00–07 dan 45 menit untuk pembukaan, jeda, serta pembahasan. Sesi 2 memakai 170 menit untuk tahap 08–10 dan 70 menit untuk ulasan, jeda, serta pendampingan. Sesi 3 memakai 175 menit untuk tahap 11–13 dan 65 menit untuk jeda serta pembahasan akhir. Total praktik inti 540 menit; total kelas 720 menit. Estimasi ini perlu disesuaikan setelah melihat kecepatan peserta mengetik dan memperbaiki kesalahan.
+ 
+ ## Bawakan setiap tahap
+ 
+@@ -192,54 +194,58 @@ Saat memeriksa: Default parameter berbeda dari fallback nullish. Kegagalan main
+ 
+ Pembahasan tantangan: Uji null, key peserta hilang, score hilang, score 0, dan JSON rusak. Bandingkan daftar kosong dengan error parsing.
+ 
+-### 10. Integrasi aplikasi
++### 10. CRUD peserta
+ 
+-Buka [petunjuk tahap 10](latihan/10-integrasi-aplikasi/README.md).
++Ikuti [tahap 10](latihan/10-crud-peserta/README.md). Kerjakan tiga checkpoint: tambah dan baca, ubah biodata, kemudian tes ulang serta hapus. Minta peserta menunjuk array sumber dan hasil baru untuk membuktikan sumber tetap utuh.
+ 
+-Sampaikan: "Kita sudah membuat seluruh bagian. Sekarang susun aplikasi yang memakai semuanya."
++Sampaikan bahwa email adalah identitas peserta, sedangkan ID adalah identitas satu tes. Uji 90 → 79 → 80. Nilai terakhir 79 harus TIDAK LULUS, bukan mempertahankan nilai 90. Ubah biodata seluruh riwayat tanpa mengubah ID, nilai, atau urutan.
+ 
+-Telusuri import dan alur load, proses, validasi, format. Bangun main melalui empat checkpoint: TASK 1–3, TASK 4–5, TASK 6, lalu TASK 7–9. Main lengkap berada di langkah 4.
++### 11. Penyimpanan JSON
+ 
+-Peserta memeriksa angka ringkasan dan menelusuri satu peserta dari JSON ke output akhir.
++Ikuti [tahap 11](latihan/11-penyimpanan-json/README.md). Mulai dari pembacaan tervalidasi, lalu tambahkan inisialisasi dan penyimpanan. Tunjukkan perbedaan file contoh dengan file kerja. Jalankan contoh dua kali dan periksa riwayat tetap sama.
+ 
+-Saat memeriksa: Periksa empat peserta unik, tiga lulus, dan statistik per kelas. Jangan biarkan definisi lama tertinggal di main.
++Telusuri ENOENT secara khusus. JSON rusak harus menghasilkan error dan tetap utuh. Pada save, tulis file sementara, rename, baru ubah memori. Tantangan memakai direktori sementara sendiri.
+ 
+-Pembahasan tantangan: Tantangan mencetak dua ringkasan kelas dari peserta unik. Tanyakan alasan deduplikasi dilakukan sebelum statistik.
++### 12. Menu terminal
+ 
+-### 11. Pengujian akhir
++Ikuti [tahap 12](latihan/12-menu-terminal/README.md). Bangun empat checkpoint: daftar, laporan dan filter, tambah serta tes ulang, kemudian ubah serta hapus. Pada setiap checkpoint, jalankan node latihan/proyek/main.js dan ketik input sesuai petunjuk.
+ 
+-Buka [petunjuk tahap 11](latihan/11-pengujian-akhir/README.md).
++Blok output memperlihatkan input terprogram; prompt dapat tampil bersebelahan karena jawaban tidak digemakan. Terminal interaktif menggema jawaban yang diketik. Bahas satu iterator untuk seluruh input, pembatalan EOF, serta alasan pesan sukses menunggu await saveStore.
+ 
+-Sampaikan: "Program yang terlihat berjalan tetap perlu diperiksa pada batas dan kondisi gagal."
++Coba input biodata kosong, konfirmasi hapus tidak, email bentrok, serta nilai kosong. Semua kegagalan kembali ke menu tanpa menyimpan perubahan parsial. Restart aplikasi dan periksa riwayat.
+ 
+-Salin suite beserta fixtures ke proyek peserta dan tambahkan script test. Tunjukkan import test yang mengarah ke module peserta.
++### 13. Pengujian akhir
+ 
+-Peserta menjalankan test pada proyek sendiri dan membaca nama, expected, serta actual jika ada kegagalan.
++Ikuti [tahap 13](latihan/13-pengujian-akhir/README.md). Salin test beserta fixture, lalu tambahkan script test untuk empat suite. Suite mengimpor utils dan main milik peserta. Jangan menyalin implementasi aplikasi root.
+ 
+-Saat memeriksa: Root npm test tidak menguji progres peserta. Gunakan npm --prefix latihan/proyek test, dengan target79/79.
+-
+-Pembahasan tantangan: Jalankan assert tambahan untuk tes yang turun, 79/80, array kosong, nilai 0, dan rentang 70 yang belum lulus.
++Jalankan npm --prefix latihan/proyek test. Pertahankan 79 pengujian lama dan semua suite baru. Keluaran TAP memiliki waktu yang berubah; periksa jumlah lulus dan nol gagal. Baca nama, Expected, dan Actual ketika pengujian gagal. Jangan mengubah expected agar implementasi salah tampak lulus.
+ 
+ ## Nilai hasil praktik
+ 
+-Peserta memenuhi tahap jika output cocok dan bisa menjelaskan kode yang menghasilkan output tersebut. Pada akhir kelas, periksa proyek peserta melalui:
++Peserta memenuhi tahap jika output cocok dan dapat menjelaskan kode yang menghasilkannya. Jalankan dari root repository:
+ 
+ ```bash
+ npm --prefix latihan/proyek start
+ npm --prefix latihan/proyek test
+ ```
+ 
+-Target akhir aplikasi adalah TASK 1–9, dengan enam tes, empat peserta unik, dan tiga peserta lulus. Target test adalah 79/79. Gunakan tantangan 11 untuk mengecek tes ulang bernilai lebih rendah dan perbedaan rentang dengan kelulusan.
+-
+-| Poin studi kasus | Tahap pembuktian |
+-|---|---|
+-| Kelulusan dari tes terakhir | 02, 05, 10, 11 |
+-| const, let, dan default parameter | 01, 02, 04 |
+-| Destructuring dan object rest/spread | 03, 04, 05, 09 |
+-| Set dan Map | 05 |
+-| Class serta export/import | 07, 08 |
+-| Validasi status melalui includes | 07, 08 |
+-| async/await, try/catch, ?. dan ?? | 09, 11 |
++Pada aplikasi, coba tambah peserta, catat tes 90 → 79 → 80, ubah biodata, restart, lalu hapus seluruh riwayat. Gunakan 0 untuk keluar. Data awal enam tes dan empat peserta hanya menjadi acuan awal; jumlah berubah setelah transaksi. Nilai 70 sesuai rentang validator 60–100 tetapi belum lulus batas 80.
++
++## Pemetaan requirement ke bukti
++
++| Requirement | Fungsi | Menu | Pengujian |
++|---|---|---|---|
++| Tambah biodata dan tes pertama, email unik | tambahPeserta | 3 | test/test-crud.js, test/test-menu.js |
++| Riwayat lengkap dan nilai terakhir termasuk turun | tambahNilai, getRiwayatTes, createPesertaMap | 2, 5 | test/test-crud.js, test/test-store.js, test/test-menu.js |
++| Biodata berubah pada semua tes, ID/nilai/urutan tetap | ubahPeserta | 4 | test/test-crud.js, test/test-menu.js |
++| Hapus seluruh riwayat setelah konfirmasi | hapusPeserta | 6 | test/test-crud.js, test/test-menu.js |
++| Normalisasi email, nama/kelas wajib, nilai finite 0–100 | tambahPeserta, ubahPeserta, tambahNilai | 3, 4, 5 | test/test-crud.js, test/test-store.js |
++| Peserta unik dan filter kelas dengan nilai terakhir | getUniqueEmails, getUniquePeserta, getPesertaByClass | 1, 7 | test/test-all.js, test/test-menu.js |
++| Statistik dan status terpisah dari rentang 60–100 | calculateAverageScore, getStatus, isValidStatus, validateBatch, isValidScore, formatResult, getValidationDetails, createPassingValidator, createLenientValidator | 8 | test/test-all.js, test/test-menu.js |
++| Detail dan formatter | displayPeserta, createPesertaSummary, createDetailedReport, formatPesertaList | 1, 2, 7 | test/test-all.js, test/test-menu.js |
++| Simpan/restart, seed hanya ENOENT, JSON rusak tetap utuh | loadStore, saveStore | Semua perubahan | test/test-store.js, test/test-menu.js |
++| EOF/konfirmasi batal, gagal simpan tanpa pesan sukses | baca, simpan, saveStore | 3–6 | test/test-menu.js |
++| Dasar ES6+, loader, validator dan module tetap tersedia | loadPeserta, processor, formatter, PesertaValidator | 1, 2, 7, 8 | test/test-all.js dan tujuh solusi latihan/referensi |
+ 
+ ## Bantu peserta yang tertinggal
+ 
+diff --git a/latihan/09-async-loader/README.md b/latihan/09-async-loader/README.md
+index 3f8e74a..9b41b3f 100644
+--- a/latihan/09-async-loader/README.md
++++ b/latihan/09-async-loader/README.md
+@@ -6,10 +6,14 @@ Di akhir tahap ini aplikasi membaca data dari file, mempertahankan nilai 0, dan
+ 
+ Semua path file pada petunjuk berada di dalam `latihan/proyek/`. Jalankan perintah terminal dari root repository. Ganti seluruh isi file yang disebut; pertahankan file lain dari tahap sebelumnya.
+ 
++Pada blok `diff`, baris `-` menunjukkan kode sebelum perubahan dan baris `+` menunjukkan kode sesudah perubahan. Gunakan blok kode lengkap setelahnya untuk mengganti isi file.
++
+ ## Langkah 1: Pindahkan data ke JSON dan tunggu Promise
+ 
+ Buat folder `data` di proyek peserta, lalu buat `data/peserta.json` dengan seluruh isi berikut. Ini salinan data latihan; jangan mengubah `data/peserta.json` di root repository.
+ 
++File baru: `data/peserta.json`. Berikut isi lengkapnya.
++
+ <!-- write: data/peserta.json -->
+ ```json
+ {
+@@ -61,6 +65,89 @@ Buat folder `data` di proyek peserta, lalu buat `data/peserta.json` dengan selur
+ ```
+ Ganti seluruh `main.js` berikut. Array inline dari tahap 08 sekarang digantikan oleh pembacaan JSON.
+ 
++Perubahan pada `main.js`:
++
++```diff
++--- sebelum/main.js
+++++ sesudah/main.js
++@@ -1,68 +1,6 @@
++-import {
++-  getUniqueEmails, createPesertaMap, getUniquePeserta,
++-  getPesertaByClass, calculateAverageScore
++-} from "./utils/pesertaProcessor.js";
++-import {
++-  PesertaValidator, createPassingValidator, createLenientValidator
++-} from "./utils/pesertaValidator.js";
++-import {
++-  displayPeserta, createPesertaSummary, formatPesertaList, createDetailedReport
++-} from "./utils/pesertaFormatter.js";
+++import { readFile } from 'node:fs/promises';
++
++-const rawPeserta = [
++-  {
++-    "id": 101,
++-    "name": "Aditya Prayoga",
++-    "email": "aditya@brainmatics.com",
++-    "class": "JavaScript Fundamentals",
++-    "score": 85
++-  },
++-  {
++-    "id": 102,
++-    "name": "Zaim Fauzan",
++-    "email": "zaim@brainmatics.com",
++-    "class": "React Basics",
++-    "score": 92
++-  },
++-  {
++-    "id": 103,
++-    "name": "Aditya Prayoga",
++-    "email": "aditya@brainmatics.com",
++-    "class": "JavaScript Fundamentals",
++-    "score": 88
++-  },
++-  {
++-    "id": 104,
++-    "name": "Milea Kusuma",
++-    "email": "milea@brainmatics.com",
++-    "class": "JavaScript Fundamentals",
++-    "score": 78
++-  },
++-  {
++-    "id": 105,
++-    "name": "Pratama Wijaya",
++-    "email": "pratama@brainmatics.com",
++-    "class": "React Basics",
++-    "score": 95
++-  },
++-  {
++-    "id": 106,
++-    "name": "Zaim Fauzan",
++-    "email": "zaim@brainmatics.com",
++-    "class": "React Basics",
++-    "score": 94
++-  }
++-];
++-
++-const uniquePeserta = getUniquePeserta(rawPeserta);
++-console.log(`Email unik: ${getUniqueEmails(rawPeserta).length}`);
++-console.log(`Nilai terakhir Aditya: ${createPesertaMap(rawPeserta).get("aditya@brainmatics.com").score}`);
++-console.log(formatPesertaList(uniquePeserta));
++-console.log(`Rata-rata: ${calculateAverageScore(uniquePeserta)}`);
++-console.log(`Peserta React: ${getPesertaByClass(uniquePeserta, "React Basics").length}`);
++-console.log(displayPeserta("Milea", 78, "lulus"));
++-console.log(createPesertaSummary(uniquePeserta[0]));
++-console.log(createDetailedReport(uniquePeserta[0]));
++-console.log(`Batas lulus: ${PesertaValidator.PASSING_SCORE}`);
++-console.log(`Valid passing: ${createPassingValidator().validateBatch(uniquePeserta).valid}`);
++-console.log(`Valid lenient: ${createLenientValidator().validateBatch(uniquePeserta).valid}`);
+++const pembacaan = readFile(new URL('./data/peserta.json', import.meta.url), 'utf8');
+++console.log(`Pembacaan menghasilkan Promise: ${pembacaan instanceof Promise}`);
+++const json = JSON.parse(await pembacaan);
+++console.log(`Jumlah tes: ${json.peserta.length}`);
++```
++
++Kode lengkap `main.js` setelah perubahan:
++
+ <!-- write: main.js -->
+ ```javascript
+ import { readFile } from 'node:fs/promises';
+@@ -87,6 +174,8 @@ Jumlah tes: 6
+ 
+ Buat `utils/pesertaLoader.js` dengan isi lengkap berikut.
+ 
++File baru: `utils/pesertaLoader.js`. Berikut isi lengkapnya.
++
+ <!-- write: utils/pesertaLoader.js -->
+ ```javascript
+ import { readFile } from 'node:fs/promises';
+@@ -114,6 +203,40 @@ Fungsi `async` selalu mengembalikan Promise. Pemanggil harus menunggu hasilnya d
+ 
+ Ganti seluruh `main.js`:
+ 
++Perubahan pada `main.js`:
++
++```diff
++--- sebelum/main.js
+++++ sesudah/main.js
++@@ -1,6 +1,19 @@
++-import { readFile } from 'node:fs/promises';
+++import { loadPeserta } from './utils/pesertaLoader.js';
+++import { createPesertaMap } from './utils/pesertaProcessor.js';
+++import { displayPeserta } from './utils/pesertaFormatter.js';
++
++-const pembacaan = readFile(new URL('./data/peserta.json', import.meta.url), 'utf8');
++-console.log(`Pembacaan menghasilkan Promise: ${pembacaan instanceof Promise}`);
++-const json = JSON.parse(await pembacaan);
++-console.log(`Jumlah tes: ${json.peserta.length}`);
+++let rawPeserta;
+++try {
+++  rawPeserta = await loadPeserta();
+++} catch (error) {
+++  console.error(`❌ ${error.message}`);
+++  process.exit(1);
+++}
+++
+++const pesertaMap = createPesertaMap(rawPeserta);
+++console.log(`Jumlah tes: ${rawPeserta.length}`);
+++console.log(`Peserta unik: ${pesertaMap.size}`);
+++const { name, score } = pesertaMap.get('aditya@brainmatics.com');
+++console.log(displayPeserta(name, score));
+++console.log(`Peserta tidak ada: ${pesertaMap.get('tidak-ada@brainmatics.com')?.name ?? 'tidak ditemukan'}`);
+++console.log(`Nilai nol tetap: ${0 ?? 80}`);
++```
++
++Kode lengkap `main.js` setelah perubahan:
++
+ <!-- write: main.js -->
+ ```javascript
+ import { loadPeserta } from './utils/pesertaLoader.js';
+@@ -156,6 +279,8 @@ Nilai nol tetap: 0
+ 
+ Buat `cek-loader.js`. File `data/tidak-ada.json` sengaja tidak dibuat.
+ 
++File baru: `cek-loader.js`. Berikut isi lengkapnya.
++
+ <!-- write: cek-loader.js -->
+ ```javascript
+ import { loadPeserta } from './utils/pesertaLoader.js';
+@@ -194,6 +319,8 @@ Buat empat file fixture di bawah dalam folder `data` proyek peserta. Prediksi ha
+ 
+ Buat `data/contoh-null.json`:
+ 
++File baru: `data/contoh-null.json`. Berikut isi lengkapnya.
++
+ <!-- write: data/contoh-null.json -->
+ ```json
+ null
+@@ -201,6 +328,8 @@ null
+ 
+ Buat `data/contoh-kosong.json`:
+ 
++File baru: `data/contoh-kosong.json`. Berikut isi lengkapnya.
++
+ <!-- write: data/contoh-kosong.json -->
+ ```json
+ {}
+@@ -208,6 +337,8 @@ Buat `data/contoh-kosong.json`:
+ 
+ Buat `data/contoh-nilai.json`:
+ 
++File baru: `data/contoh-nilai.json`. Berikut isi lengkapnya.
++
+ <!-- write: data/contoh-nilai.json -->
+ ```json
+ {
+@@ -225,6 +356,8 @@ Buat `data/contoh-nilai.json`:
+ 
+ Buat `data/contoh-rusak.json`:
+ 
++File baru: `data/contoh-rusak.json`. Berikut isi lengkapnya.
++
+ <!-- write: data/contoh-rusak.json -->
+ ```text
+ { "peserta": [ }
+@@ -283,4 +416,4 @@ Isi lengkap loader ada pada langkah 2 dan main ada pada langkah 3. `package.json
+ - [ ] File tidak ditemukan dan JSON rusak masuk catch.
+ - [ ] Saya bisa menjelaskan perbedaan jalur gagal aplikasi utama dan demo fallback.
+ 
+-[Tahap sebelumnya](../08-module-dan-formatter/README.md) · [Daftar latihan](../README.md) · [Tahap berikutnya](../10-integrasi-aplikasi/README.md)
++[Tahap sebelumnya](../08-module-dan-formatter/README.md) · [Daftar latihan](../README.md) · [Tahap berikutnya](../10-crud-peserta/README.md)
+diff --git a/latihan/README.md b/latihan/README.md
+index 14a5c1b..59b159f 100644
+--- a/latihan/README.md
++++ b/latihan/README.md
+@@ -1,6 +1,6 @@
+ # Praktik membangun Sistem Manajemen Peserta Training
+ 
+-Bangun satu aplikasi dari program pembuka sampai laporan lengkap dan pengujian. Kerjakan kode di [proyek/](proyek/), lalu teruskan folder proyek yang sama pada setiap tahap. Setiap folder bernomor berisi petunjuk, kode lengkap, penjelasan, output, dan tantangan beserta penyelesaiannya.
++Bangun satu aplikasi dari program pembuka sampai menu CRUD, penyimpanan JSON, dan pengujian. Kerjakan kode di [proyek/](proyek/), lalu teruskan folder proyek yang sama pada setiap tahap. Setiap folder bernomor berisi petunjuk, kode lengkap, penjelasan, output, dan tantangan beserta penyelesaiannya.
+ 
+ ## Mulai praktik
+ 
+@@ -21,8 +21,10 @@ Bangun satu aplikasi dari program pembuka sampai laporan lengkap dan pengujian.
+ | 07 | [Class validator](07-class-validator/README.md) | Aturan kelulusan dibedakan dari pemeriksaan rentang. |
+ | 08 | [Module dan formatter](08-module-dan-formatter/README.md) | Processor, validator, dan formatter berjalan dari module peserta. |
+ | 09 | [Async loader](09-async-loader/README.md) | JSON dimuat dan kegagalan ditangani tanpa merusak data dasar. |
+-| 10 | [Integrasi aplikasi](10-integrasi-aplikasi/README.md) | Aplikasi peserta menampilkan TASK 1–9. |
+-| 11 | [Pengujian akhir](11-pengujian-akhir/README.md) | Suite pada module peserta lulus 79/79. |
++| 10 | [CRUD peserta](10-crud-peserta/README.md) | Tambah, baca, ubah, hapus, dan tes ulang berjalan pada array. |
++| 11 | [Penyimpanan JSON](11-penyimpanan-json/README.md) | File kerja divalidasi, disimpan, dan dibaca kembali. |
++| 12 | [Menu terminal](12-menu-terminal/README.md) | Input pengguna menghubungkan CRUD, laporan, dan penyimpanan. |
++| 13 | [Pengujian akhir](13-pengujian-akhir/README.md) | Suite lama, CRUD, file, dan menu menguji proyek peserta. |
+ 
+ ## Jalankan proyekmu
+ 
+@@ -32,13 +34,13 @@ Dari root repository:
+ npm --prefix latihan/proyek start
+ ```
+ 
+-Starter hanya menampilkan pesan pembuka. Tambahkan data dan module mengikuti petunjuk. Setelah tahap 11, jalankan pengujian proyek peserta:
++Starter hanya menampilkan pesan pembuka. Tambahkan data dan module mengikuti petunjuk. Setelah tahap 13, jalankan pengujian proyek peserta:
+ 
+ ```bash
+ npm --prefix latihan/proyek test
+ ```
+ 
+-Script test baru ditambahkan pada tahap 11. Sebelum tahap itu, belum tersedia pengujian proyek peserta.
++Script test baru ditambahkan pada tahap 13. Sebelum tahap itu, belum tersedia pengujian proyek peserta.
+ 
+ ## Gunakan bahan referensi
+ 
+@@ -49,3 +51,5 @@ Folder [referensi/](referensi/README.md) menyimpan tujuh latihan tambahan dari s
+ Untuk memeriksa kode dan output dalam seluruh panduan, jalankan `npm run cek-panduan`. Pemeriksa membangun proyek sementara dari blok panduan sehingga tidak menimpa hasil praktikmu.
+ 
+ Gunakan data di proyekmu untuk praktik. Pertahankan `data/peserta.json` di root repository karena pengujian aplikasi referensi bergantung pada isinya.
++
++Perkiraan praktik: tiga sesi masing-masing empat jam, termasuk jeda dan pembahasan. Data kerja aplikasi berada pada data/peserta.local.json; data contoh tetap menjadi acuan. Lihat [pemetaan requirement dan pengujian](../instructor.md#pemetaan-requirement-ke-bukti) untuk menelusuri hasil akhir.
+# 10. CRUD peserta pada array
+
+Buat fungsi tambah, baca, ubah, hapus, dan tes ulang. Prasyarat: tahap 09 selesai. Satu object adalah satu hasil tes; email mengidentifikasi peserta dan ID mengidentifikasi tes. Tahap ini bekerja di memori, sehingga contoh belum menyimpan perubahan ke JSON.
+
+Semua nama file berada di `latihan/proyek/`. Jalankan perintah dari root repository. Pertahankan file tahap sebelumnya. Pada diff, `-` adalah kode lama dan `+` adalah kode baru. Ketik perubahan, lalu cocokkan dengan kode lengkap setelah diff. Jalankan setiap checkpoint sebelum melanjutkan.
+
+## Langkah 1: Tambah peserta dan baca riwayat
+
+Normalisasikan email sebelum membandingkan identitas. `Set` mendeteksi email ganda. `map` dan object spread menyalin entri sumber. ID baru memakai ID terbesar ditambah satu. Nilai harus bertipe number, terbatas, dan berada pada 0–100. String kosong tidak menjadi nol.
+
+Buat file `utils/pesertaCrud.js` dengan isi lengkap berikut.
+
+<!-- write: utils/pesertaCrud.js -->
+```javascript
+const normalisasiEmail = (email = '') => {
+  if (typeof email !== 'string' || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+    throw new Error('Email harus berformat valid.');
+  }
+  return email.trim().toLowerCase();
+};
+
+const teksWajib = (nilai, label) => {
+  if (typeof nilai !== 'string' || nilai.trim() === '') {
+    throw new Error(`${label} wajib diisi.`);
+  }
+  return nilai.trim();
+};
+
+const validasiNilai = (score) => {
+  if (typeof score !== 'number' || !Number.isFinite(score) || score < 0 || score > 100) {
+    throw new Error('Nilai harus berupa angka terbatas antara 0 dan 100.');
+  }
+};
+
+const biodataPeserta = (data = {}) => {
+  if (data === null || typeof data !== 'object' || Array.isArray(data)) {
+    throw new Error('Biodata peserta harus berupa object.');
+  }
+  return {
+    name: teksWajib(data.name, 'Nama'),
+    email: normalisasiEmail(data.email),
+    class: teksWajib(data.class, 'Kelas')
+  };
+};
+
+const cariRiwayat = (list = [], email = '') => {
+  const identitas = normalisasiEmail(email);
+  const riwayat = list.filter(peserta => normalisasiEmail(peserta.email) === identitas);
+  if (riwayat.length === 0) throw new Error('Peserta tidak ditemukan.');
+  return riwayat;
+};
+
+const idBerikutnya = (list = []) => {
+  const id = list.reduce((terbesar, peserta) => Math.max(terbesar, peserta.id), 0) + 1;
+  if (!Number.isSafeInteger(id)) throw new Error('ID hasil tes tidak dapat ditambahkan.');
+  return id;
+};
+
+const salinRiwayat = (list = []) => list.map(peserta => ({ ...peserta }));
+
+/**
+ * Tambahkan peserta beserta nilai tes pertamanya tanpa mengubah list sumber.
+ * @param {Array} list Riwayat hasil tes.
+ * @param {Object} data Biodata dan nilai peserta baru.
+ * @returns {Array} Riwayat baru.
+ */
+export const tambahPeserta = (list = [], data = {}) => {
+  const biodata = biodataPeserta(data);
+  validasiNilai(data.score);
+  const emailTerdaftar = new Set(list.map(peserta => normalisasiEmail(peserta.email)));
+  if (emailTerdaftar.has(biodata.email)) throw new Error('Email sudah terdaftar.');
+  // ES2018 object spread menyalin data agar riwayat sumber tetap utuh.
+  return [...salinRiwayat(list), { id: idBerikutnya(list), ...biodata, score: data.score }];
+};
+
+/**
+ * Baca seluruh tes peserta sesuai urutan pencatatan.
+ * @param {Array} list Riwayat hasil tes.
+ * @param {string} email Identitas peserta.
+ * @returns {Array} Salinan riwayat peserta.
+ */
+export const getRiwayatTes = (list = [], email = '') => salinRiwayat(cariRiwayat(list, email));
+```
+
+Buat file `cek-crud.js` dengan isi lengkap berikut.
+
+<!-- write: cek-crud.js -->
+```javascript
+import { tambahPeserta, getRiwayatTes } from './utils/pesertaCrud.js';
+const awal = [];
+const hasil = tambahPeserta(awal, { name: 'Rina', email: ' RINA@example.com ', class: 'Node.js', score: 90 });
+console.log(`Sumber: ${awal.length} tes`);
+console.log(JSON.stringify(getRiwayatTes(hasil, 'rina@example.com')));
+try {
+  tambahPeserta(hasil, { name: 'Lain', email: 'rina@example.com', class: 'Node.js', score: 80 });
+} catch (error) {
+  console.log(error.message);
+}
+```
+
+Jalankan dari root repository:
+
+```bash
+node latihan/proyek/cek-crud.js
+```
+
+<!-- expected: cek-crud.js -->
+```text
+Sumber: 0 tes
+[{"id":1,"name":"Rina","email":"rina@example.com","class":"Node.js","score":90}]
+Email sudah terdaftar.
+```
+
+## Langkah 2: Ubah biodata tanpa mengubah hasil tes
+
+`ubahPeserta` menggabungkan perubahan dengan biodata terakhir. Hanya nama, email, dan kelas yang masuk salinan hasil. Properti score dari perubahan tidak dipakai. Perbarui semua entri dengan email sama agar riwayat tetap konsisten. Tolak email yang sudah dipakai peserta lain.
+
+Perubahan pada `utils/pesertaCrud.js`:
+
+```diff
+--- sebelum/utils/pesertaCrud.js
++++ sesudah/utils/pesertaCrud.js
+@@ -60,6 +60,29 @@
+ };
+
+ /**
++ * Perbarui biodata pada seluruh tes peserta dan pertahankan nilai serta ID.
++ * @param {Array} list Riwayat hasil tes.
++ * @param {string} email Identitas peserta saat ini.
++ * @param {Object} perubahan Biodata yang ingin diubah.
++ * @returns {Array} Riwayat baru.
++ */
++export const ubahPeserta = (list = [], email = '', perubahan = {}) => {
++  const riwayat = cariRiwayat(list, email);
++  if (perubahan === null || typeof perubahan !== 'object' || Array.isArray(perubahan)) {
++    throw new Error('Biodata peserta harus berupa object.');
++  }
++  const identitas = normalisasiEmail(email);
++  const biodata = biodataPeserta({ ...riwayat.at(-1), ...perubahan });
++  const emailLain = new Set(list
++    .map(peserta => normalisasiEmail(peserta.email))
++    .filter(alamat => alamat !== identitas));
++  if (emailLain.has(biodata.email)) throw new Error('Email sudah terdaftar.');
++  return list.map(peserta => normalisasiEmail(peserta.email) === identitas
++    ? { ...peserta, ...biodata }
++    : { ...peserta });
++};
++
++/**
+  * Baca seluruh tes peserta sesuai urutan pencatatan.
+  * @param {Array} list Riwayat hasil tes.
+  * @param {string} email Identitas peserta.
+```
+
+<!-- write: utils/pesertaCrud.js -->
+```javascript
+const normalisasiEmail = (email = '') => {
+  if (typeof email !== 'string' || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+    throw new Error('Email harus berformat valid.');
+  }
+  return email.trim().toLowerCase();
+};
+
+const teksWajib = (nilai, label) => {
+  if (typeof nilai !== 'string' || nilai.trim() === '') {
+    throw new Error(`${label} wajib diisi.`);
+  }
+  return nilai.trim();
+};
+
+const validasiNilai = (score) => {
+  if (typeof score !== 'number' || !Number.isFinite(score) || score < 0 || score > 100) {
+    throw new Error('Nilai harus berupa angka terbatas antara 0 dan 100.');
+  }
+};
+
+const biodataPeserta = (data = {}) => {
+  if (data === null || typeof data !== 'object' || Array.isArray(data)) {
+    throw new Error('Biodata peserta harus berupa object.');
+  }
+  return {
+    name: teksWajib(data.name, 'Nama'),
+    email: normalisasiEmail(data.email),
+    class: teksWajib(data.class, 'Kelas')
+  };
+};
+
+const cariRiwayat = (list = [], email = '') => {
+  const identitas = normalisasiEmail(email);
+  const riwayat = list.filter(peserta => normalisasiEmail(peserta.email) === identitas);
+  if (riwayat.length === 0) throw new Error('Peserta tidak ditemukan.');
+  return riwayat;
+};
+
+const idBerikutnya = (list = []) => {
+  const id = list.reduce((terbesar, peserta) => Math.max(terbesar, peserta.id), 0) + 1;
+  if (!Number.isSafeInteger(id)) throw new Error('ID hasil tes tidak dapat ditambahkan.');
+  return id;
+};
+
+const salinRiwayat = (list = []) => list.map(peserta => ({ ...peserta }));
+
+/**
+ * Tambahkan peserta beserta nilai tes pertamanya tanpa mengubah list sumber.
+ * @param {Array} list Riwayat hasil tes.
+ * @param {Object} data Biodata dan nilai peserta baru.
+ * @returns {Array} Riwayat baru.
+ */
+export const tambahPeserta = (list = [], data = {}) => {
+  const biodata = biodataPeserta(data);
+  validasiNilai(data.score);
+  const emailTerdaftar = new Set(list.map(peserta => normalisasiEmail(peserta.email)));
+  if (emailTerdaftar.has(biodata.email)) throw new Error('Email sudah terdaftar.');
+  // ES2018 object spread menyalin data agar riwayat sumber tetap utuh.
+  return [...salinRiwayat(list), { id: idBerikutnya(list), ...biodata, score: data.score }];
+};
+
+/**
+ * Perbarui biodata pada seluruh tes peserta dan pertahankan nilai serta ID.
+ * @param {Array} list Riwayat hasil tes.
+ * @param {string} email Identitas peserta saat ini.
+ * @param {Object} perubahan Biodata yang ingin diubah.
+ * @returns {Array} Riwayat baru.
+ */
+export const ubahPeserta = (list = [], email = '', perubahan = {}) => {
+  const riwayat = cariRiwayat(list, email);
+  if (perubahan === null || typeof perubahan !== 'object' || Array.isArray(perubahan)) {
+    throw new Error('Biodata peserta harus berupa object.');
+  }
+  const identitas = normalisasiEmail(email);
+  const biodata = biodataPeserta({ ...riwayat.at(-1), ...perubahan });
+  const emailLain = new Set(list
+    .map(peserta => normalisasiEmail(peserta.email))
+    .filter(alamat => alamat !== identitas));
+  if (emailLain.has(biodata.email)) throw new Error('Email sudah terdaftar.');
+  return list.map(peserta => normalisasiEmail(peserta.email) === identitas
+    ? { ...peserta, ...biodata }
+    : { ...peserta });
+};
+
+/**
+ * Baca seluruh tes peserta sesuai urutan pencatatan.
+ * @param {Array} list Riwayat hasil tes.
+ * @param {string} email Identitas peserta.
+ * @returns {Array} Salinan riwayat peserta.
+ */
+export const getRiwayatTes = (list = [], email = '') => salinRiwayat(cariRiwayat(list, email));
+```
+
+Perubahan pada `cek-crud.js`:
+
+```diff
+--- sebelum/cek-crud.js
++++ sesudah/cek-crud.js
+@@ -1,10 +1,5 @@
+-import { tambahPeserta, getRiwayatTes } from './utils/pesertaCrud.js';
+-const awal = [];
+-const hasil = tambahPeserta(awal, { name: 'Rina', email: ' RINA@example.com ', class: 'Node.js', score: 90 });
+-console.log(`Sumber: ${awal.length} tes`);
+-console.log(JSON.stringify(getRiwayatTes(hasil, 'rina@example.com')));
+-try {
+-  tambahPeserta(hasil, { name: 'Lain', email: 'rina@example.com', class: 'Node.js', score: 80 });
+-} catch (error) {
+-  console.log(error.message);
+-}
++import { tambahPeserta, ubahPeserta, getRiwayatTes } from './utils/pesertaCrud.js';
++const awal = tambahPeserta([], { name: 'Rina', email: 'rina@example.com', class: 'Node.js', score: 90 });
++const hasil = ubahPeserta(awal, 'rina@example.com', { name: 'Rina Putri', email: 'putri@example.com', score: 0 });
++console.log(JSON.stringify(getRiwayatTes(hasil, 'putri@example.com')));
++console.log(`Nama sumber: ${awal[0].name}; nilai sumber: ${awal[0].score}`);
+```
+
+<!-- write: cek-crud.js -->
+```javascript
+import { tambahPeserta, ubahPeserta, getRiwayatTes } from './utils/pesertaCrud.js';
+const awal = tambahPeserta([], { name: 'Rina', email: 'rina@example.com', class: 'Node.js', score: 90 });
+const hasil = ubahPeserta(awal, 'rina@example.com', { name: 'Rina Putri', email: 'putri@example.com', score: 0 });
+console.log(JSON.stringify(getRiwayatTes(hasil, 'putri@example.com')));
+console.log(`Nama sumber: ${awal[0].name}; nilai sumber: ${awal[0].score}`);
+```
+
+Jalankan dari root repository:
+
+```bash
+node latihan/proyek/cek-crud.js
+```
+
+<!-- expected: cek-crud.js -->
+```text
+[{"id":1,"name":"Rina Putri","email":"putri@example.com","class":"Node.js","score":90}]
+Nama sumber: Rina; nilai sumber: 90
+```
+
+## Langkah 3: Catat tes ulang dan hapus seluruh riwayat
+
+Tambahkan hasil tes di akhir array, walaupun nilainya turun. `.at(-1)` membaca tes terakhir. Hapus seluruh entri peserta supaya tes lama tidak muncul lagi sebagai nilai terakhir. Konfirmasi penghapusan dibuat pada menu tahap 12, sedangkan fungsi ini hanya mengolah array.
+
+Perubahan pada `utils/pesertaCrud.js`:
+
+```diff
+--- sebelum/utils/pesertaCrud.js
++++ sesudah/utils/pesertaCrud.js
+@@ -83,6 +83,31 @@
+ };
+
+ /**
++ * Hapus peserta beserta seluruh hasil tesnya.
++ * @param {Array} list Riwayat hasil tes.
++ * @param {string} email Identitas peserta.
++ * @returns {Array} Riwayat baru tanpa peserta tersebut.
++ */
++export const hapusPeserta = (list = [], email = '') => {
++  cariRiwayat(list, email);
++  const identitas = normalisasiEmail(email);
++  return salinRiwayat(list.filter(peserta => normalisasiEmail(peserta.email) !== identitas));
++};
++
++/**
++ * Catat tes ulang di akhir array, termasuk jika nilainya turun.
++ * @param {Array} list Riwayat hasil tes.
++ * @param {string} email Identitas peserta.
++ * @param {number} score Nilai tes baru.
++ * @returns {Array} Riwayat baru dengan satu hasil tes tambahan.
++ */
++export const tambahNilai = (list = [], email = '', score = 0) => {
++  const terakhir = cariRiwayat(list, email).at(-1);
++  validasiNilai(score);
++  return [...salinRiwayat(list), { id: idBerikutnya(list), ...biodataPeserta(terakhir), score }];
++};
++
++/**
+  * Baca seluruh tes peserta sesuai urutan pencatatan.
+  * @param {Array} list Riwayat hasil tes.
+  * @param {string} email Identitas peserta.
+```
+
+<!-- write: utils/pesertaCrud.js -->
+```javascript
+const normalisasiEmail = (email = '') => {
+  if (typeof email !== 'string' || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+    throw new Error('Email harus berformat valid.');
+  }
+  return email.trim().toLowerCase();
+};
+
+const teksWajib = (nilai, label) => {
+  if (typeof nilai !== 'string' || nilai.trim() === '') {
+    throw new Error(`${label} wajib diisi.`);
+  }
+  return nilai.trim();
+};
+
+const validasiNilai = (score) => {
+  if (typeof score !== 'number' || !Number.isFinite(score) || score < 0 || score > 100) {
+    throw new Error('Nilai harus berupa angka terbatas antara 0 dan 100.');
+  }
+};
+
+const biodataPeserta = (data = {}) => {
+  if (data === null || typeof data !== 'object' || Array.isArray(data)) {
+    throw new Error('Biodata peserta harus berupa object.');
+  }
+  return {
+    name: teksWajib(data.name, 'Nama'),
+    email: normalisasiEmail(data.email),
+    class: teksWajib(data.class, 'Kelas')
+  };
+};
+
+const cariRiwayat = (list = [], email = '') => {
+  const identitas = normalisasiEmail(email);
+  const riwayat = list.filter(peserta => normalisasiEmail(peserta.email) === identitas);
+  if (riwayat.length === 0) throw new Error('Peserta tidak ditemukan.');
+  return riwayat;
+};
+
+const idBerikutnya = (list = []) => {
+  const id = list.reduce((terbesar, peserta) => Math.max(terbesar, peserta.id), 0) + 1;
+  if (!Number.isSafeInteger(id)) throw new Error('ID hasil tes tidak dapat ditambahkan.');
+  return id;
+};
+
+const salinRiwayat = (list = []) => list.map(peserta => ({ ...peserta }));
+
+/**
+ * Tambahkan peserta beserta nilai tes pertamanya tanpa mengubah list sumber.
+ * @param {Array} list Riwayat hasil tes.
+ * @param {Object} data Biodata dan nilai peserta baru.
+ * @returns {Array} Riwayat baru.
+ */
+export const tambahPeserta = (list = [], data = {}) => {
+  const biodata = biodataPeserta(data);
+  validasiNilai(data.score);
+  const emailTerdaftar = new Set(list.map(peserta => normalisasiEmail(peserta.email)));
+  if (emailTerdaftar.has(biodata.email)) throw new Error('Email sudah terdaftar.');
+  // ES2018 object spread menyalin data agar riwayat sumber tetap utuh.
+  return [...salinRiwayat(list), { id: idBerikutnya(list), ...biodata, score: data.score }];
+};
+
+/**
+ * Perbarui biodata pada seluruh tes peserta dan pertahankan nilai serta ID.
+ * @param {Array} list Riwayat hasil tes.
+ * @param {string} email Identitas peserta saat ini.
+ * @param {Object} perubahan Biodata yang ingin diubah.
+ * @returns {Array} Riwayat baru.
+ */
+export const ubahPeserta = (list = [], email = '', perubahan = {}) => {
+  const riwayat = cariRiwayat(list, email);
+  if (perubahan === null || typeof perubahan !== 'object' || Array.isArray(perubahan)) {
+    throw new Error('Biodata peserta harus berupa object.');
+  }
+  const identitas = normalisasiEmail(email);
+  const biodata = biodataPeserta({ ...riwayat.at(-1), ...perubahan });
+  const emailLain = new Set(list
+    .map(peserta => normalisasiEmail(peserta.email))
+    .filter(alamat => alamat !== identitas));
+  if (emailLain.has(biodata.email)) throw new Error('Email sudah terdaftar.');
+  return list.map(peserta => normalisasiEmail(peserta.email) === identitas
+    ? { ...peserta, ...biodata }
+    : { ...peserta });
+};
+
+/**
+ * Hapus peserta beserta seluruh hasil tesnya.
+ * @param {Array} list Riwayat hasil tes.
+ * @param {string} email Identitas peserta.
+ * @returns {Array} Riwayat baru tanpa peserta tersebut.
+ */
+export const hapusPeserta = (list = [], email = '') => {
+  cariRiwayat(list, email);
+  const identitas = normalisasiEmail(email);
+  return salinRiwayat(list.filter(peserta => normalisasiEmail(peserta.email) !== identitas));
+};
+
+/**
+ * Catat tes ulang di akhir array, termasuk jika nilainya turun.
+ * @param {Array} list Riwayat hasil tes.
+ * @param {string} email Identitas peserta.
+ * @param {number} score Nilai tes baru.
+ * @returns {Array} Riwayat baru dengan satu hasil tes tambahan.
+ */
+export const tambahNilai = (list = [], email = '', score = 0) => {
+  const terakhir = cariRiwayat(list, email).at(-1);
+  validasiNilai(score);
+  return [...salinRiwayat(list), { id: idBerikutnya(list), ...biodataPeserta(terakhir), score }];
+};
+
+/**
+ * Baca seluruh tes peserta sesuai urutan pencatatan.
+ * @param {Array} list Riwayat hasil tes.
+ * @param {string} email Identitas peserta.
+ * @returns {Array} Salinan riwayat peserta.
+ */
+export const getRiwayatTes = (list = [], email = '') => salinRiwayat(cariRiwayat(list, email));
+```
+
+Perubahan pada `cek-crud.js`:
+
+```diff
+--- sebelum/cek-crud.js
++++ sesudah/cek-crud.js
+@@ -1,5 +1,12 @@
+-import { tambahPeserta, ubahPeserta, getRiwayatTes } from './utils/pesertaCrud.js';
+-const awal = tambahPeserta([], { name: 'Rina', email: 'rina@example.com', class: 'Node.js', score: 90 });
+-const hasil = ubahPeserta(awal, 'rina@example.com', { name: 'Rina Putri', email: 'putri@example.com', score: 0 });
+-console.log(JSON.stringify(getRiwayatTes(hasil, 'putri@example.com')));
+-console.log(`Nama sumber: ${awal[0].name}; nilai sumber: ${awal[0].score}`);
++import { tambahPeserta, tambahNilai, ubahPeserta, hapusPeserta, getRiwayatTes } from './utils/pesertaCrud.js';
++import { createPesertaMap } from './utils/pesertaProcessor.js';
++import { PesertaValidator } from './utils/pesertaValidator.js';
++let hasil = tambahPeserta([], { name: 'Rina', email: 'rina@example.com', class: 'Node.js', score: 90 });
++hasil = tambahNilai(hasil, 'rina@example.com', 79);
++console.log(PesertaValidator.getStatus(createPesertaMap(hasil).get('rina@example.com').score));
++hasil = tambahNilai(hasil, 'rina@example.com', 80);
++hasil = ubahPeserta(hasil, 'rina@example.com', { name: 'Rina Putri' });
++console.log(`Riwayat: ${getRiwayatTes(hasil, 'rina@example.com').map(({ score }) => score).join(', ')}`);
++console.log(`Semua nama: ${hasil.map(({ name }) => name).join(', ')}`);
++console.log(PesertaValidator.getStatus(createPesertaMap(hasil).get('rina@example.com').score));
++console.log(`Setelah hapus: ${hapusPeserta(hasil, 'rina@example.com').length} tes`);
+```
+
+<!-- write: cek-crud.js -->
+```javascript
+import { tambahPeserta, tambahNilai, ubahPeserta, hapusPeserta, getRiwayatTes } from './utils/pesertaCrud.js';
+import { createPesertaMap } from './utils/pesertaProcessor.js';
+import { PesertaValidator } from './utils/pesertaValidator.js';
+let hasil = tambahPeserta([], { name: 'Rina', email: 'rina@example.com', class: 'Node.js', score: 90 });
+hasil = tambahNilai(hasil, 'rina@example.com', 79);
+console.log(PesertaValidator.getStatus(createPesertaMap(hasil).get('rina@example.com').score));
+hasil = tambahNilai(hasil, 'rina@example.com', 80);
+hasil = ubahPeserta(hasil, 'rina@example.com', { name: 'Rina Putri' });
+console.log(`Riwayat: ${getRiwayatTes(hasil, 'rina@example.com').map(({ score }) => score).join(', ')}`);
+console.log(`Semua nama: ${hasil.map(({ name }) => name).join(', ')}`);
+console.log(PesertaValidator.getStatus(createPesertaMap(hasil).get('rina@example.com').score));
+console.log(`Setelah hapus: ${hapusPeserta(hasil, 'rina@example.com').length} tes`);
+```
+
+Jalankan dari root repository:
+
+```bash
+node latihan/proyek/cek-crud.js
+```
+
+<!-- expected: cek-crud.js -->
+```text
+TIDAK LULUS
+Riwayat: 90, 79, 80
+Semua nama: Rina Putri, Rina Putri, Rina Putri
+LULUS
+Setelah hapus: 0 tes
+```
+
+## Tantangan: Nilai nol dan input tidak valid
+
+Buktikan nilai nol diterima, input kosong ditolak, dan kegagalan tidak mengubah sumber. Coba sendiri sebelum membuka solusi.
+
+<details>
+<summary>Lihat penyelesaian tantangan</summary>
+
+Buat file `tantangan-10.js` dengan isi lengkap berikut.
+
+<!-- challenge: tantangan-10.js -->
+```javascript
+import assert from 'node:assert/strict';
+import { tambahPeserta, tambahNilai, hapusPeserta } from './utils/pesertaCrud.js';
+const awal = tambahPeserta([], { name: 'Rina', email: 'rina@example.com', class: 'Node.js', score: 0 });
+assert.equal(awal[0].score, 0);
+for (const score of ['', NaN, Infinity, -1, 101]) {
+  assert.throws(() => tambahNilai(awal, 'rina@example.com', score), /Nilai/);
+}
+assert.throws(() => hapusPeserta(awal, 'lain@example.com'), /tidak ditemukan/);
+assert.equal(awal.length, 1);
+console.log('Tantangan 10: nilai nol diterima dan input tidak valid ditolak');
+```
+
+Jalankan dari root repository:
+
+```bash
+node latihan/proyek/tantangan-10.js
+```
+
+<!-- challenge-output: tantangan-10.js -->
+```text
+Tantangan 10: nilai nol diterima dan input tidak valid ditolak
+```
+
+</details>
+
+## Checkpoint
+
+- [ ] Kelima fungsi CRUD diekspor dari module sendiri.
+- [ ] Nilai 90, 79, lalu 80 tetap tercatat berurutan.
+- [ ] Ubah biodata mempertahankan ID serta nilai; hapus menghilangkan semua tes.
+- [ ] Array dan object sumber tetap utuh.
+
+[Tahap sebelumnya](../09-async-loader/README.md) · [Daftar latihan](../README.md) · [Tahap berikutnya](../11-penyimpanan-json/README.md)
+# 11. Simpan perubahan ke JSON
+
+Hubungkan array riwayat dengan file kerja. Prasyarat: fungsi CRUD tahap 10 berjalan. Pertahankan data/peserta.json sebagai contoh; aplikasi memakai data/peserta.local.json. File rusak harus tetap tersedia untuk diperiksa.
+
+Semua nama file berada di `latihan/proyek/`. Jalankan perintah dari root repository. Pertahankan file tahap sebelumnya. Pada diff, `-` adalah kode lama dan `+` adalah kode baru. Ketik perubahan, lalu cocokkan dengan kode lengkap setelah diff. Jalankan setiap checkpoint sebelum melanjutkan.
+
+## Langkah 1: Baca dan validasi struktur file
+
+Validasi file lebih ketat daripada loader demonstrasi tahap 09. Wajib ada array peserta, ID positif unik, biodata konsisten untuk setiap email, dan nilai 0–100. `Map` menyimpan biodata per email; `Set` menyimpan ID yang sudah dijumpai. Pada langkah pertama file harus sudah ada, maka uji dengan file contoh. Import penyimpanan disiapkan untuk langkah berikutnya.
+
+Buat file `utils/pesertaStore.js` dengan isi lengkap berikut.
+
+<!-- write: utils/pesertaStore.js -->
+```javascript
+import { mkdir, readFile, rename, unlink, writeFile } from 'node:fs/promises';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { randomUUID } from 'node:crypto';
+
+const defaultFile = new URL('../data/peserta.local.json', import.meta.url);
+const defaultSeed = new URL('../data/peserta.json', import.meta.url);
+const lokasiFile = (file = process.env.PESERTA_DATA_FILE ?? defaultFile) =>
+  file instanceof URL ? fileURLToPath(file) : resolve(file);
+
+const validasiRiwayat = (data) => {
+  if (data === null || typeof data !== 'object' || !Array.isArray(data.peserta)) {
+    throw new Error('Struktur data harus berupa object dengan array peserta.');
+  }
+  const ids = new Set();
+  const identitas = new Map();
+  return data.peserta.map((peserta) => {
+    if (peserta === null || typeof peserta !== 'object' || Array.isArray(peserta)) {
+      throw new Error('Setiap hasil tes harus berupa object.');
+    }
+    const { id, name, email, class: className, score } = peserta;
+    if (!Number.isSafeInteger(id) || id <= 0 || ids.has(id)) {
+      throw new Error('ID hasil tes harus bilangan bulat positif yang unik dan aman.');
+    }
+    if (typeof name !== 'string' || !name.trim() || typeof className !== 'string' || !className.trim()) {
+      throw new Error('Nama dan kelas wajib diisi.');
+    }
+    if (typeof email !== 'string' || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      throw new Error('Email harus berformat valid.');
+    }
+    if (typeof score !== 'number' || !Number.isFinite(score) || score < 0 || score > 100) {
+      throw new Error('Nilai harus berupa angka terbatas antara 0 dan 100.');
+    }
+    const alamat = email.trim().toLowerCase();
+    const biodata = { name: name.trim(), class: className.trim() };
+    const sebelumnya = identitas.get(alamat);
+    if (sebelumnya && (sebelumnya.name !== biodata.name || sebelumnya.class !== biodata.class)) {
+      throw new Error('Biodata dalam seluruh riwayat peserta harus konsisten.');
+    }
+    ids.add(id);
+    identitas.set(alamat, biodata);
+    return { id, name: biodata.name, email: alamat, class: biodata.class, score };
+  });
+};
+
+/** Muat dan validasi file yang sudah tersedia. */
+export const loadStore = async (fileUrl) => {
+  const isi = await readFile(lokasiFile(fileUrl), 'utf8');
+  return validasiRiwayat(JSON.parse(isi));
+};
+```
+
+Buat file `cek-store.js` dengan isi lengkap berikut.
+
+<!-- write: cek-store.js -->
+```javascript
+import { loadStore } from './utils/pesertaStore.js';
+const list = await loadStore(new URL('./data/peserta.json', import.meta.url));
+console.log(`File contoh: ${list.length} hasil tes`);
+try {
+  await loadStore(new URL('./data/contoh-rusak.json', import.meta.url));
+} catch {
+  console.log('JSON rusak ditolak; file tidak diubah.');
+}
+```
+
+Jalankan dari root repository:
+
+```bash
+node latihan/proyek/cek-store.js
+```
+
+<!-- expected: cek-store.js -->
+```text
+File contoh: 6 hasil tes
+JSON rusak ditolak; file tidak diubah.
+```
+
+## Langkah 2: Inisialisasi dan simpan melalui file sementara
+
+`loadStore` hanya menyalin contoh ketika readFile gagal dengan ENOENT, yaitu file kerja belum ada. JSON rusak tidak masuk jalur tersebut. `saveStore` menulis file sementara pada direktori yang sama, kemudian rename mengganti file tujuan. Jika penyimpanan gagal, hapus file sementara dan teruskan error.
+
+`PESERTA_DATA_FILE` dapat menunjuk file kerja terpisah saat pengujian. Tanpa variabel tersebut, default berada di data/peserta.local.json. Isi .gitignore berikut melindungi file kerja pada proyek peserta.
+
+Buat file `.gitignore` dengan isi lengkap berikut.
+
+<!-- write: .gitignore -->
+```text
+data/peserta.local.json
+```
+
+Perubahan pada `utils/pesertaStore.js`:
+
+```diff
+--- sebelum/utils/pesertaStore.js
++++ sesudah/utils/pesertaStore.js
+@@ -43,8 +43,51 @@
+   });
+ };
+
+-/** Muat dan validasi file yang sudah tersedia. */
+-export const loadStore = async (fileUrl) => {
+-  const isi = await readFile(lokasiFile(fileUrl), 'utf8');
+-  return validasiRiwayat(JSON.parse(isi));
++/**
++ * Muat riwayat tervalidasi; buat file kerja dari seed hanya jika belum ada.
++ * @param {URL|string} fileUrl File kerja, atau PESERTA_DATA_FILE jika tidak diberikan.
++ * @param {URL|string} seedUrl File data contoh.
++ * @returns {Promise<Array>} Riwayat tes sesuai urutan pencatatan.
++ */
++export const loadStore = async (fileUrl, seedUrl = defaultSeed) => {
++  const file = lokasiFile(fileUrl);
++  let isi;
++  try {
++    isi = await readFile(file, 'utf8');
++  } catch (error) {
++    if (error.code !== 'ENOENT') throw new Error(`Gagal membaca data peserta: ${error.message}`, { cause: error });
++    try {
++      const seed = await readFile(lokasiFile(seedUrl), 'utf8');
++      const list = validasiRiwayat(JSON.parse(seed));
++      await saveStore(list, file);
++      return list;
++    } catch (seedError) {
++      throw new Error(`Gagal menginisialisasi data peserta: ${seedError.message}`, { cause: seedError });
++    }
++  }
++  try {
++    return validasiRiwayat(JSON.parse(isi));
++  } catch (error) {
++    throw new Error(`Data peserta tidak valid: ${error.message}`, { cause: error });
++  }
+ };
++
++/**
++ * Simpan riwayat melalui file sementara agar kegagalan tidak merusak file lama.
++ * @param {Array} list Riwayat tes yang akan disimpan.
++ * @param {URL|string} fileUrl File kerja, atau PESERTA_DATA_FILE jika tidak diberikan.
++ * @returns {Promise<void>} Selesai setelah rename berhasil.
++ */
++export const saveStore = async (list = [], fileUrl) => {
++  const peserta = validasiRiwayat({ peserta: list });
++  const file = lokasiFile(fileUrl);
++  const sementara = `${file}.${randomUUID()}.tmp`;
++  try {
++    await mkdir(dirname(file), { recursive: true });
++    await writeFile(sementara, `${JSON.stringify({ peserta }, null, 2)}\n`, { flag: 'wx' });
++    await rename(sementara, file);
++  } catch (error) {
++    await unlink(sementara).catch(() => {});
++    throw new Error(`Gagal menyimpan data peserta: ${error.message}`, { cause: error });
++  }
++};
+```
+
+<!-- write: utils/pesertaStore.js -->
+```javascript
+import { mkdir, readFile, rename, unlink, writeFile } from 'node:fs/promises';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { randomUUID } from 'node:crypto';
+
+const defaultFile = new URL('../data/peserta.local.json', import.meta.url);
+const defaultSeed = new URL('../data/peserta.json', import.meta.url);
+const lokasiFile = (file = process.env.PESERTA_DATA_FILE ?? defaultFile) =>
+  file instanceof URL ? fileURLToPath(file) : resolve(file);
+
+const validasiRiwayat = (data) => {
+  if (data === null || typeof data !== 'object' || !Array.isArray(data.peserta)) {
+    throw new Error('Struktur data harus berupa object dengan array peserta.');
+  }
+  const ids = new Set();
+  const identitas = new Map();
+  return data.peserta.map((peserta) => {
+    if (peserta === null || typeof peserta !== 'object' || Array.isArray(peserta)) {
+      throw new Error('Setiap hasil tes harus berupa object.');
+    }
+    const { id, name, email, class: className, score } = peserta;
+    if (!Number.isSafeInteger(id) || id <= 0 || ids.has(id)) {
+      throw new Error('ID hasil tes harus bilangan bulat positif yang unik dan aman.');
+    }
+    if (typeof name !== 'string' || !name.trim() || typeof className !== 'string' || !className.trim()) {
+      throw new Error('Nama dan kelas wajib diisi.');
+    }
+    if (typeof email !== 'string' || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      throw new Error('Email harus berformat valid.');
+    }
+    if (typeof score !== 'number' || !Number.isFinite(score) || score < 0 || score > 100) {
+      throw new Error('Nilai harus berupa angka terbatas antara 0 dan 100.');
+    }
+    const alamat = email.trim().toLowerCase();
+    const biodata = { name: name.trim(), class: className.trim() };
+    const sebelumnya = identitas.get(alamat);
+    if (sebelumnya && (sebelumnya.name !== biodata.name || sebelumnya.class !== biodata.class)) {
+      throw new Error('Biodata dalam seluruh riwayat peserta harus konsisten.');
+    }
+    ids.add(id);
+    identitas.set(alamat, biodata);
+    return { id, name: biodata.name, email: alamat, class: biodata.class, score };
+  });
+};
+
+/**
+ * Muat riwayat tervalidasi; buat file kerja dari seed hanya jika belum ada.
+ * @param {URL|string} fileUrl File kerja, atau PESERTA_DATA_FILE jika tidak diberikan.
+ * @param {URL|string} seedUrl File data contoh.
+ * @returns {Promise<Array>} Riwayat tes sesuai urutan pencatatan.
+ */
+export const loadStore = async (fileUrl, seedUrl = defaultSeed) => {
+  const file = lokasiFile(fileUrl);
+  let isi;
+  try {
+    isi = await readFile(file, 'utf8');
+  } catch (error) {
+    if (error.code !== 'ENOENT') throw new Error(`Gagal membaca data peserta: ${error.message}`, { cause: error });
+    try {
+      const seed = await readFile(lokasiFile(seedUrl), 'utf8');
+      const list = validasiRiwayat(JSON.parse(seed));
+      await saveStore(list, file);
+      return list;
+    } catch (seedError) {
+      throw new Error(`Gagal menginisialisasi data peserta: ${seedError.message}`, { cause: seedError });
+    }
+  }
+  try {
+    return validasiRiwayat(JSON.parse(isi));
+  } catch (error) {
+    throw new Error(`Data peserta tidak valid: ${error.message}`, { cause: error });
+  }
+};
+
+/**
+ * Simpan riwayat melalui file sementara agar kegagalan tidak merusak file lama.
+ * @param {Array} list Riwayat tes yang akan disimpan.
+ * @param {URL|string} fileUrl File kerja, atau PESERTA_DATA_FILE jika tidak diberikan.
+ * @returns {Promise<void>} Selesai setelah rename berhasil.
+ */
+export const saveStore = async (list = [], fileUrl) => {
+  const peserta = validasiRiwayat({ peserta: list });
+  const file = lokasiFile(fileUrl);
+  const sementara = `${file}.${randomUUID()}.tmp`;
+  try {
+    await mkdir(dirname(file), { recursive: true });
+    await writeFile(sementara, `${JSON.stringify({ peserta }, null, 2)}\n`, { flag: 'wx' });
+    await rename(sementara, file);
+  } catch (error) {
+    await unlink(sementara).catch(() => {});
+    throw new Error(`Gagal menyimpan data peserta: ${error.message}`, { cause: error });
+  }
+};
+```
+
+Perubahan pada `cek-store.js`:
+
+```diff
+--- sebelum/cek-store.js
++++ sesudah/cek-store.js
+@@ -1,8 +1,6 @@
+-import { loadStore } from './utils/pesertaStore.js';
+-const list = await loadStore(new URL('./data/peserta.json', import.meta.url));
+-console.log(`File contoh: ${list.length} hasil tes`);
+-try {
+-  await loadStore(new URL('./data/contoh-rusak.json', import.meta.url));
+-} catch {
+-  console.log('JSON rusak ditolak; file tidak diubah.');
+-}
++import { loadStore, saveStore } from './utils/pesertaStore.js';
++const riwayat = await loadStore();
++await saveStore(riwayat);
++const dibukaKembali = await loadStore();
++console.log(`Tersimpan dan dibaca kembali: ${dibukaKembali.length} hasil tes`);
++console.log(`Urutan tetap: ${riwayat.map(({ id }) => id).join(', ') === dibukaKembali.map(({ id }) => id).join(', ')}`);
+```
+
+<!-- write: cek-store.js -->
+```javascript
+import { loadStore, saveStore } from './utils/pesertaStore.js';
+const riwayat = await loadStore();
+await saveStore(riwayat);
+const dibukaKembali = await loadStore();
+console.log(`Tersimpan dan dibaca kembali: ${dibukaKembali.length} hasil tes`);
+console.log(`Urutan tetap: ${riwayat.map(({ id }) => id).join(', ') === dibukaKembali.map(({ id }) => id).join(', ')}`);
+```
+
+Jalankan dari root repository:
+
+```bash
+node latihan/proyek/cek-store.js
+```
+
+<!-- expected: cek-store.js -->
+```text
+Tersimpan dan dibaca kembali: 6 hasil tes
+Urutan tetap: true
+```
+
+Jalankan cek-store.js sekali lagi. Hasilnya sama, tetapi file kerja yang sudah ada kini dibaca langsung. Contoh ini menyimpan seed tanpa menambah peserta agar tahap menu dimulai dari data contoh. Pada operasi nyata, hitung array baru, await saveStore, baru ganti variabel memori. Tahap 12 menerapkan urutan ini.
+
+## Tantangan: Simpan tes yang nilainya turun
+
+Gunakan file tantangan terpisah agar data kerja aplikasi tidak berubah. Buktikan riwayat 90, 79, 80 tetap ada setelah dibaca kembali.
+
+<details>
+<summary>Lihat penyelesaian tantangan</summary>
+
+Buat file `tantangan-11.js` dengan isi lengkap berikut.
+
+<!-- challenge: tantangan-11.js -->
+```javascript
+import assert from 'node:assert/strict';
+import { mkdtemp, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { tambahPeserta, tambahNilai } from './utils/pesertaCrud.js';
+import { loadStore, saveStore } from './utils/pesertaStore.js';
+const folder = await mkdtemp(join(tmpdir(), 'tantangan-peserta-'));
+try {
+  const file = join(folder, 'riwayat.json');
+  let list = tambahPeserta([], { name: 'Rina', email: 'rina@example.com', class: 'Node.js', score: 90 });
+  list = tambahNilai(list, 'rina@example.com', 79);
+  list = tambahNilai(list, 'rina@example.com', 80);
+  await saveStore(list, file);
+  assert.deepEqual((await loadStore(file)).map(({ score }) => score), [90, 79, 80]);
+  console.log('Tantangan 11: riwayat 90, 79, 80 bertahan setelah dibaca kembali');
+} finally {
+  await rm(folder, { recursive: true, force: true });
+}
+```
+
+Jalankan dari root repository:
+
+```bash
+node latihan/proyek/tantangan-11.js
+```
+
+<!-- challenge-output: tantangan-11.js -->
+```text
+Tantangan 11: riwayat 90, 79, 80 bertahan setelah dibaca kembali
+```
+
+</details>
+
+## Checkpoint
+
+- [ ] Data contoh tetap utuh dan file kerja diabaikan Git.
+- [ ] Struktur file, identitas, ID, dan nilai divalidasi sebelum digunakan.
+- [ ] Inisialisasi hanya terjadi saat file kerja belum tersedia.
+- [ ] Penyimpanan selesai sebelum memori diganti.
+
+[Tahap sebelumnya](../10-crud-peserta/README.md) · [Daftar latihan](../README.md) · [Tahap berikutnya](../12-menu-terminal/README.md)
+# 12. Bangun menu terminal
+
+Ubah main.js menjadi aplikasi interaktif. Prasyarat: module CRUD dan store sudah lengkap. Satu pembaca readline dengan async iterator menjaga jawaban tetap berurutan, termasuk ketika input dikirim sekaligus melalui pipe.
+
+Semua nama file berada di `latihan/proyek/`. Jalankan perintah dari root repository. Pertahankan file tahap sebelumnya. Pada diff, `-` adalah kode lama dan `+` adalah kode baru. Ketik perubahan, lalu cocokkan dengan kode lengkap setelah diff. Jalankan setiap checkpoint sebelum melanjutkan.
+
+## Langkah 1: Tampilkan menu dan daftar peserta
+
+Pembaca mengembalikan satu baris per panggilan baca. Symbol akhirInput menandai EOF tanpa menyerupai error validasi. finally selalu menutup pembaca. Menu lengkap sudah ditampilkan; pilihan yang belum dipasang sementara masuk pesan pilihan tidak valid. Mulai dengan daftar lalu keluar.
+
+Perubahan pada `main.js`:
+
+```diff
+--- sebelum/main.js
++++ sesudah/main.js
+@@ -1,19 +1,83 @@
+-import { loadPeserta } from './utils/pesertaLoader.js';
+-import { createPesertaMap } from './utils/pesertaProcessor.js';
+-import { displayPeserta } from './utils/pesertaFormatter.js';
++import { createInterface } from 'node:readline';
++import { loadStore, saveStore } from './utils/pesertaStore.js';
++import { tambahPeserta, ubahPeserta, hapusPeserta, tambahNilai, getRiwayatTes } from './utils/pesertaCrud.js';
++import { getUniqueEmails, getUniquePeserta, createPesertaMap, getPesertaByClass, calculateAverageScore } from './utils/pesertaProcessor.js';
++import { displayPeserta, createPesertaSummary, formatPesertaList, createDetailedReport } from './utils/pesertaFormatter.js';
++import { PesertaValidator, createPassingValidator, createLenientValidator } from './utils/pesertaValidator.js';
+
+-let rawPeserta;
++let riwayat;
+ try {
+-  rawPeserta = await loadPeserta();
++  riwayat = await loadStore();
+ } catch (error) {
+   console.error(`❌ ${error.message}`);
+   process.exit(1);
+ }
+
+-const pesertaMap = createPesertaMap(rawPeserta);
+-console.log(`Jumlah tes: ${rawPeserta.length}`);
+-console.log(`Peserta unik: ${pesertaMap.size}`);
+-const { name, score } = pesertaMap.get('aditya@brainmatics.com');
+-console.log(displayPeserta(name, score));
+-console.log(`Peserta tidak ada: ${pesertaMap.get('tidak-ada@brainmatics.com')?.name ?? 'tidak ditemukan'}`);
+-console.log(`Nilai nol tetap: ${0 ?? 80}`);
++const pembaca = createInterface({ input: process.stdin, crlfDelay: Infinity });
++// Satu iterator menjaga urutan jawaban, termasuk input yang dikirim sekaligus.
++const jawaban = pembaca[Symbol.asyncIterator]();
++const akhirInput = Symbol('akhir input');
++const baca = async (pertanyaan = '') => {
++  process.stdout.write(pertanyaan);
++  const { value, done } = await jawaban.next();
++  if (done) throw akhirInput;
++  return value.trim();
++};
++const bacaEmail = async (pertanyaan = 'Email peserta: ') => (await baca(pertanyaan)).toLowerCase();
++const bacaNilai = async () => {
++  const input = await baca('Nilai (0–100): ');
++  if (input === '') throw new Error('Nilai wajib diisi.');
++  return Number(input);
++};
++const cariPeserta = (email = '') => {
++  const peserta = createPesertaMap(riwayat).get(email);
++  if (!peserta) throw new Error('Peserta tidak ditemukan.');
++  return peserta;
++};
++const simpan = async (hasil = [], pesan = '') => {
++  // Memori baru berubah setelah penyimpanan berhasil.
++  await saveStore(hasil);
++  riwayat = hasil;
++  console.log(pesan);
++};
++
++console.log('🎓 SISTEM MANAJEMEN PESERTA TRAINING BRAINMATICS');
++try {
++  let berjalan = true;
++  while (berjalan) {
++    console.log(`
++1. Daftar peserta
++2. Detail peserta dan riwayat tes
++3. Tambah peserta
++4. Ubah biodata peserta
++5. Catat tes ulang
++6. Hapus peserta
++7. Filter berdasarkan kelas
++8. Statistik dan validasi
++0. Keluar`);
++    try {
++      const pilihan = await baca('Pilihan: ');
++      switch (pilihan) {
++        case '0':
++          berjalan = false;
++          break;
++        case '1': {
++          console.log(`Jumlah peserta unik: ${getUniqueEmails(riwayat).length}`);
++          console.log(formatPesertaList(getUniquePeserta(riwayat)));
++          break;
++        }
++        default:
++          console.log('Pilihan tidak valid. Masukkan angka 0–8.');
++      }
++    } catch (error) {
++      if (error === akhirInput) {
++        console.log('\nInput berakhir. Operasi dibatalkan.');
++        break;
++      }
++      console.error(`❌ ${error.message}`);
++    }
++  }
++} finally {
++  pembaca.close();
++}
++console.log('Sampai jumpa.');
+```
+
+<!-- write: main.js -->
+```javascript
+import { createInterface } from 'node:readline';
+import { loadStore, saveStore } from './utils/pesertaStore.js';
+import { tambahPeserta, ubahPeserta, hapusPeserta, tambahNilai, getRiwayatTes } from './utils/pesertaCrud.js';
+import { getUniqueEmails, getUniquePeserta, createPesertaMap, getPesertaByClass, calculateAverageScore } from './utils/pesertaProcessor.js';
+import { displayPeserta, createPesertaSummary, formatPesertaList, createDetailedReport } from './utils/pesertaFormatter.js';
+import { PesertaValidator, createPassingValidator, createLenientValidator } from './utils/pesertaValidator.js';
+
+let riwayat;
+try {
+  riwayat = await loadStore();
+} catch (error) {
+  console.error(`❌ ${error.message}`);
+  process.exit(1);
+}
+
+const pembaca = createInterface({ input: process.stdin, crlfDelay: Infinity });
+// Satu iterator menjaga urutan jawaban, termasuk input yang dikirim sekaligus.
+const jawaban = pembaca[Symbol.asyncIterator]();
+const akhirInput = Symbol('akhir input');
+const baca = async (pertanyaan = '') => {
+  process.stdout.write(pertanyaan);
+  const { value, done } = await jawaban.next();
+  if (done) throw akhirInput;
+  return value.trim();
+};
+const bacaEmail = async (pertanyaan = 'Email peserta: ') => (await baca(pertanyaan)).toLowerCase();
+const bacaNilai = async () => {
+  const input = await baca('Nilai (0–100): ');
+  if (input === '') throw new Error('Nilai wajib diisi.');
+  return Number(input);
+};
+const cariPeserta = (email = '') => {
+  const peserta = createPesertaMap(riwayat).get(email);
+  if (!peserta) throw new Error('Peserta tidak ditemukan.');
+  return peserta;
+};
+const simpan = async (hasil = [], pesan = '') => {
+  // Memori baru berubah setelah penyimpanan berhasil.
+  await saveStore(hasil);
+  riwayat = hasil;
+  console.log(pesan);
+};
+
+console.log('🎓 SISTEM MANAJEMEN PESERTA TRAINING BRAINMATICS');
+try {
+  let berjalan = true;
+  while (berjalan) {
+    console.log(`
+1. Daftar peserta
+2. Detail peserta dan riwayat tes
+3. Tambah peserta
+4. Ubah biodata peserta
+5. Catat tes ulang
+6. Hapus peserta
+7. Filter berdasarkan kelas
+8. Statistik dan validasi
+0. Keluar`);
+    try {
+      const pilihan = await baca('Pilihan: ');
+      switch (pilihan) {
+        case '0':
+          berjalan = false;
+          break;
+        case '1': {
+          console.log(`Jumlah peserta unik: ${getUniqueEmails(riwayat).length}`);
+          console.log(formatPesertaList(getUniquePeserta(riwayat)));
+          break;
+        }
+        default:
+          console.log('Pilihan tidak valid. Masukkan angka 0–8.');
+      }
+    } catch (error) {
+      if (error === akhirInput) {
+        console.log('\nInput berakhir. Operasi dibatalkan.');
+        break;
+      }
+      console.error(`❌ ${error.message}`);
+    }
+  }
+} finally {
+  pembaca.close();
+}
+console.log('Sampai jumpa.');
+```
+
+Jalankan dari root repository:
+
+```bash
+node latihan/proyek/main.js
+```
+
+Masukkan jawaban berikut berurutan, satu jawaban per baris. Baris kosong berarti tekan Enter. Pada input terprogram, prompt tercetak bersebelahan karena terminal tidak menggema jawaban.
+
+<!-- input: main.js -->
+```text
+1
+0
+```
+
+<!-- expected: main.js -->
+```text
+🎓 SISTEM MANAJEMEN PESERTA TRAINING BRAINMATICS
+
+1. Daftar peserta
+2. Detail peserta dan riwayat tes
+3. Tambah peserta
+4. Ubah biodata peserta
+5. Catat tes ulang
+6. Hapus peserta
+7. Filter berdasarkan kelas
+8. Statistik dan validasi
+0. Keluar
+Pilihan: Jumlah peserta unik: 4
+1. Nama: Aditya Prayoga, Score: 88, Status: LULUS
+2. Nama: Zaim Fauzan, Score: 94, Status: LULUS
+3. Nama: Milea Kusuma, Score: 78, Status: TIDAK LULUS
+4. Nama: Pratama Wijaya, Score: 95, Status: LULUS
+
+1. Daftar peserta
+2. Detail peserta dan riwayat tes
+3. Tambah peserta
+4. Ubah biodata peserta
+5. Catat tes ulang
+6. Hapus peserta
+7. Filter berdasarkan kelas
+8. Statistik dan validasi
+0. Keluar
+Pilihan: Sampai jumpa.
+```
+
+## Langkah 2: Hubungkan detail, filter, dan statistik
+
+Detail memakai Map untuk peserta terakhir dan getRiwayatTes untuk seluruh tes. Filter dan statistik selalu menerima peserta unik. Dua factory validator memperagakan kelulusan 80–100 dan pemeriksaan rentang 60–100 yang terpisah. Coba filter JavaScript Fundamentals.
+
+Perubahan pada `main.js`:
+
+```diff
+--- sebelum/main.js
++++ sesudah/main.js
+@@ -66,6 +66,40 @@
+           console.log(formatPesertaList(getUniquePeserta(riwayat)));
+           break;
+         }
++        case '2': {
++          const email = await bacaEmail();
++          const peserta = cariPeserta(email);
++          console.log(createDetailedReport(peserta));
++          console.log(createPesertaSummary(peserta));
++          console.log('Riwayat tes (urutan pencatatan):');
++          for (const { id, name, score } of getRiwayatTes(riwayat, email)) {
++            console.log(`Tes ID ${id}: ${displayPeserta(name, score)}`);
++          }
++          break;
++        }
++        case '7': {
++          const className = await baca('Kelas: ');
++          console.log(formatPesertaList(getPesertaByClass(getUniquePeserta(riwayat), className)));
++          break;
++        }
++        case '8': {
++          const pesertaUnik = getUniquePeserta(riwayat);
++          const standar = createPassingValidator();
++          const rentang = createLenientValidator();
++          const ringkasan = standar.validateBatch(pesertaUnik);
++          console.log(`Jumlah peserta: ${ringkasan.total}`);
++          console.log(`Rata-rata nilai terakhir: ${calculateAverageScore(pesertaUnik)}`);
++          console.log(`LULUS (nilai >=80): ${ringkasan.valid}; TIDAK LULUS: ${ringkasan.invalid}`);
++          console.log('Pemeriksaan rentang 60–100 terpisah dari kelulusan >=80.');
++          for (const { name, score } of pesertaUnik) {
++            const status = PesertaValidator.getStatus(score);
++            console.log(`${name}: ${status}; status valid: ${PesertaValidator.isValidStatus(status)}`);
++            console.log(standar.formatResult(name, score));
++            console.log(`Rentang 60–100: ${rentang.formatResult(name, score)}`);
++            console.log(`Nilai dalam rentang: ${rentang.isValidScore(score)}; ${rentang.getValidationDetails(score).message}`);
++          }
++          break;
++        }
+         default:
+           console.log('Pilihan tidak valid. Masukkan angka 0–8.');
+       }
+```
+
+<!-- write: main.js -->
+```javascript
+import { createInterface } from 'node:readline';
+import { loadStore, saveStore } from './utils/pesertaStore.js';
+import { tambahPeserta, ubahPeserta, hapusPeserta, tambahNilai, getRiwayatTes } from './utils/pesertaCrud.js';
+import { getUniqueEmails, getUniquePeserta, createPesertaMap, getPesertaByClass, calculateAverageScore } from './utils/pesertaProcessor.js';
+import { displayPeserta, createPesertaSummary, formatPesertaList, createDetailedReport } from './utils/pesertaFormatter.js';
+import { PesertaValidator, createPassingValidator, createLenientValidator } from './utils/pesertaValidator.js';
+
+let riwayat;
+try {
+  riwayat = await loadStore();
+} catch (error) {
+  console.error(`❌ ${error.message}`);
+  process.exit(1);
+}
+
+const pembaca = createInterface({ input: process.stdin, crlfDelay: Infinity });
+// Satu iterator menjaga urutan jawaban, termasuk input yang dikirim sekaligus.
+const jawaban = pembaca[Symbol.asyncIterator]();
+const akhirInput = Symbol('akhir input');
+const baca = async (pertanyaan = '') => {
+  process.stdout.write(pertanyaan);
+  const { value, done } = await jawaban.next();
+  if (done) throw akhirInput;
+  return value.trim();
+};
+const bacaEmail = async (pertanyaan = 'Email peserta: ') => (await baca(pertanyaan)).toLowerCase();
+const bacaNilai = async () => {
+  const input = await baca('Nilai (0–100): ');
+  if (input === '') throw new Error('Nilai wajib diisi.');
+  return Number(input);
+};
+const cariPeserta = (email = '') => {
+  const peserta = createPesertaMap(riwayat).get(email);
+  if (!peserta) throw new Error('Peserta tidak ditemukan.');
+  return peserta;
+};
+const simpan = async (hasil = [], pesan = '') => {
+  // Memori baru berubah setelah penyimpanan berhasil.
+  await saveStore(hasil);
+  riwayat = hasil;
+  console.log(pesan);
+};
+
+console.log('🎓 SISTEM MANAJEMEN PESERTA TRAINING BRAINMATICS');
+try {
+  let berjalan = true;
+  while (berjalan) {
+    console.log(`
+1. Daftar peserta
+2. Detail peserta dan riwayat tes
+3. Tambah peserta
+4. Ubah biodata peserta
+5. Catat tes ulang
+6. Hapus peserta
+7. Filter berdasarkan kelas
+8. Statistik dan validasi
+0. Keluar`);
+    try {
+      const pilihan = await baca('Pilihan: ');
+      switch (pilihan) {
+        case '0':
+          berjalan = false;
+          break;
+        case '1': {
+          console.log(`Jumlah peserta unik: ${getUniqueEmails(riwayat).length}`);
+          console.log(formatPesertaList(getUniquePeserta(riwayat)));
+          break;
+        }
+        case '2': {
+          const email = await bacaEmail();
+          const peserta = cariPeserta(email);
+          console.log(createDetailedReport(peserta));
+          console.log(createPesertaSummary(peserta));
+          console.log('Riwayat tes (urutan pencatatan):');
+          for (const { id, name, score } of getRiwayatTes(riwayat, email)) {
+            console.log(`Tes ID ${id}: ${displayPeserta(name, score)}`);
+          }
+          break;
+        }
+        case '7': {
+          const className = await baca('Kelas: ');
+          console.log(formatPesertaList(getPesertaByClass(getUniquePeserta(riwayat), className)));
+          break;
+        }
+        case '8': {
+          const pesertaUnik = getUniquePeserta(riwayat);
+          const standar = createPassingValidator();
+          const rentang = createLenientValidator();
+          const ringkasan = standar.validateBatch(pesertaUnik);
+          console.log(`Jumlah peserta: ${ringkasan.total}`);
+          console.log(`Rata-rata nilai terakhir: ${calculateAverageScore(pesertaUnik)}`);
+          console.log(`LULUS (nilai >=80): ${ringkasan.valid}; TIDAK LULUS: ${ringkasan.invalid}`);
+          console.log('Pemeriksaan rentang 60–100 terpisah dari kelulusan >=80.');
+          for (const { name, score } of pesertaUnik) {
+            const status = PesertaValidator.getStatus(score);
+            console.log(`${name}: ${status}; status valid: ${PesertaValidator.isValidStatus(status)}`);
+            console.log(standar.formatResult(name, score));
+            console.log(`Rentang 60–100: ${rentang.formatResult(name, score)}`);
+            console.log(`Nilai dalam rentang: ${rentang.isValidScore(score)}; ${rentang.getValidationDetails(score).message}`);
+          }
+          break;
+        }
+        default:
+          console.log('Pilihan tidak valid. Masukkan angka 0–8.');
+      }
+    } catch (error) {
+      if (error === akhirInput) {
+        console.log('\nInput berakhir. Operasi dibatalkan.');
+        break;
+      }
+      console.error(`❌ ${error.message}`);
+    }
+  }
+} finally {
+  pembaca.close();
+}
+console.log('Sampai jumpa.');
+```
+
+Jalankan dari root repository:
+
+```bash
+node latihan/proyek/main.js
+```
+
+Masukkan jawaban berikut berurutan, satu jawaban per baris. Baris kosong berarti tekan Enter. Pada input terprogram, prompt tercetak bersebelahan karena terminal tidak menggema jawaban.
+
+<!-- input: main.js -->
+```text
+7
+JavaScript Fundamentals
+0
+```
+
+<!-- expected: main.js -->
+```text
+🎓 SISTEM MANAJEMEN PESERTA TRAINING BRAINMATICS
+
+1. Daftar peserta
+2. Detail peserta dan riwayat tes
+3. Tambah peserta
+4. Ubah biodata peserta
+5. Catat tes ulang
+6. Hapus peserta
+7. Filter berdasarkan kelas
+8. Statistik dan validasi
+0. Keluar
+Pilihan: Kelas: 1. Nama: Aditya Prayoga, Score: 88, Status: LULUS
+2. Nama: Milea Kusuma, Score: 78, Status: TIDAK LULUS
+
+1. Daftar peserta
+2. Detail peserta dan riwayat tes
+3. Tambah peserta
+4. Ubah biodata peserta
+5. Catat tes ulang
+6. Hapus peserta
+7. Filter berdasarkan kelas
+8. Statistik dan validasi
+0. Keluar
+Pilihan: Sampai jumpa.
+```
+
+## Langkah 3: Tambahkan peserta dan tes ulang
+
+bacaNilai menolak string kosong sebelum Number dipanggil. Validasi angka selanjutnya dilakukan fungsi CRUD. simpan menunggu file berhasil ditulis sebelum mengganti riwayat dalam memori dan menampilkan sukses. Lengkapi seluruh formulir sebelum fungsi simpan dipanggil.
+
+Perubahan pada `main.js`:
+
+```diff
+--- sebelum/main.js
++++ sesudah/main.js
+@@ -77,6 +77,21 @@
+           }
+           break;
+         }
++        case '3': {
++          const name = await baca('Nama: ');
++          const email = await bacaEmail('Email: ');
++          const className = await baca('Kelas: ');
++          const score = await bacaNilai();
++          await simpan(tambahPeserta(riwayat, { name, email, class: className, score }), 'Peserta berhasil ditambahkan.');
++          break;
++        }
++        case '5': {
++          const email = await bacaEmail();
++          cariPeserta(email);
++          const score = await bacaNilai();
++          await simpan(tambahNilai(riwayat, email, score), 'Tes ulang berhasil dicatat.');
++          break;
++        }
+         case '7': {
+           const className = await baca('Kelas: ');
+           console.log(formatPesertaList(getPesertaByClass(getUniquePeserta(riwayat), className)));
+```
+
+<!-- write: main.js -->
+```javascript
+import { createInterface } from 'node:readline';
+import { loadStore, saveStore } from './utils/pesertaStore.js';
+import { tambahPeserta, ubahPeserta, hapusPeserta, tambahNilai, getRiwayatTes } from './utils/pesertaCrud.js';
+import { getUniqueEmails, getUniquePeserta, createPesertaMap, getPesertaByClass, calculateAverageScore } from './utils/pesertaProcessor.js';
+import { displayPeserta, createPesertaSummary, formatPesertaList, createDetailedReport } from './utils/pesertaFormatter.js';
+import { PesertaValidator, createPassingValidator, createLenientValidator } from './utils/pesertaValidator.js';
+
+let riwayat;
+try {
+  riwayat = await loadStore();
+} catch (error) {
+  console.error(`❌ ${error.message}`);
+  process.exit(1);
+}
+
+const pembaca = createInterface({ input: process.stdin, crlfDelay: Infinity });
+// Satu iterator menjaga urutan jawaban, termasuk input yang dikirim sekaligus.
+const jawaban = pembaca[Symbol.asyncIterator]();
+const akhirInput = Symbol('akhir input');
+const baca = async (pertanyaan = '') => {
+  process.stdout.write(pertanyaan);
+  const { value, done } = await jawaban.next();
+  if (done) throw akhirInput;
+  return value.trim();
+};
+const bacaEmail = async (pertanyaan = 'Email peserta: ') => (await baca(pertanyaan)).toLowerCase();
+const bacaNilai = async () => {
+  const input = await baca('Nilai (0–100): ');
+  if (input === '') throw new Error('Nilai wajib diisi.');
+  return Number(input);
+};
+const cariPeserta = (email = '') => {
+  const peserta = createPesertaMap(riwayat).get(email);
+  if (!peserta) throw new Error('Peserta tidak ditemukan.');
+  return peserta;
+};
+const simpan = async (hasil = [], pesan = '') => {
+  // Memori baru berubah setelah penyimpanan berhasil.
+  await saveStore(hasil);
+  riwayat = hasil;
+  console.log(pesan);
+};
+
+console.log('🎓 SISTEM MANAJEMEN PESERTA TRAINING BRAINMATICS');
+try {
+  let berjalan = true;
+  while (berjalan) {
+    console.log(`
+1. Daftar peserta
+2. Detail peserta dan riwayat tes
+3. Tambah peserta
+4. Ubah biodata peserta
+5. Catat tes ulang
+6. Hapus peserta
+7. Filter berdasarkan kelas
+8. Statistik dan validasi
+0. Keluar`);
+    try {
+      const pilihan = await baca('Pilihan: ');
+      switch (pilihan) {
+        case '0':
+          berjalan = false;
+          break;
+        case '1': {
+          console.log(`Jumlah peserta unik: ${getUniqueEmails(riwayat).length}`);
+          console.log(formatPesertaList(getUniquePeserta(riwayat)));
+          break;
+        }
+        case '2': {
+          const email = await bacaEmail();
+          const peserta = cariPeserta(email);
+          console.log(createDetailedReport(peserta));
+          console.log(createPesertaSummary(peserta));
+          console.log('Riwayat tes (urutan pencatatan):');
+          for (const { id, name, score } of getRiwayatTes(riwayat, email)) {
+            console.log(`Tes ID ${id}: ${displayPeserta(name, score)}`);
+          }
+          break;
+        }
+        case '3': {
+          const name = await baca('Nama: ');
+          const email = await bacaEmail('Email: ');
+          const className = await baca('Kelas: ');
+          const score = await bacaNilai();
+          await simpan(tambahPeserta(riwayat, { name, email, class: className, score }), 'Peserta berhasil ditambahkan.');
+          break;
+        }
+        case '5': {
+          const email = await bacaEmail();
+          cariPeserta(email);
+          const score = await bacaNilai();
+          await simpan(tambahNilai(riwayat, email, score), 'Tes ulang berhasil dicatat.');
+          break;
+        }
+        case '7': {
+          const className = await baca('Kelas: ');
+          console.log(formatPesertaList(getPesertaByClass(getUniquePeserta(riwayat), className)));
+          break;
+        }
+        case '8': {
+          const pesertaUnik = getUniquePeserta(riwayat);
+          const standar = createPassingValidator();
+          const rentang = createLenientValidator();
+          const ringkasan = standar.validateBatch(pesertaUnik);
+          console.log(`Jumlah peserta: ${ringkasan.total}`);
+          console.log(`Rata-rata nilai terakhir: ${calculateAverageScore(pesertaUnik)}`);
+          console.log(`LULUS (nilai >=80): ${ringkasan.valid}; TIDAK LULUS: ${ringkasan.invalid}`);
+          console.log('Pemeriksaan rentang 60–100 terpisah dari kelulusan >=80.');
+          for (const { name, score } of pesertaUnik) {
+            const status = PesertaValidator.getStatus(score);
+            console.log(`${name}: ${status}; status valid: ${PesertaValidator.isValidStatus(status)}`);
+            console.log(standar.formatResult(name, score));
+            console.log(`Rentang 60–100: ${rentang.formatResult(name, score)}`);
+            console.log(`Nilai dalam rentang: ${rentang.isValidScore(score)}; ${rentang.getValidationDetails(score).message}`);
+          }
+          break;
+        }
+        default:
+          console.log('Pilihan tidak valid. Masukkan angka 0–8.');
+      }
+    } catch (error) {
+      if (error === akhirInput) {
+        console.log('\nInput berakhir. Operasi dibatalkan.');
+        break;
+      }
+      console.error(`❌ ${error.message}`);
+    }
+  }
+} finally {
+  pembaca.close();
+}
+console.log('Sampai jumpa.');
+```
+
+Jalankan dari root repository:
+
+```bash
+node latihan/proyek/main.js
+```
+
+Masukkan jawaban berikut berurutan, satu jawaban per baris. Baris kosong berarti tekan Enter. Pada input terprogram, prompt tercetak bersebelahan karena terminal tidak menggema jawaban.
+
+<!-- input: main.js -->
+```text
+3
+Rina
+rina@example.com
+Node.js
+90
+5
+rina@example.com
+79
+0
+```
+
+<!-- expected: main.js -->
+```text
+🎓 SISTEM MANAJEMEN PESERTA TRAINING BRAINMATICS
+
+1. Daftar peserta
+2. Detail peserta dan riwayat tes
+3. Tambah peserta
+4. Ubah biodata peserta
+5. Catat tes ulang
+6. Hapus peserta
+7. Filter berdasarkan kelas
+8. Statistik dan validasi
+0. Keluar
+Pilihan: Nama: Email: Kelas: Nilai (0–100): Peserta berhasil ditambahkan.
+
+1. Daftar peserta
+2. Detail peserta dan riwayat tes
+3. Tambah peserta
+4. Ubah biodata peserta
+5. Catat tes ulang
+6. Hapus peserta
+7. Filter berdasarkan kelas
+8. Statistik dan validasi
+0. Keluar
+Pilihan: Email peserta: Nilai (0–100): Tes ulang berhasil dicatat.
+
+1. Daftar peserta
+2. Detail peserta dan riwayat tes
+3. Tambah peserta
+4. Ubah biodata peserta
+5. Catat tes ulang
+6. Hapus peserta
+7. Filter berdasarkan kelas
+8. Statistik dan validasi
+0. Keluar
+Pilihan: Sampai jumpa.
+```
+
+## Langkah 4: Ubah biodata dan konfirmasi penghapusan
+
+Input kosong pada biodata memakai nilai sebelumnya. Penghapusan memerlukan jawaban ya. EOF membatalkan formulir; tidak ada data parsial yang disimpan. Kesalahan operasi dicetak lalu menu dibuka kembali. Pada checkpoint ini, batalkan penghapusan Rina dari langkah sebelumnya, periksa riwayatnya, lalu keluar.
+
+Perubahan pada `main.js`:
+
+```diff
+--- sebelum/main.js
++++ sesudah/main.js
+@@ -85,11 +85,37 @@
+           await simpan(tambahPeserta(riwayat, { name, email, class: className, score }), 'Peserta berhasil ditambahkan.');
+           break;
+         }
++        case '4': {
++          const email = await bacaEmail();
++          const peserta = cariPeserta(email);
++          console.log('Kosongkan isian untuk mempertahankan biodata.');
++          const name = await baca(`Nama [${peserta.name}]: `);
++          const emailBaru = await bacaEmail(`Email [${peserta.email}]: `);
++          const className = await baca(`Kelas [${peserta.class}]: `);
++          const perubahan = {
++            name: name === '' ? peserta.name : name,
++            email: emailBaru === '' ? peserta.email : emailBaru,
++            class: className === '' ? peserta.class : className
++          };
++          await simpan(ubahPeserta(riwayat, email, perubahan), 'Biodata peserta berhasil diperbarui.');
++          break;
++        }
+         case '5': {
+           const email = await bacaEmail();
+           cariPeserta(email);
+           const score = await bacaNilai();
+           await simpan(tambahNilai(riwayat, email, score), 'Tes ulang berhasil dicatat.');
++          break;
++        }
++        case '6': {
++          const email = await bacaEmail();
++          const peserta = cariPeserta(email);
++          const konfirmasi = await baca(`Hapus ${peserta.name} dan seluruh riwayat? Ketik ya: `);
++          if (konfirmasi.toLowerCase() !== 'ya') {
++            console.log('Penghapusan dibatalkan.');
++            break;
++          }
++          await simpan(hapusPeserta(riwayat, email), 'Peserta dan seluruh riwayat berhasil dihapus.');
+           break;
+         }
+         case '7': {
+```
+
+<!-- write: main.js -->
+```javascript
+import { createInterface } from 'node:readline';
+import { loadStore, saveStore } from './utils/pesertaStore.js';
+import { tambahPeserta, ubahPeserta, hapusPeserta, tambahNilai, getRiwayatTes } from './utils/pesertaCrud.js';
+import { getUniqueEmails, getUniquePeserta, createPesertaMap, getPesertaByClass, calculateAverageScore } from './utils/pesertaProcessor.js';
+import { displayPeserta, createPesertaSummary, formatPesertaList, createDetailedReport } from './utils/pesertaFormatter.js';
+import { PesertaValidator, createPassingValidator, createLenientValidator } from './utils/pesertaValidator.js';
+
+let riwayat;
+try {
+  riwayat = await loadStore();
+} catch (error) {
+  console.error(`❌ ${error.message}`);
+  process.exit(1);
+}
+
+const pembaca = createInterface({ input: process.stdin, crlfDelay: Infinity });
+// Satu iterator menjaga urutan jawaban, termasuk input yang dikirim sekaligus.
+const jawaban = pembaca[Symbol.asyncIterator]();
+const akhirInput = Symbol('akhir input');
+const baca = async (pertanyaan = '') => {
+  process.stdout.write(pertanyaan);
+  const { value, done } = await jawaban.next();
+  if (done) throw akhirInput;
+  return value.trim();
+};
+const bacaEmail = async (pertanyaan = 'Email peserta: ') => (await baca(pertanyaan)).toLowerCase();
+const bacaNilai = async () => {
+  const input = await baca('Nilai (0–100): ');
+  if (input === '') throw new Error('Nilai wajib diisi.');
+  return Number(input);
+};
+const cariPeserta = (email = '') => {
+  const peserta = createPesertaMap(riwayat).get(email);
+  if (!peserta) throw new Error('Peserta tidak ditemukan.');
+  return peserta;
+};
+const simpan = async (hasil = [], pesan = '') => {
+  // Memori baru berubah setelah penyimpanan berhasil.
+  await saveStore(hasil);
+  riwayat = hasil;
+  console.log(pesan);
+};
+
+console.log('🎓 SISTEM MANAJEMEN PESERTA TRAINING BRAINMATICS');
+try {
+  let berjalan = true;
+  while (berjalan) {
+    console.log(`
+1. Daftar peserta
+2. Detail peserta dan riwayat tes
+3. Tambah peserta
+4. Ubah biodata peserta
+5. Catat tes ulang
+6. Hapus peserta
+7. Filter berdasarkan kelas
+8. Statistik dan validasi
+0. Keluar`);
+    try {
+      const pilihan = await baca('Pilihan: ');
+      switch (pilihan) {
+        case '0':
+          berjalan = false;
+          break;
+        case '1': {
+          console.log(`Jumlah peserta unik: ${getUniqueEmails(riwayat).length}`);
+          console.log(formatPesertaList(getUniquePeserta(riwayat)));
+          break;
+        }
+        case '2': {
+          const email = await bacaEmail();
+          const peserta = cariPeserta(email);
+          console.log(createDetailedReport(peserta));
+          console.log(createPesertaSummary(peserta));
+          console.log('Riwayat tes (urutan pencatatan):');
+          for (const { id, name, score } of getRiwayatTes(riwayat, email)) {
+            console.log(`Tes ID ${id}: ${displayPeserta(name, score)}`);
+          }
+          break;
+        }
+        case '3': {
+          const name = await baca('Nama: ');
+          const email = await bacaEmail('Email: ');
+          const className = await baca('Kelas: ');
+          const score = await bacaNilai();
+          await simpan(tambahPeserta(riwayat, { name, email, class: className, score }), 'Peserta berhasil ditambahkan.');
+          break;
+        }
+        case '4': {
+          const email = await bacaEmail();
+          const peserta = cariPeserta(email);
+          console.log('Kosongkan isian untuk mempertahankan biodata.');
+          const name = await baca(`Nama [${peserta.name}]: `);
+          const emailBaru = await bacaEmail(`Email [${peserta.email}]: `);
+          const className = await baca(`Kelas [${peserta.class}]: `);
+          const perubahan = {
+            name: name === '' ? peserta.name : name,
+            email: emailBaru === '' ? peserta.email : emailBaru,
+            class: className === '' ? peserta.class : className
+          };
+          await simpan(ubahPeserta(riwayat, email, perubahan), 'Biodata peserta berhasil diperbarui.');
+          break;
+        }
+        case '5': {
+          const email = await bacaEmail();
+          cariPeserta(email);
+          const score = await bacaNilai();
+          await simpan(tambahNilai(riwayat, email, score), 'Tes ulang berhasil dicatat.');
+          break;
+        }
+        case '6': {
+          const email = await bacaEmail();
+          const peserta = cariPeserta(email);
+          const konfirmasi = await baca(`Hapus ${peserta.name} dan seluruh riwayat? Ketik ya: `);
+          if (konfirmasi.toLowerCase() !== 'ya') {
+            console.log('Penghapusan dibatalkan.');
+            break;
+          }
+          await simpan(hapusPeserta(riwayat, email), 'Peserta dan seluruh riwayat berhasil dihapus.');
+          break;
+        }
+        case '7': {
+          const className = await baca('Kelas: ');
+          console.log(formatPesertaList(getPesertaByClass(getUniquePeserta(riwayat), className)));
+          break;
+        }
+        case '8': {
+          const pesertaUnik = getUniquePeserta(riwayat);
+          const standar = createPassingValidator();
+          const rentang = createLenientValidator();
+          const ringkasan = standar.validateBatch(pesertaUnik);
+          console.log(`Jumlah peserta: ${ringkasan.total}`);
+          console.log(`Rata-rata nilai terakhir: ${calculateAverageScore(pesertaUnik)}`);
+          console.log(`LULUS (nilai >=80): ${ringkasan.valid}; TIDAK LULUS: ${ringkasan.invalid}`);
+          console.log('Pemeriksaan rentang 60–100 terpisah dari kelulusan >=80.');
+          for (const { name, score } of pesertaUnik) {
+            const status = PesertaValidator.getStatus(score);
+            console.log(`${name}: ${status}; status valid: ${PesertaValidator.isValidStatus(status)}`);
+            console.log(standar.formatResult(name, score));
+            console.log(`Rentang 60–100: ${rentang.formatResult(name, score)}`);
+            console.log(`Nilai dalam rentang: ${rentang.isValidScore(score)}; ${rentang.getValidationDetails(score).message}`);
+          }
+          break;
+        }
+        default:
+          console.log('Pilihan tidak valid. Masukkan angka 0–8.');
+      }
+    } catch (error) {
+      if (error === akhirInput) {
+        console.log('\nInput berakhir. Operasi dibatalkan.');
+        break;
+      }
+      console.error(`❌ ${error.message}`);
+    }
+  }
+} finally {
+  pembaca.close();
+}
+console.log('Sampai jumpa.');
+```
+
+Jalankan dari root repository:
+
+```bash
+node latihan/proyek/main.js
+```
+
+Masukkan jawaban berikut berurutan, satu jawaban per baris. Baris kosong berarti tekan Enter. Pada input terprogram, prompt tercetak bersebelahan karena terminal tidak menggema jawaban.
+
+<!-- input: main.js -->
+```text
+6
+rina@example.com
+tidak
+2
+rina@example.com
+0
+```
+
+<!-- expected: main.js -->
+```text
+🎓 SISTEM MANAJEMEN PESERTA TRAINING BRAINMATICS
+
+1. Daftar peserta
+2. Detail peserta dan riwayat tes
+3. Tambah peserta
+4. Ubah biodata peserta
+5. Catat tes ulang
+6. Hapus peserta
+7. Filter berdasarkan kelas
+8. Statistik dan validasi
+0. Keluar
+Pilihan: Email peserta: Hapus Rina dan seluruh riwayat? Ketik ya: Penghapusan dibatalkan.
+
+1. Daftar peserta
+2. Detail peserta dan riwayat tes
+3. Tambah peserta
+4. Ubah biodata peserta
+5. Catat tes ulang
+6. Hapus peserta
+7. Filter berdasarkan kelas
+8. Statistik dan validasi
+0. Keluar
+Pilihan: Email peserta:
+╔═══════════════════════════════════════╗
+  ID       : 108
+  Nama     : Rina
+  Email    : rina@example.com
+  Kelas    : Node.js
+  Score    : 79
+  Status   : ❌ TIDAK LULUS
+╚═══════════════════════════════════════╝
+📚 Rina - Class: Node.js - Score: 79
+Riwayat tes (urutan pencatatan):
+Tes ID 107: Nama: Rina, Score: 90, Status: LULUS
+Tes ID 108: Nama: Rina, Score: 79, Status: TIDAK LULUS
+
+1. Daftar peserta
+2. Detail peserta dan riwayat tes
+3. Tambah peserta
+4. Ubah biodata peserta
+5. Catat tes ulang
+6. Hapus peserta
+7. Filter berdasarkan kelas
+8. Statistik dan validasi
+0. Keluar
+Pilihan: Sampai jumpa.
+```
+
+Jalankan kembali aplikasi dan pilih 2 dengan email rina@example.com. Dua tes Rina tetap ada dengan nilai terakhir 79, sehingga statusnya TIDAK LULUS. Pilih 5 dan masukkan 80 untuk meluluskan tes berikutnya. Pilih 4 untuk mengganti biodata seluruh tes, lalu 6 dan ya untuk menghapus seluruh riwayat. Data contoh tidak berubah. Output checkpoint di atas mengasumsikan file kerja baru dari tahap 11; menjalankan transaksi tambah dua kali akan menolak email ganda.
+
+## Tantangan: Tangani pilihan menu tidak valid
+
+Jalankan aplikasi dengan pilihan 9, kemudian 0. Pastikan menu kembali tampil dan aplikasi ditutup. Solusi memanggil main.js yang sama tanpa menyalin implementasi menu.
+
+<details>
+<summary>Lihat penyelesaian tantangan</summary>
+
+Buat file `tantangan-12.js` dengan isi lengkap berikut.
+
+<!-- challenge: tantangan-12.js -->
+```javascript
+// Import menunggu aplikasi menyelesaikan loop menu yang sama.
+await import('./main.js');
+```
+
+Jalankan dari root repository:
+
+```bash
+node latihan/proyek/tantangan-12.js
+```
+
+Masukkan jawaban berikut berurutan, satu jawaban per baris. Baris kosong berarti tekan Enter. Pada input terprogram, prompt tercetak bersebelahan karena terminal tidak menggema jawaban.
+
+<!-- input: tantangan-12.js -->
+```text
+9
+0
+```
+
+<!-- challenge-output: tantangan-12.js -->
+```text
+🎓 SISTEM MANAJEMEN PESERTA TRAINING BRAINMATICS
+
+1. Daftar peserta
+2. Detail peserta dan riwayat tes
+3. Tambah peserta
+4. Ubah biodata peserta
+5. Catat tes ulang
+6. Hapus peserta
+7. Filter berdasarkan kelas
+8. Statistik dan validasi
+0. Keluar
+Pilihan: Pilihan tidak valid. Masukkan angka 0–8.
+
+1. Daftar peserta
+2. Detail peserta dan riwayat tes
+3. Tambah peserta
+4. Ubah biodata peserta
+5. Catat tes ulang
+6. Hapus peserta
+7. Filter berdasarkan kelas
+8. Statistik dan validasi
+0. Keluar
+Pilihan: Sampai jumpa.
+```
+
+</details>
+
+## Checkpoint
+
+- [ ] Semua pilihan 0–8 berjalan dari module proyek sendiri.
+- [ ] Data tetap tersedia setelah aplikasi dibuka kembali.
+- [ ] Input kosong mempertahankan biodata dan konfirmasi selain ya membatalkan hapus.
+- [ ] EOF formulir tidak menyimpan data parsial.
+- [ ] Pesan sukses tampil setelah await saveStore selesai.
+
+[Tahap sebelumnya](../11-penyimpanan-json/README.md) · [Daftar latihan](../README.md) · [Tahap berikutnya](../13-pengujian-akhir/README.md)
+# 13. Uji proyek lengkap
+
+Buktikan fungsi, file kerja, dan menu berjalan bersama. Prasyarat: menu tahap 12 lengkap. Pengujian memakai utils dan main di proyek peserta, sehingga hasil root tidak menggantikan bukti proyekmu.
+
+Semua nama file berada di `latihan/proyek/`. Jalankan perintah dari root repository. Pertahankan file tahap sebelumnya. Pada diff, `-` adalah kode lama dan `+` adalah kode baru. Ketik perubahan, lalu cocokkan dengan kode lengkap setelah diff. Jalankan setiap checkpoint sebelum melanjutkan.
+
+## Langkah 1: Salin suite beserta fixture
+
+Salin folder test dari root ke proyek peserta. Jangan salin aplikasi root ke proyekmu.
+
+<!-- copy: test => test -->
+```bash
+node --input-type=module -e "import { cp } from 'node:fs/promises'; await cp('test', 'latihan/proyek/test', { recursive: true });"
+```
+
+Suite test-all menjaga 79 perilaku lama. test-crud memeriksa transformasi array, test-store memeriksa file sementara dan restart, sedangkan test-menu menjalankan proses Node nyata dengan input terprogram.
+
+## Langkah 2: Jalankan semua suite dari proyekmu
+
+Perubahan pada `package.json`:
+
+```diff
+--- sebelum/package.json
++++ sesudah/package.json
+@@ -7,6 +7,7 @@
+     "node": ">=22"
+   },
+   "scripts": {
+-    "start": "node main.js"
++    "start": "node main.js",
++    "test": "node test/test-all.js && node test/test-crud.js && node test/test-store.js && node test/test-menu.js"
+   }
+ }
+```
+
+<!-- write: package.json -->
+```json
+{
+  "name": "praktik-manajemen-peserta",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "start": "node main.js",
+    "test": "node test/test-all.js && node test/test-crud.js && node test/test-store.js && node test/test-menu.js"
+  }
+}
+```
+
+Jalankan `npm --prefix latihan/proyek test`. Jangan menambahkan latihan/cek.js pada script peserta karena pemeriksa tujuh solusi lama dimiliki repository root. Waktu eksekusi dan nomor proses pada TAP berubah setiap kali dijalankan; periksa jumlah lulus dan nol gagal. Keluaran suite lama tetap persis berikut saat menjalankan `node latihan/proyek/test/test-all.js`.
+
+<!-- expected: test/test-all.js -->
+```text
+============================================================
+🧪 RUNNING UNIT TESTS FOR ES6 TRAINING SYSTEM
+============================================================
+
+📦 TEST SUITE 1: Data Validation
+------------------------------------------------------------
+✅ PASS: rawPeserta is an array
+✅ PASS: rawPeserta has 6 entries
+✅ PASS: Participant has 'id' property
+✅ PASS: Participant has 'name' property
+✅ PASS: Participant has 'email' property
+✅ PASS: Participant has 'class' property
+✅ PASS: Participant has 'score' property
+
+📦 TEST SUITE 2: getUniqueEmails Function
+------------------------------------------------------------
+✅ PASS: Returns 4 unique emails
+✅ PASS: Contains aditya email
+✅ PASS: Contains zaim email
+✅ PASS: Contains milea email
+✅ PASS: Contains pratama email
+✅ PASS: Returns empty array for empty input
+✅ PASS: Handles undefined parameter with default
+
+📦 TEST SUITE 3: createPesertaMap Function
+------------------------------------------------------------
+✅ PASS: Map has 4 unique entries
+✅ PASS: Aditya entry uses latest ID (103)
+✅ PASS: Aditya entry uses latest score (88)
+✅ PASS: Zaim entry uses latest ID (106)
+✅ PASS: Zaim entry uses latest score (94)
+✅ PASS: Returns empty Map for empty input
+
+📦 TEST SUITE 4: getPesertaByClass Function
+------------------------------------------------------------
+✅ PASS: JavaScript Fundamentals has 3 participants
+✅ PASS: React Basics has 3 participants
+✅ PASS: Returns empty array for non-existent class
+✅ PASS: Handles empty array input
+
+📦 TEST SUITE 5: calculateAverageScore Function
+------------------------------------------------------------
+✅ PASS: Calculates correct average
+✅ PASS: JavaScript Fundamentals has positive average
+✅ PASS: Returns 0 for empty array
+✅ PASS: Handles single entry correctly
+
+📦 TEST SUITE 6: getUniquePeserta Function
+------------------------------------------------------------
+✅ PASS: Returns 4 unique participants
+✅ PASS: All emails are unique
+✅ PASS: Keeps latest Aditya score (88)
+
+📦 TEST SUITE 7: displayPeserta Function
+------------------------------------------------------------
+✅ PASS: Formats passing score correctly
+✅ PASS: Formats failing score correctly
+✅ PASS: Uses default parameters correctly
+✅ PASS: Valid status override is kept
+✅ PASS: Invalid status falls back to computed
+✅ PASS: Lowercase status is invalid
+
+📦 TEST SUITE 8: createPesertaSummary Function
+------------------------------------------------------------
+✅ PASS: Formats summary correctly
+✅ PASS: Handles empty object with defaults
+✅ PASS: Handles null with ??
+✅ PASS: Score 0 is kept
+
+📦 TEST SUITE 9: PesertaValidator Class
+------------------------------------------------------------
+✅ PASS: Constructor sets minScore correctly
+✅ PASS: Constructor sets maxScore correctly
+✅ PASS: Recognizes valid score (85)
+✅ PASS: Recognizes boundary valid score (80)
+✅ PASS: Recognizes boundary valid score (100)
+✅ PASS: Recognizes invalid score (79)
+✅ PASS: Recognizes invalid score (101)
+✅ PASS: Formats valid result correctly
+✅ PASS: Formats invalid result correctly
+✅ PASS: Batch validation counts total correctly
+✅ PASS: Batch validation has non-negative valid count
+✅ PASS: Batch validation has non-negative invalid count
+✅ PASS: Batch validation valid + invalid = total
+✅ PASS: Default minScore is 60
+✅ PASS: Default maxScore is 100
+✅ PASS: Passing score is 80
+✅ PASS: Status list
+✅ PASS: 80 is LULUS (boundary)
+✅ PASS: 79 is TIDAK LULUS (boundary)
+✅ PASS: Default score 0 is TIDAK LULUS
+✅ PASS: includes() accepts LULUS
+✅ PASS: includes() accepts TIDAK LULUS
+✅ PASS: includes() is case-sensitive
+✅ PASS: Old label is no longer valid
+✅ PASS: undefined is not a status
+
+📦 TEST SUITE 10: createDetailedReport Function
+------------------------------------------------------------
+✅ PASS: Detailed report uses TIDAK LULUS
+✅ PASS: Detailed report handles null
+
+📦 TEST SUITE 11: loadPeserta Function
+------------------------------------------------------------
+✅ PASS: async loadPeserta reads 6 records
+✅ PASS: Records keep their order and scores
+✅ PASS: Missing file rejects with Indonesian message
+✅ PASS: Error names the file
+✅ PASS: Malformed JSON caught by try/catch
+✅ PASS: JSON null gives [] via ?. and ??
+✅ PASS: Missing peserta key gives []
+✅ PASS: Missing score becomes 0 via ??
+✅ PASS: Rest/spread keeps extra fields
+✅ PASS: Average is 0, not NaN
+✅ PASS: createPesertaMap spread keeps extra fields
+
+============================================================
+📊 TEST SUMMARY
+============================================================
+✅ Tests Passed: 79
+❌ Tests Failed: 0
+📈 Pass Rate: 100%
+============================================================
+🎉 ALL TESTS PASSED! System is working correctly.
+```
+
+## Langkah 3: Periksa batas dan aturan nilai terakhir
+
+Jika gagal, baca nama test, Expected, dan Actual. Cocokkan fungsi terkait dengan kode lengkap tahap pembuatannya. Jangan mengubah data contoh atau expected untuk menyamarkan kegagalan.
+
+Jalankan menu dengan `npm --prefix latihan/proyek start`, pilih 1 lalu 0. Daftar menampilkan isi file kerja, sehingga perubahan pada tahap 12 tetap ada. Suite menggunakan file kerja sementara sendiri melalui PESERTA_DATA_FILE.
+
+## Tantangan: Buktikan riwayat dan sumber tetap utuh
+
+Buat pengujian kecil untuk nilai terakhir yang turun, batas 79/80, dan biodata yang berubah tanpa mengubah ID atau nilai.
+
+<details>
+<summary>Lihat penyelesaian tantangan</summary>
+
+Buat file `tantangan-13.js` dengan isi lengkap berikut.
+
+<!-- challenge: tantangan-13.js -->
+```javascript
+import assert from 'node:assert/strict';
+import { tambahPeserta, tambahNilai, ubahPeserta, hapusPeserta } from './utils/pesertaCrud.js';
+import { createPesertaMap } from './utils/pesertaProcessor.js';
+import { PesertaValidator, createLenientValidator } from './utils/pesertaValidator.js';
+const awal = tambahPeserta([], { name: 'Rina', email: 'rina@example.com', class: 'Node.js', score: 90 });
+const turun = tambahNilai(awal, 'rina@example.com', 79);
+assert.equal(PesertaValidator.getStatus(createPesertaMap(turun).get('rina@example.com').score), 'TIDAK LULUS');
+const naik = tambahNilai(turun, 'rina@example.com', 80);
+assert.equal(PesertaValidator.getStatus(naik.at(-1).score), 'LULUS');
+const berubah = ubahPeserta(naik, 'rina@example.com', { name: 'Rina Putri' });
+assert.deepEqual(berubah.map(({ id, score }) => [id, score]), naik.map(({ id, score }) => [id, score]));
+assert.equal(berubah.every(({ name }) => name === 'Rina Putri'), true);
+assert.equal(awal[0].name, 'Rina');
+assert.equal(hapusPeserta(berubah, 'rina@example.com').length, 0);
+assert.equal(createLenientValidator().isValidScore(70), true);
+assert.equal(PesertaValidator.getStatus(70), 'TIDAK LULUS');
+console.log('Tantangan 13: riwayat, biodata, dan aturan kelulusan benar');
+```
+
+Jalankan dari root repository:
+
+```bash
+node latihan/proyek/tantangan-13.js
+```
+
+<!-- challenge-output: tantangan-13.js -->
+```text
+Tantangan 13: riwayat, biodata, dan aturan kelulusan benar
+```
+
+</details>
+
+## Checkpoint akhir
+
+- [ ] Pengujian 79 perilaku lama, CRUD, file, dan menu lulus.
+- [ ] Tes 90 → 79 → 80 tetap ada setelah restart.
+- [ ] Hapus menghilangkan seluruh riwayat; pembatalan dan EOF tidak mengubah data.
+- [ ] JSON rusak tetap utuh; gagal menyimpan tidak menghasilkan pesan sukses.
+- [ ] Semua import aplikasi mengarah ke module proyek sendiri.
+
+Kode lengkap main berada di tahap 12, CRUD di tahap 10, store di tahap 11, processor/formatter/validator di tahap 08, dan loader serta data contoh di tahap 09. Nama file validator.js dan module.js dari latihan awal tetap dipertahankan sebagai bagian perjalanan praktik.
+
+[Tahap sebelumnya](../12-menu-terminal/README.md) · [Daftar latihan](../README.md) · [Panduan instruktur](../../instructor.md)

@@ -2,6 +2,8 @@
 
 > Run commands from the repository root, the directory containing `package.json` and `main.js`. Code paths in this reference are relative to that root. Follow the [practice index](../../latihan/README.md) for guided coding.
 
+> The current main.js opens the CRUD terminal menu. The standalone examples below explain individual JavaScript features. Follow [stages 10–13](../../latihan/10-crud-peserta/README.md) for the cumulative application code.
+
 > **Study Guide:** This document highlights the ES6 features in each implementation with annotations explaining what each feature does and why it's used.
 
 ---
@@ -45,7 +47,7 @@ displayPeserta("Test", 90, "lulus"); // Invalid status → "LULUS" (computed fro
 
 ## 🎯 Task 1.2: Destructuring with Renaming
 
-### File: `main.js` (Example Section)
+### Standalone destructuring example
 
 ```javascript
 // ✨ ES6 FEATURE: Object Destructuring with Renaming
@@ -419,7 +421,7 @@ console.log(`Score: ${score}`);  // "Score: 0" ✅
 
 ## 🎯 Task 1.6c: Module System Integration
 
-### File: `main.js`
+### Standalone integration example
 
 ```javascript
 // ✨ ES6 FEATURE: Named Imports
@@ -508,7 +510,7 @@ pesertaList.map(({ score, ...rest }) => ({ ...rest, score: score ?? 0 }));
 ```
 
 ```javascript
-// main.js TASK 3
+// Destructuring concept example (practice stage 03)
 const { name, ...sisanya } = { id: 101, name: "Aditya", email: "aditya@brainmatics.com", score: 85 };
 // sisanya → { id: 101, email: "aditya@brainmatics.com", score: 85 }
 ```
@@ -556,7 +558,7 @@ loadPeserta()
 json?.peserta ?? []        // JSON.parse("null") is null → ?. gives undefined → ?? gives []
 score ?? 0                 // undefined/null → 0, but a real 0 stays 0 (|| would also replace 0)
 peserta ?? {}              // formatters accept null; a default parameter only catches undefined
-pesertaMap.get("tidak-ada@brainmatics.com")?.score ?? "tidak ditemukan"  // main.js TASK 5
+pesertaMap.get("tidak-ada@brainmatics.com")?.score ?? "tidak ditemukan"  // Missing-value concept example (practice stage 09)
 ```
 
 | Expression | `||` result | `??` result |
@@ -651,3 +653,11 @@ Nama: Aditya Prayoga, Score: 88, Status: LULUS
 📚 Aditya Prayoga - Class: JavaScript Fundamentals - Score: 88
 Aditya Prayoga mendapat score 88 - SESUAI STANDAR
 ```
+
+## Current CRUD and storage flow
+
+`utils/pesertaCrud.js` exports tambahPeserta, ubahPeserta, hapusPeserta, tambahNilai, and getRiwayatTes. These functions return new arrays and objects. Normalized email identifies a participant; ID identifies one test. Retests append in order, including lower scores. Biodata updates preserve IDs and scores across all tests.
+
+`utils/pesertaStore.js` validates structure, IDs, identity, and finite scores before loading or saving. It initializes a working file from the seed only on ENOENT. Saving writes a temporary file in the target directory, then renames it. main.js awaits save before replacing in-memory history or printing success.
+
+The menu uses one readline async iterator. List, filter, and statistics use unique participants with the last score. Detail shows every test. EOF cancels an incomplete form; deleting requires confirmation. The 60–100 validator range remains separate from the passing threshold of 80.

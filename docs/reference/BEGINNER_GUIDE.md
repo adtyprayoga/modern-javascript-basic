@@ -2,7 +2,9 @@
 
 > Run commands from the repository root, the directory containing `package.json` and `main.js`. Code paths in this reference are relative to that root. Follow the [practice index](../../latihan/README.md) for guided coding.
 
-> This is the concept reference. For complete guided coding from starter to finished application, follow [practice stages 00–11](../../latihan/README.md). Continue working in the same `latihan/proyek/` folder at every stage.
+> Snippets below explain individual concepts and are not the complete current main.js. The final application is an interactive CRUD menu, built in practice stages 10–13.
+
+> This is the concept reference. For complete guided coding from starter to finished application, follow [practice stages 00–13](../../latihan/README.md). Continue working in the same `latihan/proyek/` folder at every stage.
 
 ## 🎯 What You'll Build
 
@@ -13,8 +15,10 @@ A system that manages training participants with features like:
 - Validate scores and decide LULUS / TIDAK LULUS from the last test score
 - Load participant data from a JSON file
 - Display formatted reports
+- Add participants, update all biodata, record retests, and delete full history
+- Save validated working JSON and reopen the terminal menu after restart
 
-**Class estimate:** two sessions of four hours for guided practice, including breaks. Adjust for learner pace.
+**Class estimate:** three sessions of four hours for guided practice, including breaks. Adjust for learner pace.
 
 ---
 
@@ -127,7 +131,7 @@ console.log(b);  // ❌ ReferenceError: b is not defined
 ### Step 2.5: Find It in Action
 
 - `test/test-all.js`: `let testsPassed = 0;` and `let testsFailed = 0;` because the counters go up after every test
-- `main.js`: `let rawPeserta;` because it is assigned inside `try { }`
+- `main.js`: `let riwayat;` because it is loaded inside try and replaced after a successful save
 - Everywhere else: `const`
 
 ---
@@ -664,7 +668,7 @@ export const createPassingValidator = () => { ... };
 
 ### Step 12.3: Importing
 
-**In `main.js`:**
+**Standalone module example:**
 ```javascript
 // Import specific functions
 import { getUniqueEmails, calculateAverageScore } from './utils/pesertaProcessor.js';
@@ -774,7 +778,7 @@ console.log(sisanya);  // { id: 101, email: "aditya@brainmatics.com", score: 85 
 ### Step 14.3: Find It in Action
 
 - `createPesertaMap()` stores `{ ...peserta }` (Step 8.4)
-- `main.js` TASK 3 prints `sisanya`
+- The destructuring example in practice stage 03 prints `sisanya`
 - `loadPeserta()` uses both at once (Phase 16):
 
 ```javascript
@@ -818,7 +822,7 @@ console.log(score);  // "tidak ditemukan"
 
 ### Step 15.4: Find It in Action
 
-- `main.js` TASK 5 prints `Score tidak-ada@brainmatics.com: tidak ditemukan`
+- Practice stage 09 reads a missing email with `?.` and `??`; menu detail reports an unknown participant as an error
 - `createPesertaSummary(null)` works because it destructures `peserta ?? {}`. A default parameter (`peserta = {}`) only catches `undefined`, not `null`.
 - `loadPeserta()` uses `json?.peserta ?? []` and `score ?? 0` (Phase 16)
 
@@ -855,7 +859,7 @@ export const loadPeserta = async (fileUrl = new URL('../data/peserta.json', impo
 2. `await` waits for `readFile` to finish
 3. `try { ... } catch (error) { ... }` catches anything that goes wrong inside `try`
 
-### Step 16.3: Use It in main.js
+### Step 16.3: Try the loader in a standalone script
 
 ```javascript
 let rawPeserta;   // let, not const: it gets its value inside try
@@ -902,28 +906,15 @@ npm start
 3. Numbers make sense (4 unique emails from 6 entries)
 4. Calculations are correct
 
-### Step 17.2: Read the Output Carefully
+### Step 17.2: Use the terminal menu
 
-Each section teaches you something:
+The application waits for one menu choice at a time. Enter 1 to list unique participants, 2 for detail and full test history, or 8 for statistics. Enter 0 to exit.
 
-```
-📊 TASK 4: Unique Emails Using Set
-------------------------------------------------------------
-Found 4 unique emails:
-  1. aditya@brainmatics.com
-  2. zaim@brainmatics.com
-  3. milea@brainmatics.com
-  4. pratama@brainmatics.com
-```
+On a fresh working file, there are four participants from six tests. Subsequent transactions change these counts. Menu 3 adds the first test; menu 5 appends a retest even when its score drops. Menu 4 updates biodata on every test, and menu 6 removes all history after confirmation.
 
-**🎓 Ask yourself:** Why 4 emails from 6 entries? (Answer: 2 duplicates removed!)
+Changes live in `data/peserta.local.json`, which Git ignores. The seed `data/peserta.json` stays unchanged. `PESERTA_DATA_FILE` selects a separate working file for tests. Broken JSON produces an error and remains intact. Input that ends midway through a form cancels that operation.
 
-**Also find these lines** (Phases 13–15):
-```
-Sisa properti (rest): {"id":101,"email":"aditya@brainmatics.com","score":85}
-Score tidak-ada@brainmatics.com: tidak ditemukan
-Validasi status (includes): "LULUS" → true, "lulus" → false
-```
+The old destructuring and missing-value demonstrations remain in practice stages 03 and 09 as separate examples. The final menu uses those concepts through the application functions.
 
 ### Step 17.3: Run the Tests
 
@@ -942,7 +933,7 @@ npm test
 Latihan: 7/7 cocok
 ```
 
-The second part checks the exercise solutions in `latihan/referensi/` (see [additional exercise references](../../latihan/referensi/README.md)).
+Additional CRUD, store, and menu suites run after the 79 legacy assertions. They use temporary working files and real Node processes. TAP timings vary; all tests must pass. The final part checks the exercise solutions in `latihan/referensi/` (see [additional exercise references](../../latihan/referensi/README.md)).
 
 **If a test fails:**
 ```
@@ -1009,7 +1000,7 @@ Practice in your learner project. Keep the root data/peserta.json and the fixed 
 
 ### Step 18.4: Next
 
-Follow [practice stages 00–11](../../latihan/README.md) to build the entire application. Each folder contains complete code, expected output, and challenge solutions. At stage 11, run `npm --prefix latihan/proyek test` to check your application. `npm run cek-latihan` checks the seven original reference solutions only.
+Follow [practice stages 00–13](../../latihan/README.md) to build the entire application. Each folder contains complete code, expected output, and challenge solutions. At stage 13, run `npm --prefix latihan/proyek test` to check your application. `npm run cek-latihan` checks the seven original reference solutions only.
 
 ---
 

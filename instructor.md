@@ -1,6 +1,6 @@
 # Panduan instruktur: praktik sampai proyek selesai
 
-Peserta membangun satu aplikasi di `latihan/proyek/`, dimulai dari program pembuka sampai laporan TASK 1–9 dan pengujian. Gunakan [indeks latihan](latihan/README.md) sebagai jalur utama. Setiap tahap berisi kode lengkap yang diketik peserta dan penyelesaian tantangan dalam bagian yang dapat dibuka.
+Peserta membangun satu aplikasi di `latihan/proyek/`, dimulai dari program pembuka sampai menu CRUD, file JSON, dan pengujian. Gunakan [indeks latihan](latihan/README.md) sebagai jalur utama. Setiap tahap berisi kode lengkap yang diketik peserta dan penyelesaian tantangan dalam bagian yang dapat dibuka.
 
 ## Siapkan kelas
 
@@ -14,7 +14,7 @@ npm run cek-panduan
 npm --prefix latihan/proyek start
 ```
 
-Root test memeriksa 79 perilaku aplikasi referensi dan tujuh solusi tambahan. Pemeriksa panduan membangun proyek sementara dari kode yang ditampilkan pada README. Starter peserta hanya mencetak pesan pembuka dan sengaja belum berisi aplikasi selesai.
+Root test memeriksa 79 perilaku lama, suite CRUD/file/menu, dan tujuh solusi tambahan. Pemeriksa panduan membangun proyek sementara dari kode yang ditampilkan pada README. Starter peserta hanya mencetak pesan pembuka dan sengaja belum berisi aplikasi selesai.
 
 Perbesar font editor dan terminal. Pastikan peserta bisa menemukan root repository dan folder proyeknya. Periksa kembali direktori terminal sebelum mendiagnosis kesalahan import.
 
@@ -31,7 +31,7 @@ Peserta tetap mengetik dan menjalankan semua kode. Membuka kode lengkap tidak me
 
 ## Urutan tahap
 
-Estimasi awal dua sesi masing-masing empat jam, termasuk praktik dan jeda. Sesuaikan dengan kecepatan peserta; jangan melompati checkpoint agar mengejar jadwal.
+Estimasi awal tiga sesi masing-masing empat jam, termasuk praktik dan jeda. Sesuaikan dengan kecepatan peserta; jangan melompati checkpoint agar mengejar jadwal.
 
 | Tahap | Folder dan petunjuk | Menit | Checkpoint |
 |---|---|---|---|
@@ -45,10 +45,12 @@ Estimasi awal dua sesi masing-masing empat jam, termasuk praktik dan jeda. Sesua
 | 07 | [Class validator](latihan/07-class-validator/README.md) | 45 | Aturan kelulusan dibedakan dari pemeriksaan rentang. |
 | 08 | [Module dan formatter](latihan/08-module-dan-formatter/README.md) | 45 | Processor, validator, dan formatter berjalan dari module peserta. |
 | 09 | [Async loader](latihan/09-async-loader/README.md) | 50 | JSON dimuat dan kegagalan ditangani tanpa merusak data dasar. |
-| 10 | [Integrasi aplikasi](latihan/10-integrasi-aplikasi/README.md) | 30 | Aplikasi peserta menampilkan TASK 1–9. |
-| 11 | [Pengujian akhir](latihan/11-pengujian-akhir/README.md) | 35 | Suite pada module peserta lulus 79/79. |
+| 10 | [CRUD peserta](latihan/10-crud-peserta/README.md) | 75 | Lima fungsi mengolah array tanpa mengubah sumber. |
+| 11 | [Penyimpanan JSON](latihan/11-penyimpanan-json/README.md) | 60 | File kerja aman dan riwayat bertahan saat dibaca kembali. |
+| 12 | [Menu terminal](latihan/12-menu-terminal/README.md) | 80 | Semua pilihan menu berjalan dan menunggu penyimpanan. |
+| 13 | [Pengujian akhir](latihan/13-pengujian-akhir/README.md) | 35 | Suite lama, CRUD, store, dan menu lulus pada proyek peserta. |
 
-Sesi 1: pembukaan 10 menit, tahap 00–07 selama 195 menit, jeda 20 menit, dan refleksi 15 menit. Sesi 2: ulasan 10 menit, tahap 08–11 selama 160 menit, jeda 20 menit, pembahasan akhir 30 menit, dan pendampingan 20 menit. Setiap sesi berjumlah 240 menit.
+Sesi 1 memakai 195 menit untuk tahap 00–07 dan 45 menit untuk pembukaan, jeda, serta pembahasan. Sesi 2 memakai 170 menit untuk tahap 08–10 dan 70 menit untuk ulasan, jeda, serta pendampingan. Sesi 3 memakai 175 menit untuk tahap 11–13 dan 65 menit untuk jeda serta pembahasan akhir. Total praktik inti 540 menit; total kelas 720 menit. Estimasi ini perlu disesuaikan setelah melihat kecepatan peserta mengetik dan memperbaiki kesalahan.
 
 ## Bawakan setiap tahap
 
@@ -192,54 +194,58 @@ Saat memeriksa: Default parameter berbeda dari fallback nullish. Kegagalan main 
 
 Pembahasan tantangan: Uji null, key peserta hilang, score hilang, score 0, dan JSON rusak. Bandingkan daftar kosong dengan error parsing.
 
-### 10. Integrasi aplikasi
+### 10. CRUD peserta
 
-Buka [petunjuk tahap 10](latihan/10-integrasi-aplikasi/README.md).
+Ikuti [tahap 10](latihan/10-crud-peserta/README.md). Kerjakan tiga checkpoint: tambah dan baca, ubah biodata, kemudian tes ulang serta hapus. Minta peserta menunjuk array sumber dan hasil baru untuk membuktikan sumber tetap utuh.
 
-Sampaikan: "Kita sudah membuat seluruh bagian. Sekarang susun aplikasi yang memakai semuanya."
+Sampaikan bahwa email adalah identitas peserta, sedangkan ID adalah identitas satu tes. Uji 90 → 79 → 80. Nilai terakhir 79 harus TIDAK LULUS, bukan mempertahankan nilai 90. Ubah biodata seluruh riwayat tanpa mengubah ID, nilai, atau urutan.
 
-Telusuri import dan alur load, proses, validasi, format. Bangun main melalui empat checkpoint: TASK 1–3, TASK 4–5, TASK 6, lalu TASK 7–9. Main lengkap berada di langkah 4.
+### 11. Penyimpanan JSON
 
-Peserta memeriksa angka ringkasan dan menelusuri satu peserta dari JSON ke output akhir.
+Ikuti [tahap 11](latihan/11-penyimpanan-json/README.md). Mulai dari pembacaan tervalidasi, lalu tambahkan inisialisasi dan penyimpanan. Tunjukkan perbedaan file contoh dengan file kerja. Jalankan contoh dua kali dan periksa riwayat tetap sama.
 
-Saat memeriksa: Periksa empat peserta unik, tiga lulus, dan statistik per kelas. Jangan biarkan definisi lama tertinggal di main.
+Telusuri ENOENT secara khusus. JSON rusak harus menghasilkan error dan tetap utuh. Pada save, tulis file sementara, rename, baru ubah memori. Tantangan memakai direktori sementara sendiri.
 
-Pembahasan tantangan: Tantangan mencetak dua ringkasan kelas dari peserta unik. Tanyakan alasan deduplikasi dilakukan sebelum statistik.
+### 12. Menu terminal
 
-### 11. Pengujian akhir
+Ikuti [tahap 12](latihan/12-menu-terminal/README.md). Bangun empat checkpoint: daftar, laporan dan filter, tambah serta tes ulang, kemudian ubah serta hapus. Pada setiap checkpoint, jalankan node latihan/proyek/main.js dan ketik input sesuai petunjuk.
 
-Buka [petunjuk tahap 11](latihan/11-pengujian-akhir/README.md).
+Blok output memperlihatkan input terprogram; prompt dapat tampil bersebelahan karena jawaban tidak digemakan. Terminal interaktif menggema jawaban yang diketik. Bahas satu iterator untuk seluruh input, pembatalan EOF, serta alasan pesan sukses menunggu await saveStore.
 
-Sampaikan: "Program yang terlihat berjalan tetap perlu diperiksa pada batas dan kondisi gagal."
+Coba input biodata kosong, konfirmasi hapus tidak, email bentrok, serta nilai kosong. Semua kegagalan kembali ke menu tanpa menyimpan perubahan parsial. Restart aplikasi dan periksa riwayat.
 
-Salin suite beserta fixtures ke proyek peserta dan tambahkan script test. Tunjukkan import test yang mengarah ke module peserta.
+### 13. Pengujian akhir
 
-Peserta menjalankan test pada proyek sendiri dan membaca nama, expected, serta actual jika ada kegagalan.
+Ikuti [tahap 13](latihan/13-pengujian-akhir/README.md). Salin test beserta fixture, lalu tambahkan script test untuk empat suite. Suite mengimpor utils dan main milik peserta. Jangan menyalin implementasi aplikasi root.
 
-Saat memeriksa: Root npm test tidak menguji progres peserta. Gunakan npm --prefix latihan/proyek test, dengan target79/79.
-
-Pembahasan tantangan: Jalankan assert tambahan untuk tes yang turun, 79/80, array kosong, nilai 0, dan rentang 70 yang belum lulus.
+Jalankan npm --prefix latihan/proyek test. Pertahankan 79 pengujian lama dan semua suite baru. Keluaran TAP memiliki waktu yang berubah; periksa jumlah lulus dan nol gagal. Baca nama, Expected, dan Actual ketika pengujian gagal. Jangan mengubah expected agar implementasi salah tampak lulus.
 
 ## Nilai hasil praktik
 
-Peserta memenuhi tahap jika output cocok dan bisa menjelaskan kode yang menghasilkan output tersebut. Pada akhir kelas, periksa proyek peserta melalui:
+Peserta memenuhi tahap jika output cocok dan dapat menjelaskan kode yang menghasilkannya. Jalankan dari root repository:
 
 ```bash
 npm --prefix latihan/proyek start
 npm --prefix latihan/proyek test
 ```
 
-Target akhir aplikasi adalah TASK 1–9, dengan enam tes, empat peserta unik, dan tiga peserta lulus. Target test adalah 79/79. Gunakan tantangan 11 untuk mengecek tes ulang bernilai lebih rendah dan perbedaan rentang dengan kelulusan.
+Pada aplikasi, coba tambah peserta, catat tes 90 → 79 → 80, ubah biodata, restart, lalu hapus seluruh riwayat. Gunakan 0 untuk keluar. Data awal enam tes dan empat peserta hanya menjadi acuan awal; jumlah berubah setelah transaksi. Nilai 70 sesuai rentang validator 60–100 tetapi belum lulus batas 80.
 
-| Poin studi kasus | Tahap pembuktian |
-|---|---|
-| Kelulusan dari tes terakhir | 02, 05, 10, 11 |
-| const, let, dan default parameter | 01, 02, 04 |
-| Destructuring dan object rest/spread | 03, 04, 05, 09 |
-| Set dan Map | 05 |
-| Class serta export/import | 07, 08 |
-| Validasi status melalui includes | 07, 08 |
-| async/await, try/catch, ?. dan ?? | 09, 11 |
+## Pemetaan requirement ke bukti
+
+| Requirement | Fungsi | Menu | Pengujian |
+|---|---|---|---|
+| Tambah biodata dan tes pertama, email unik | tambahPeserta | 3 | test/test-crud.js, test/test-menu.js |
+| Riwayat lengkap dan nilai terakhir termasuk turun | tambahNilai, getRiwayatTes, createPesertaMap | 2, 5 | test/test-crud.js, test/test-store.js, test/test-menu.js |
+| Biodata berubah pada semua tes, ID/nilai/urutan tetap | ubahPeserta | 4 | test/test-crud.js, test/test-menu.js |
+| Hapus seluruh riwayat setelah konfirmasi | hapusPeserta | 6 | test/test-crud.js, test/test-menu.js |
+| Normalisasi email, nama/kelas wajib, nilai finite 0–100 | tambahPeserta, ubahPeserta, tambahNilai | 3, 4, 5 | test/test-crud.js, test/test-store.js |
+| Peserta unik dan filter kelas dengan nilai terakhir | getUniqueEmails, getUniquePeserta, getPesertaByClass | 1, 7 | test/test-all.js, test/test-menu.js |
+| Statistik dan status terpisah dari rentang 60–100 | calculateAverageScore, getStatus, isValidStatus, validateBatch, isValidScore, formatResult, getValidationDetails, createPassingValidator, createLenientValidator | 8 | test/test-all.js, test/test-menu.js |
+| Detail dan formatter | displayPeserta, createPesertaSummary, createDetailedReport, formatPesertaList | 1, 2, 7 | test/test-all.js, test/test-menu.js |
+| Simpan/restart, seed hanya ENOENT, JSON rusak tetap utuh | loadStore, saveStore | Semua perubahan | test/test-store.js, test/test-menu.js |
+| EOF/konfirmasi batal, gagal simpan tanpa pesan sukses | baca, simpan, saveStore | 3–6 | test/test-menu.js |
+| Dasar ES6+, loader, validator dan module tetap tersedia | loadPeserta, processor, formatter, PesertaValidator | 1, 2, 7, 8 | test/test-all.js dan tujuh solusi latihan/referensi |
 
 ## Bantu peserta yang tertinggal
 

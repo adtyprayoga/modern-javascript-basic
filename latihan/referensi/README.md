@@ -1,6 +1,6 @@
 # Latihan tambahan dan solusi referensi
 
-Folder ini mempertahankan tujuh latihan studi kasus lama. Kode mengimpor utils aplikasi referensi di root. Untuk membangun aplikasi sendiri, ikuti [tahap 00–11](../README.md).
+Folder ini mempertahankan tujuh latihan studi kasus lama. Kode mengimpor utils aplikasi referensi di root. Untuk membangun aplikasi sendiri, ikuti [tahap 00–13](../README.md).
 
 | Latihan | Solusi | Target output |
 |---|---|---|

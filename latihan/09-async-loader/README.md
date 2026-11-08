@@ -6,9 +6,13 @@ Di akhir tahap ini aplikasi membaca data dari file, mempertahankan nilai 0, dan 
 
 Semua path file pada petunjuk berada di dalam `latihan/proyek/`. Jalankan perintah terminal dari root repository. Ganti seluruh isi file yang disebut; pertahankan file lain dari tahap sebelumnya.
 
+Pada blok `diff`, baris `-` menunjukkan kode sebelum perubahan dan baris `+` menunjukkan kode sesudah perubahan. Gunakan blok kode lengkap setelahnya untuk mengganti isi file.
+
 ## Langkah 1: Pindahkan data ke JSON dan tunggu Promise
 
 Buat folder `data` di proyek peserta, lalu buat `data/peserta.json` dengan seluruh isi berikut. Ini salinan data latihan; jangan mengubah `data/peserta.json` di root repository.
+
+File baru: `data/peserta.json`. Berikut isi lengkapnya.
 
 <!-- write: data/peserta.json -->
 ```json
@@ -61,6 +65,89 @@ Buat folder `data` di proyek peserta, lalu buat `data/peserta.json` dengan selur
 ```
 Ganti seluruh `main.js` berikut. Array inline dari tahap 08 sekarang digantikan oleh pembacaan JSON.
 
+Perubahan pada `main.js`:
+
+```diff
+--- sebelum/main.js
++++ sesudah/main.js
+@@ -1,68 +1,6 @@
+-import {
+-  getUniqueEmails, createPesertaMap, getUniquePeserta,
+-  getPesertaByClass, calculateAverageScore
+-} from "./utils/pesertaProcessor.js";
+-import {
+-  PesertaValidator, createPassingValidator, createLenientValidator
+-} from "./utils/pesertaValidator.js";
+-import {
+-  displayPeserta, createPesertaSummary, formatPesertaList, createDetailedReport
+-} from "./utils/pesertaFormatter.js";
++import { readFile } from 'node:fs/promises';
+
+-const rawPeserta = [
+-  {
+-    "id": 101,
+-    "name": "Aditya Prayoga",
+-    "email": "aditya@brainmatics.com",
+-    "class": "JavaScript Fundamentals",
+-    "score": 85
+-  },
+-  {
+-    "id": 102,
+-    "name": "Zaim Fauzan",
+-    "email": "zaim@brainmatics.com",
+-    "class": "React Basics",
+-    "score": 92
+-  },
+-  {
+-    "id": 103,
+-    "name": "Aditya Prayoga",
+-    "email": "aditya@brainmatics.com",
+-    "class": "JavaScript Fundamentals",
+-    "score": 88
+-  },
+-  {
+-    "id": 104,
+-    "name": "Milea Kusuma",
+-    "email": "milea@brainmatics.com",
+-    "class": "JavaScript Fundamentals",
+-    "score": 78
+-  },
+-  {
+-    "id": 105,
+-    "name": "Pratama Wijaya",
+-    "email": "pratama@brainmatics.com",
+-    "class": "React Basics",
+-    "score": 95
+-  },
+-  {
+-    "id": 106,
+-    "name": "Zaim Fauzan",
+-    "email": "zaim@brainmatics.com",
+-    "class": "React Basics",
+-    "score": 94
+-  }
+-];
+-
+-const uniquePeserta = getUniquePeserta(rawPeserta);
+-console.log(`Email unik: ${getUniqueEmails(rawPeserta).length}`);
+-console.log(`Nilai terakhir Aditya: ${createPesertaMap(rawPeserta).get("aditya@brainmatics.com").score}`);
+-console.log(formatPesertaList(uniquePeserta));
+-console.log(`Rata-rata: ${calculateAverageScore(uniquePeserta)}`);
+-console.log(`Peserta React: ${getPesertaByClass(uniquePeserta, "React Basics").length}`);
+-console.log(displayPeserta("Milea", 78, "lulus"));
+-console.log(createPesertaSummary(uniquePeserta[0]));
+-console.log(createDetailedReport(uniquePeserta[0]));
+-console.log(`Batas lulus: ${PesertaValidator.PASSING_SCORE}`);
+-console.log(`Valid passing: ${createPassingValidator().validateBatch(uniquePeserta).valid}`);
+-console.log(`Valid lenient: ${createLenientValidator().validateBatch(uniquePeserta).valid}`);
++const pembacaan = readFile(new URL('./data/peserta.json', import.meta.url), 'utf8');
++console.log(`Pembacaan menghasilkan Promise: ${pembacaan instanceof Promise}`);
++const json = JSON.parse(await pembacaan);
++console.log(`Jumlah tes: ${json.peserta.length}`);
+```
+
+Kode lengkap `main.js` setelah perubahan:
+
 <!-- write: main.js -->
 ```javascript
 import { readFile } from 'node:fs/promises';
@@ -86,6 +173,8 @@ Jumlah tes: 6
 ## Langkah 2: Bangun module loader
 
 Buat `utils/pesertaLoader.js` dengan isi lengkap berikut.
+
+File baru: `utils/pesertaLoader.js`. Berikut isi lengkapnya.
 
 <!-- write: utils/pesertaLoader.js -->
 ```javascript
@@ -113,6 +202,40 @@ Fungsi `async` selalu mengembalikan Promise. Pemanggil harus menunggu hasilnya d
 ## Langkah 3: Pakai loader dan hubungkan kembali pengolahan peserta
 
 Ganti seluruh `main.js`:
+
+Perubahan pada `main.js`:
+
+```diff
+--- sebelum/main.js
++++ sesudah/main.js
+@@ -1,6 +1,19 @@
+-import { readFile } from 'node:fs/promises';
++import { loadPeserta } from './utils/pesertaLoader.js';
++import { createPesertaMap } from './utils/pesertaProcessor.js';
++import { displayPeserta } from './utils/pesertaFormatter.js';
+
+-const pembacaan = readFile(new URL('./data/peserta.json', import.meta.url), 'utf8');
+-console.log(`Pembacaan menghasilkan Promise: ${pembacaan instanceof Promise}`);
+-const json = JSON.parse(await pembacaan);
+-console.log(`Jumlah tes: ${json.peserta.length}`);
++let rawPeserta;
++try {
++  rawPeserta = await loadPeserta();
++} catch (error) {
++  console.error(`❌ ${error.message}`);
++  process.exit(1);
++}
++
++const pesertaMap = createPesertaMap(rawPeserta);
++console.log(`Jumlah tes: ${rawPeserta.length}`);
++console.log(`Peserta unik: ${pesertaMap.size}`);
++const { name, score } = pesertaMap.get('aditya@brainmatics.com');
++console.log(displayPeserta(name, score));
++console.log(`Peserta tidak ada: ${pesertaMap.get('tidak-ada@brainmatics.com')?.name ?? 'tidak ditemukan'}`);
++console.log(`Nilai nol tetap: ${0 ?? 80}`);
+```
+
+Kode lengkap `main.js` setelah perubahan:
 
 <!-- write: main.js -->
 ```javascript
@@ -156,6 +279,8 @@ Nilai nol tetap: 0
 
 Buat `cek-loader.js`. File `data/tidak-ada.json` sengaja tidak dibuat.
 
+File baru: `cek-loader.js`. Berikut isi lengkapnya.
+
 <!-- write: cek-loader.js -->
 ```javascript
 import { loadPeserta } from './utils/pesertaLoader.js';
@@ -194,6 +319,8 @@ Buat empat file fixture di bawah dalam folder `data` proyek peserta. Prediksi ha
 
 Buat `data/contoh-null.json`:
 
+File baru: `data/contoh-null.json`. Berikut isi lengkapnya.
+
 <!-- write: data/contoh-null.json -->
 ```json
 null
@@ -201,12 +328,16 @@ null
 
 Buat `data/contoh-kosong.json`:
 
+File baru: `data/contoh-kosong.json`. Berikut isi lengkapnya.
+
 <!-- write: data/contoh-kosong.json -->
 ```json
 {}
 ```
 
 Buat `data/contoh-nilai.json`:
+
+File baru: `data/contoh-nilai.json`. Berikut isi lengkapnya.
 
 <!-- write: data/contoh-nilai.json -->
 ```json
@@ -224,6 +355,8 @@ Buat `data/contoh-nilai.json`:
 ```
 
 Buat `data/contoh-rusak.json`:
+
+File baru: `data/contoh-rusak.json`. Berikut isi lengkapnya.
 
 <!-- write: data/contoh-rusak.json -->
 ```text
@@ -283,4 +416,4 @@ Isi lengkap loader ada pada langkah 2 dan main ada pada langkah 3. `package.json
 - [ ] File tidak ditemukan dan JSON rusak masuk catch.
 - [ ] Saya bisa menjelaskan perbedaan jalur gagal aplikasi utama dan demo fallback.
 
-[Tahap sebelumnya](../08-module-dan-formatter/README.md) · [Daftar latihan](../README.md) · [Tahap berikutnya](../10-integrasi-aplikasi/README.md)
+[Tahap sebelumnya](../08-module-dan-formatter/README.md) · [Daftar latihan](../README.md) · [Tahap berikutnya](../10-crud-peserta/README.md)

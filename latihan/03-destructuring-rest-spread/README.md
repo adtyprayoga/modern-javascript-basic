@@ -8,6 +8,8 @@ Selesaikan tahap 02. Kode percobaan tahap sebelumnya diganti oleh versi berikut.
 
 Kerjakan semua file di `latihan/proyek/`. Jalankan semua perintah terminal dari **root repository**, tempat README utama berada. Ketik kode sendiri, prediksi hasil, lalu jalankan. Ganti seluruh isi file sesuai nama yang disebut sebelum blok kode.
 
+Pada blok `diff`, baris `-` menunjukkan kode sebelum perubahan dan baris `+` menunjukkan kode sesudah perubahan. Gunakan blok kode lengkap setelahnya untuk mengganti isi file.
+
 ## 1. Siapkan perubahan
 
 Ganti seluruh `main.js`. Perhatikan rename `class: className` dan posisi `score` setelah spread.
@@ -15,6 +17,30 @@ Ganti seluruh `main.js`. Perhatikan rename `class: className` dan posisi `score`
 ## 2. Tulis program
 
 Jalankan lalu pastikan nilai awal tetap 85.
+
+Perubahan pada `main.js`:
+
+```diff
+--- sebelum/main.js
++++ sesudah/main.js
+@@ -53,7 +53,9 @@
+ };
+
+-console.log(displayPeserta(rawPeserta[0].name, rawPeserta[0].score));
+-for (const score of [79, 80, 82]) {
+-  console.log(`Nilai ${score}: ${getStatus(score)}`);
+-}
+-console.log(displayPeserta());
++const { name, score, class: className } = rawPeserta[0];
++console.log(`${name} mengikuti ${className}, nilai ${score}`);
++const { id, ...tanpaId } = rawPeserta[0];
++const tesUlang = { ...tanpaId, id: 107, score: 79 };
++console.log(`ID awal: ${id}`);
++console.log(displayPeserta(tesUlang.name, tesUlang.score));
++console.log(`Nilai object awal tetap ${rawPeserta[0].score}`);
+```
+
+Kode lengkap `main.js` setelah perubahan:
 
 <!-- write: main.js -->
 ```javascript

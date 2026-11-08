@@ -680,3 +680,16 @@ Errors are learning opportunities. Each one you solve makes you a better program
 ---
 
 *Last Updated: November 10, 2025*
+## Terminal menu and working JSON
+
+If npm start waits at `Pilihan:`, enter a choice from 0 to 8. Enter 0 to exit. Automated runs must provide input and a timeout.
+
+If adding a participant reports `Email sudah terdaftar.`, inspect the current list. Email is trimmed and lowercased before comparison. Use menu 5 to record a retest for an existing participant. Menu 4 changes biodata, not scores.
+
+Empty score input is invalid. A literal 0 is valid. Scores must be finite numbers between 0 and 100. When changing biodata, an empty field keeps the existing value.
+
+If startup reports invalid working JSON, inspect data/peserta.local.json or the file selected by PESERTA_DATA_FILE. Keep the damaged file for diagnosis; the application does not overwrite it with seed data. Fix the data or choose a separate working file. The seed data/peserta.json remains the test reference.
+
+If saving fails, the application reports an error and retains its previous in-memory history. Check write access and the destination directory before retrying. If input ends during a form, the operation is cancelled and no partial data is saved.
+
+For a saved score that seems wrong, check test order. Scores 90 then 79 mean TIDAK LULUS because 79 is last. A subsequent 80 means LULUS. Detail displays all three tests after restart.

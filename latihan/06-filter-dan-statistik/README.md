@@ -8,6 +8,8 @@ Selesaikan tahap 05. Statistik menggunakan peserta unik, bukan enam entri riwaya
 
 Kerjakan semua file di `latihan/proyek/`. Jalankan semua perintah terminal dari **root repository**, tempat README utama berada. Ketik kode sendiri, prediksi hasil, lalu jalankan. Ganti seluruh isi file sesuai nama yang disebut sebelum blok kode.
 
+Pada blok `diff`, baris `-` menunjukkan kode sebelum perubahan dan baris `+` menunjukkan kode sesudah perubahan. Gunakan blok kode lengkap setelahnya untuk mengganti isi file.
+
 ## 1. Siapkan perubahan
 
 Ganti seluruh `main.js`; tambahkan pemilihan kelas dan perhitungan rata-rata.
@@ -15,6 +17,61 @@ Ganti seluruh `main.js`; tambahkan pemilihan kelas dan perhitungan rata-rata.
 ## 2. Tulis program
 
 Jalankan lalu bandingkan rata-rata seluruh peserta dengan kelas JavaScript.
+
+Perubahan pada `main.js`:
+
+```diff
+--- sebelum/main.js
++++ sesudah/main.js
+@@ -63,17 +63,35 @@
+     pesertaMap.set(peserta.email, { ...peserta });
+   }
++
+   return pesertaMap;
+ };
+
+-const getUniquePeserta = (pesertaList = []) => {
+-  return [...createPesertaMap(pesertaList).values()];
++const getPesertaByClass = (pesertaList = [], className = "") => {
++  const result = [];
++  for (const { id, name, email, class: pesertaClass, score } of pesertaList) {
++    if (pesertaClass === className) {
++      result.push({ id, name, email, class: pesertaClass, score });
++    }
++  }
++
++  return result;
+ };
+
+-console.log(`Jumlah entri: ${rawPeserta.length}`);
+-console.log(`Email unik: ${getUniqueEmails(rawPeserta).length}`);
+-const pesertaMap = createPesertaMap(rawPeserta);
+-console.log(`Nilai terakhir Aditya: ${pesertaMap.get("aditya@brainmatics.com").score}`);
+-console.log(`Nilai terakhir Zaim: ${pesertaMap.get("zaim@brainmatics.com").score}`);
+-for (const { name, score } of getUniquePeserta(rawPeserta)) {
+-  console.log(displayPeserta(name, score));
+-}
++const calculateAverageScore = (pesertaList = []) => {
++  if (pesertaList.length === 0) return 0;
++  const totalScore = pesertaList.reduce((sum, { score }) => sum + score, 0);
++  return Math.round((totalScore / pesertaList.length) * 100) / 100;
++};
++
++const getUniquePeserta = (pesertaList = []) => {
++  const pesertaMap = createPesertaMap(pesertaList);
++  return [...pesertaMap.values()];
++};
++
++const uniquePeserta = getUniquePeserta(rawPeserta);
++const jsPeserta = getPesertaByClass(uniquePeserta, "JavaScript Fundamentals");
++console.log(`Peserta JavaScript: ${jsPeserta.map(({ name }) => name).join(", ")}`);
++console.log(`Jumlah lulus: ${uniquePeserta.filter(({ score }) => score >= 80).length}`);
++console.log(`Rata-rata semua peserta unik: ${calculateAverageScore(uniquePeserta)}`);
++console.log(`Rata-rata JavaScript: ${calculateAverageScore(jsPeserta)}`);
++console.log(`Rata-rata daftar kosong: ${calculateAverageScore()}`);
+```
+
+Kode lengkap `main.js` setelah perubahan:
 
 <!-- write: main.js -->
 ```javascript

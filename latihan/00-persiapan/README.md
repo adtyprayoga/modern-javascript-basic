@@ -12,6 +12,8 @@ Kerjakan semua file di `latihan/proyek/`. Jalankan semua perintah terminal dari 
 
 Buat folder `latihan/proyek/` melalui editor. Buat `package.json` di dalamnya.
 
+File baru: `package.json`. Berikut isi lengkapnya.
+
 <!-- write: package.json -->
 ```json
 {
@@ -31,6 +33,8 @@ Buat folder `latihan/proyek/` melalui editor. Buat `package.json` di dalamnya.
 ## 2. Tulis program
 
 Buat `main.js` di dalam proyek.
+
+File baru: `main.js`. Berikut isi lengkapnya.
 
 <!-- write: main.js -->
 ```javascript

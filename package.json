@@ -9,7 +9,7 @@
   },
   "scripts": {
     "start": "node main.js",
-    "test": "node test/test-all.js && node latihan/cek.js",
+    "test": "node test/test-all.js && node test/test-crud.js && node test/test-store.js && node test/test-menu.js && node latihan/cek.js",
     "cek-latihan": "node latihan/cek.js",
     "cek-panduan": "node latihan/verifikasi-panduan.js"
   },

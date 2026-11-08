@@ -8,6 +8,8 @@ Selesaikan tahap 01. Pertahankan data enam entri pada kode pengganti.
 
 Kerjakan semua file di `latihan/proyek/`. Jalankan semua perintah terminal dari **root repository**, tempat README utama berada. Ketik kode sendiri, prediksi hasil, lalu jalankan. Ganti seluruh isi file sesuai nama yang disebut sebelum blok kode.
 
+Pada blok `diff`, baris `-` menunjukkan kode sebelum perubahan dan baris `+` menunjukkan kode sesudah perubahan. Gunakan blok kode lengkap setelahnya untuk mengganti isi file.
+
 ## 1. Siapkan perubahan
 
 Ganti seluruh `main.js` dengan versi berikut; fungsi menerima input melalui parameter.
@@ -15,6 +17,37 @@ Ganti seluruh `main.js` dengan versi berikut; fungsi menerima input melalui para
 ## 2. Tulis program
 
 Jalankan dan bandingkan nilai 79, 80, serta 82.
+
+Perubahan pada `main.js`:
+
+```diff
+--- sebelum/main.js
++++ sesudah/main.js
+@@ -44,7 +44,16 @@
+ ];
+
+-let jumlahEntri = 0;
+-jumlahEntri = rawPeserta.length;
+-console.log(`Jumlah entri tes: ${jumlahEntri}`);
+-console.log(`Entri pertama: ${rawPeserta[0].name}, nilai ${rawPeserta[0].score}`);
+-console.log(`Tes berikutnya orang yang sama: ${rawPeserta[2].name}, nilai ${rawPeserta[2].score}`);
++const getStatus = (score = 0) => {
++  if (score >= 80) return "LULUS";
++  return "TIDAK LULUS";
++};
++
++const displayPeserta = (name = "Unknown", score = 0, status = getStatus(score)) => {
++  return `Nama: ${name}, Score: ${score}, Status: ${status}`;
++};
++
++console.log(displayPeserta(rawPeserta[0].name, rawPeserta[0].score));
++for (const score of [79, 80, 82]) {
++  console.log(`Nilai ${score}: ${getStatus(score)}`);
++}
++console.log(displayPeserta());
+```
+
+Kode lengkap `main.js` setelah perubahan:
 
 <!-- write: main.js -->
 ```javascript

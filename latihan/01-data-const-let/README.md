@@ -8,6 +8,8 @@ Selesaikan tahap 00. `package.json` tetap digunakan sepanjang praktik.
 
 Kerjakan semua file di `latihan/proyek/`. Jalankan semua perintah terminal dari **root repository**, tempat README utama berada. Ketik kode sendiri, prediksi hasil, lalu jalankan. Ganti seluruh isi file sesuai nama yang disebut sebelum blok kode.
 
+Pada blok `diff`, baris `-` menunjukkan kode sebelum perubahan dan baris `+` menunjukkan kode sesudah perubahan. Gunakan blok kode lengkap setelahnya untuk mengganti isi file.
+
 ## 1. Siapkan perubahan
 
 Ganti seluruh `main.js` dengan data enam entri dan penghitung berikut.
@@ -15,6 +17,67 @@ Ganti seluruh `main.js` dengan data enam entri dan penghitung berikut.
 ## 2. Tulis program
 
 Jalankan program dan cari dua nilai milik Aditya.
+
+Perubahan pada `main.js`:
+
+```diff
+--- sebelum/main.js
++++ sesudah/main.js
+@@ -1 +1,50 @@
+-console.log("Mulai membangun Sistem Manajemen Peserta Training");
++const rawPeserta = [
++  {
++    "id": 101,
++    "name": "Aditya Prayoga",
++    "email": "aditya@brainmatics.com",
++    "class": "JavaScript Fundamentals",
++    "score": 85
++  },
++  {
++    "id": 102,
++    "name": "Zaim Fauzan",
++    "email": "zaim@brainmatics.com",
++    "class": "React Basics",
++    "score": 92
++  },
++  {
++    "id": 103,
++    "name": "Aditya Prayoga",
++    "email": "aditya@brainmatics.com",
++    "class": "JavaScript Fundamentals",
++    "score": 88
++  },
++  {
++    "id": 104,
++    "name": "Milea Kusuma",
++    "email": "milea@brainmatics.com",
++    "class": "JavaScript Fundamentals",
++    "score": 78
++  },
++  {
++    "id": 105,
++    "name": "Pratama Wijaya",
++    "email": "pratama@brainmatics.com",
++    "class": "React Basics",
++    "score": 95
++  },
++  {
++    "id": 106,
++    "name": "Zaim Fauzan",
++    "email": "zaim@brainmatics.com",
++    "class": "React Basics",
++    "score": 94
++  }
++];
++
++let jumlahEntri = 0;
++jumlahEntri = rawPeserta.length;
++console.log(`Jumlah entri tes: ${jumlahEntri}`);
++console.log(`Entri pertama: ${rawPeserta[0].name}, nilai ${rawPeserta[0].score}`);
++console.log(`Tes berikutnya orang yang sama: ${rawPeserta[2].name}, nilai ${rawPeserta[2].score}`);
+```
+
+Kode lengkap `main.js` setelah perubahan:
 
 <!-- write: main.js -->
 ```javascript

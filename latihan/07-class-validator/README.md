@@ -9,15 +9,19 @@ Selesaikan tahap 06. Fungsi status sementara diganti aturan terpusat pada class.
 Kerjakan semua file di `latihan/proyek/`. Jalankan semua perintah terminal dari **root repository**, tempat README utama berada. Ketik kode sendiri, prediksi hasil, lalu jalankan. Ganti seluruh isi file sesuai nama yang disebut sebelum blok kode.
 
 
-Buat file percobaan `latihan/proyek/belajar-validator.js`. File ini berdiri sendiri dan belum diimpor oleh `main.js`. Kita mengembangkan class dalam empat langkah kecil, kemudian menempatkan class lengkap ke `main.js`. Di setiap langkah, **ganti seluruh isi** file percobaan; program utama tahap 06 tetap tersedia sampai integrasi akhir.
+Buat file percobaan `latihan/proyek/validator.js`. File ini berdiri sendiri dan belum diimpor oleh `main.js`. Kita mengembangkan class dalam empat langkah kecil, kemudian menempatkan class lengkap ke `main.js`. Di setiap langkah, **ganti seluruh isi** file percobaan; program utama tahap 06 tetap tersedia sampai integrasi akhir.
+
+Pada blok `diff`, baris `-` menunjukkan kode sebelum perubahan dan baris `+` menunjukkan kode sesudah perubahan. Gunakan blok kode lengkap setelahnya untuk mengganti isi file.
 
 ## 1. Buat instance dan periksa rentang
 
 `class` mendefinisikan bentuk validator. `new` membuat instance dan menjalankan constructor. Parameter default 60 dan 100 dipakai ketika argumen tidak diberikan. `this.minScore` menyimpan batas pada instance yang sedang dipakai. Method `isValidScore(score)` menerima satu nilai dan mengembalikan boolean; operator `&&` meminta kedua batas terpenuhi. Dua instance dapat menyimpan batas berbeda.
 
-Ganti seluruh `belajar-validator.js`:
+Ganti seluruh `validator.js`:
 
-<!-- write: belajar-validator.js -->
+File baru: `validator.js`. Berikut isi lengkapnya.
+
+<!-- write: validator.js -->
 ```javascript
 class PesertaValidator {
   constructor(minScore = 60, maxScore = 100) {
@@ -40,10 +44,10 @@ console.log(`Nilai 78, ketat: ${ketat.isValidScore(78)}`);
 Jalankan dari root repository:
 
 ```bash
-node latihan/proyek/belajar-validator.js
+node latihan/proyek/validator.js
 ```
 
-<!-- expected: belajar-validator.js -->
+<!-- expected: validator.js -->
 ```text
 Default: 60-100
 Nilai 78, default: true
@@ -54,9 +58,42 @@ Nilai 78, ketat: false
 
 Tambahkan static field dan static method ke class. `PesertaValidator.getStatus(78)` memanggil aturan bersama tanpa `new`; method instance tetap dipanggil melalui object `standar`. Default `score = 0` menangani pemanggilan tanpa argumen. `includes` membandingkan label secara persis sehingga huruf besar berpengaruh. Nilai 78 dapat berada dalam rentang instance default tetapi tetap tidak lulus.
 
-Ganti seluruh `belajar-validator.js`:
+Ganti seluruh `validator.js`:
 
-<!-- write: belajar-validator.js -->
+Perubahan pada `validator.js`:
+
+```diff
+--- sebelum/validator.js
++++ sesudah/validator.js
+@@ -1,3 +1,9 @@
+ class PesertaValidator {
++  static PASSING_SCORE = 80;
++  static STATUS = ["LULUS", "TIDAK LULUS"];
++  static getStatus = (score = 0) =>
++    score >= PesertaValidator.PASSING_SCORE ? "LULUS" : "TIDAK LULUS";
++  static isValidStatus = (status) => PesertaValidator.STATUS.includes(status);
++
+   constructor(minScore = 60, maxScore = 100) {
+     this.minScore = minScore;
+@@ -11,6 +17,9 @@
+
+ const standar = new PesertaValidator();
+-const ketat = new PesertaValidator(80, 100);
+-console.log(`Default: ${standar.minScore}-${standar.maxScore}`);
+-console.log(`Nilai 78, default: ${standar.isValidScore(78)}`);
+-console.log(`Nilai 78, ketat: ${ketat.isValidScore(78)}`);
++console.log(`Batas lulus: ${PesertaValidator.PASSING_SCORE}`);
++console.log(`Rentang default menerima 78: ${standar.isValidScore(78)}`);
++console.log(`Status 78: ${PesertaValidator.getStatus(78)}`);
++console.log(`Status 80: ${PesertaValidator.getStatus(80)}`);
++console.log(`Tanpa nilai: ${PesertaValidator.getStatus()}`);
++console.log(`Label LULUS: ${PesertaValidator.isValidStatus("LULUS")}`);
++console.log(`Label lulus: ${PesertaValidator.isValidStatus("lulus")}`);
+```
+
+Kode lengkap `validator.js` setelah perubahan:
+
+<!-- write: validator.js -->
 ```javascript
 class PesertaValidator {
   static PASSING_SCORE = 80;
@@ -88,10 +125,10 @@ console.log(`Label lulus: ${PesertaValidator.isValidStatus("lulus")}`);
 Jalankan dari root repository:
 
 ```bash
-node latihan/proyek/belajar-validator.js
+node latihan/proyek/validator.js
 ```
 
-<!-- expected: belajar-validator.js -->
+<!-- expected: validator.js -->
 ```text
 Batas lulus: 80
 Rentang default menerima 78: true
@@ -106,9 +143,54 @@ Label lulus: false
 
 Method `formatResult(name, score)` menerima dua argumen dan mengembalikan string. Method `getValidationDetails(score)` mengembalikan object, sehingga pemanggil dapat memilih `message` atau `isValid`. Keduanya memakai `this.isValidScore` agar mengikuti rentang instance. Operator ternary memilih hasil saat kondisi benar dan salah. Nama arrow method merupakan properti instance; pemakaian `this` tetap menunjuk instance tersebut.
 
-Ganti seluruh `belajar-validator.js`:
+Ganti seluruh `validator.js`:
 
-<!-- write: belajar-validator.js -->
+Perubahan pada `validator.js`:
+
+```diff
+--- sebelum/validator.js
++++ sesudah/validator.js
+@@ -14,12 +14,27 @@
+     return score >= this.minScore && score <= this.maxScore;
+   };
++
++  formatResult = (name, score) => {
++    const status = this.isValidScore(score) ? "SESUAI STANDAR" : "TIDAK SESUAI";
++    return `${name} mendapat score ${score} - ${status}`;
++  };
++
++  getValidationDetails = (score) => {
++    return {
++      score,
++      isValid: this.isValidScore(score),
++      minScore: this.minScore,
++      maxScore: this.maxScore,
++      message: this.isValidScore(score)
++        ? `Score dalam rentang ${this.minScore}-${this.maxScore}`
++        : `Score di luar rentang ${this.minScore}-${this.maxScore}`
++    };
++  };
+ }
+
+-const standar = new PesertaValidator();
+-console.log(`Batas lulus: ${PesertaValidator.PASSING_SCORE}`);
+-console.log(`Rentang default menerima 78: ${standar.isValidScore(78)}`);
+-console.log(`Status 78: ${PesertaValidator.getStatus(78)}`);
+-console.log(`Status 80: ${PesertaValidator.getStatus(80)}`);
+-console.log(`Tanpa nilai: ${PesertaValidator.getStatus()}`);
+-console.log(`Label LULUS: ${PesertaValidator.isValidStatus("LULUS")}`);
+-console.log(`Label lulus: ${PesertaValidator.isValidStatus("lulus")}`);
++const validator = new PesertaValidator(80, 100);
++console.log(validator.formatResult("Milea", 78));
++console.log(validator.formatResult("Aditya", 88));
++const details = validator.getValidationDetails(78);
++console.log(details.message);
++console.log(`Diterima: ${details.isValid}`);
+```
+
+Kode lengkap `validator.js` setelah perubahan:
+
+<!-- write: validator.js -->
 ```javascript
 class PesertaValidator {
   static PASSING_SCORE = 80;
@@ -155,10 +237,10 @@ console.log(`Diterima: ${details.isValid}`);
 Jalankan dari root repository:
 
 ```bash
-node latihan/proyek/belajar-validator.js
+node latihan/proyek/validator.js
 ```
 
-<!-- expected: belajar-validator.js -->
+<!-- expected: validator.js -->
 ```text
 Milea mendapat score 78 - TIDAK SESUAI
 Aditya mendapat score 88 - SESUAI STANDAR
@@ -170,9 +252,53 @@ Diterima: false
 
 `validateBatch` memakai array default kosong, menyaring nilai dalam rentang, lalu menghitung jumlah dan persentase. Pemeriksaan panjang array mencegah pembagian nol. Factory adalah fungsi biasa yang memanggil `new` dengan konfigurasi tertentu; pemanggil cukup memilih validator passing atau lenient. Pada tahap ini rentang passing 80–100 dan lenient 60–100.
 
-Ganti seluruh `belajar-validator.js`:
+Ganti seluruh `validator.js`:
 
-<!-- write: belajar-validator.js -->
+Perubahan pada `validator.js`:
+
+```diff
+--- sebelum/validator.js
++++ sesudah/validator.js
+@@ -31,10 +31,28 @@
+     };
+   };
++
++  validateBatch = (pesertaList = []) => {
++    const validCount = pesertaList.filter(({ score }) => this.isValidScore(score)).length;
++    const invalidCount = pesertaList.length - validCount;
++    return {
++      total: pesertaList.length,
++      valid: validCount,
++      invalid: invalidCount,
++      validPercentage: pesertaList.length > 0
++        ? Math.round((validCount / pesertaList.length) * 100)
++        : 0
++    };
++  };
+ }
+
+-const validator = new PesertaValidator(80, 100);
+-console.log(validator.formatResult("Milea", 78));
+-console.log(validator.formatResult("Aditya", 88));
+-const details = validator.getValidationDetails(78);
+-console.log(details.message);
+-console.log(`Diterima: ${details.isValid}`);
++const createPassingValidator = () => {
++  return new PesertaValidator(PesertaValidator.PASSING_SCORE, 100);
++};
++const createLenientValidator = () => {
++  return new PesertaValidator(60, 100);
++};
++
++const daftar = [{ score: 78 }, { score: 88 }];
++console.log(JSON.stringify(createPassingValidator().validateBatch(daftar)));
++console.log(JSON.stringify(createLenientValidator().validateBatch(daftar)));
++console.log(JSON.stringify(createPassingValidator().validateBatch()));
+```
+
+Kode lengkap `validator.js` setelah perubahan:
+
+<!-- write: validator.js -->
 ```javascript
 class PesertaValidator {
   static PASSING_SCORE = 80;
@@ -237,10 +363,10 @@ console.log(JSON.stringify(createPassingValidator().validateBatch()));
 Jalankan dari root repository:
 
 ```bash
-node latihan/proyek/belajar-validator.js
+node latihan/proyek/validator.js
 ```
 
-<!-- expected: belajar-validator.js -->
+<!-- expected: validator.js -->
 ```text
 {"total":2,"valid":1,"invalid":1,"validPercentage":50}
 {"total":2,"valid":2,"invalid":0,"validPercentage":100}
@@ -249,7 +375,116 @@ node latihan/proyek/belajar-validator.js
 
 ## 5. Gabungkan dengan data peserta
 
-Sekarang ganti seluruh `main.js` dengan versi lengkap berikut. Penggantian ini menghapus fungsi status sementara, mempertahankan processor tahap 06, dan menambahkan class beserta factory. Kode class dari file percobaan disertakan langsung; **tidak perlu mengimpor file belajar-validator.js**. Bandingkan class lengkap ini dengan hasil langkah 4.
+Sekarang ganti seluruh `main.js` dengan versi lengkap berikut. Penggantian ini menghapus fungsi status sementara, mempertahankan processor tahap 06, dan menambahkan class beserta factory. Kode class dari file percobaan disertakan langsung; **tidak perlu mengimpor file validator.js**. Bandingkan class lengkap ini dengan hasil langkah 4.
+
+Perubahan pada `main.js`:
+
+<details>
+<summary>Lihat perubahan sebelum dan sesudah pada main.js</summary>
+
+```diff
+--- sebelum/main.js
++++ sesudah/main.js
+@@ -44,13 +44,4 @@
+ ];
+
+-const getStatus = (score = 0) => {
+-  if (score >= 80) return "LULUS";
+-  return "TIDAK LULUS";
+-};
+-
+-const displayPeserta = (name = "Unknown", score = 0, status = getStatus(score)) => {
+-  return `Nama: ${name}, Score: ${score}, Status: ${status}`;
+-};
+-
+ const getUniqueEmails = (pesertaList = []) => {
+   const emailSet = new Set(pesertaList.map(p => p.email));
+@@ -89,9 +80,74 @@
+ };
+
++class PesertaValidator {
++  static PASSING_SCORE = 80;
++
++  static STATUS = ["LULUS", "TIDAK LULUS"];
++
++  static getStatus = (score = 0) =>
++    score >= PesertaValidator.PASSING_SCORE ? "LULUS" : "TIDAK LULUS";
++
++  static isValidStatus = (status) => PesertaValidator.STATUS.includes(status);
++
++  constructor(minScore = 60, maxScore = 100) {
++    this.minScore = minScore;
++    this.maxScore = maxScore;
++  }
++
++  isValidScore = (score) => {
++    return score >= this.minScore && score <= this.maxScore;
++  };
++
++  formatResult = (name, score) => {
++    const status = this.isValidScore(score) ? "SESUAI STANDAR" : "TIDAK SESUAI";
++    return `${name} mendapat score ${score} - ${status}`;
++  };
++
++  getValidationDetails = (score) => {
++    return {
++      score,
++      isValid: this.isValidScore(score),
++      minScore: this.minScore,
++      maxScore: this.maxScore,
++      message: this.isValidScore(score)
++        ? `Score dalam rentang ${this.minScore}-${this.maxScore}`
++        : `Score di luar rentang ${this.minScore}-${this.maxScore}`
++    };
++  };
++
++  validateBatch = (pesertaList = []) => {
++    const validCount = pesertaList.filter(({ score }) => this.isValidScore(score)).length;
++    const invalidCount = pesertaList.length - validCount;
++
++    return {
++      total: pesertaList.length,
++      valid: validCount,
++      invalid: invalidCount,
++      validPercentage: pesertaList.length > 0
++        ? Math.round((validCount / pesertaList.length) * 100)
++        : 0
++    };
++  };
++}
++
++const createPassingValidator = () => {
++  return new PesertaValidator(PesertaValidator.PASSING_SCORE, 100);
++};
++
++const createLenientValidator = () => {
++  return new PesertaValidator(60, 100);
++};
++
+ const uniquePeserta = getUniquePeserta(rawPeserta);
+-const jsPeserta = getPesertaByClass(uniquePeserta, "JavaScript Fundamentals");
+-console.log(`Peserta JavaScript: ${jsPeserta.map(({ name }) => name).join(", ")}`);
+-console.log(`Jumlah lulus: ${uniquePeserta.filter(({ score }) => score >= 80).length}`);
+-console.log(`Rata-rata semua peserta unik: ${calculateAverageScore(uniquePeserta)}`);
+-console.log(`Rata-rata JavaScript: ${calculateAverageScore(jsPeserta)}`);
+-console.log(`Rata-rata daftar kosong: ${calculateAverageScore()}`);
++const defaultValidator = new PesertaValidator();
++const passingValidator = createPassingValidator();
++const lenientValidator = createLenientValidator();
++console.log(`Nilai 78 dalam rentang default: ${defaultValidator.isValidScore(78)}`);
++console.log(`Status kelulusan nilai 78: ${PesertaValidator.getStatus(78)}`);
++console.log(`Nilai 78 dalam rentang passing: ${passingValidator.isValidScore(78)}`);
++console.log(`Nilai 78 dalam rentang lenient: ${lenientValidator.isValidScore(78)}`);
++console.log(`Status LULUS sah: ${PesertaValidator.isValidStatus("LULUS")}`);
++console.log(`Status lulus sah: ${PesertaValidator.isValidStatus("lulus")}`);
++console.log(passingValidator.formatResult("Milea Kusuma", 78));
++console.log(passingValidator.getValidationDetails(78).message);
++console.log(JSON.stringify(passingValidator.validateBatch(uniquePeserta)));
+```
+
+</details>
+
+Kode lengkap `main.js` setelah perubahan:
 
 <!-- write: main.js -->
 ```javascript
@@ -534,7 +769,7 @@ Validator passing menerima 80 sampai 100. Status kelulusan statis hanya membandi
 
 ## Kode lengkap akhir tahap
 
-`belajar-validator.js` terakhir ada pada langkah 4. `main.js` lengkap ada pada langkah 5; inilah program yang dilanjutkan pada tahap 08. `package.json` tetap memakai versi tahap 00.
+`validator.js` terakhir ada pada langkah 4. `main.js` lengkap ada pada langkah 5; inilah program yang dilanjutkan pada tahap 08. `package.json` tetap memakai versi tahap 00.
 
 ## Checkpoint
 

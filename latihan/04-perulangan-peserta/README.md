@@ -8,6 +8,8 @@ Selesaikan tahap 03. Demonstrasi rest/spread sementara diganti dengan tampilan s
 
 Kerjakan semua file di `latihan/proyek/`. Jalankan semua perintah terminal dari **root repository**, tempat README utama berada. Ketik kode sendiri, prediksi hasil, lalu jalankan. Ganti seluruh isi file sesuai nama yang disebut sebelum blok kode.
 
+Pada blok `diff`, baris `-` menunjukkan kode sebelum perubahan dan baris `+` menunjukkan kode sesudah perubahan. Gunakan blok kode lengkap setelahnya untuk mengganti isi file.
+
 ## 1. Siapkan perubahan
 
 Ganti seluruh `main.js` dengan perulangan berikut.
@@ -15,6 +17,28 @@ Ganti seluruh `main.js` dengan perulangan berikut.
 ## 2. Tulis program
 
 Jalankan dan hitung enam baris hasilnya.
+
+Perubahan pada `main.js`:
+
+```diff
+--- sebelum/main.js
++++ sesudah/main.js
+@@ -53,9 +53,5 @@
+ };
+
+-const { name, score, class: className } = rawPeserta[0];
+-console.log(`${name} mengikuti ${className}, nilai ${score}`);
+-const { id, ...tanpaId } = rawPeserta[0];
+-const tesUlang = { ...tanpaId, id: 107, score: 79 };
+-console.log(`ID awal: ${id}`);
+-console.log(displayPeserta(tesUlang.name, tesUlang.score));
+-console.log(`Nilai object awal tetap ${rawPeserta[0].score}`);
++for (const { name, score } of rawPeserta) {
++  console.log(displayPeserta(name, score));
++}
+```
+
+Kode lengkap `main.js` setelah perubahan:
 
 <!-- write: main.js -->
 ```javascript

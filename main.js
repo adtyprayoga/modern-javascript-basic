@@ -1,198 +1,158 @@
-// Main application entry point
-// Demonstrates complete ES6 module system with imports and orchestration,
-// plus async/await + try/catch, object rest, ?. and ??, and includes()
+import { createInterface } from 'node:readline';
+import { loadStore, saveStore } from './utils/pesertaStore.js';
+import { tambahPeserta, ubahPeserta, hapusPeserta, tambahNilai, getRiwayatTes } from './utils/pesertaCrud.js';
+import { getUniqueEmails, getUniquePeserta, createPesertaMap, getPesertaByClass, calculateAverageScore } from './utils/pesertaProcessor.js';
+import { displayPeserta, createPesertaSummary, formatPesertaList, createDetailedReport } from './utils/pesertaFormatter.js';
+import { PesertaValidator, createPassingValidator, createLenientValidator } from './utils/pesertaValidator.js';
 
-// Import the async data loader (data lives in data/peserta.json)
-import { loadPeserta } from './utils/pesertaLoader.js';
-
-// Import processing functions
-import { 
-  getUniqueEmails, 
-  createPesertaMap, 
-  getPesertaByClass, 
-  calculateAverageScore,
-  getUniquePeserta 
-} from './utils/pesertaProcessor.js';
-
-// Import formatting functions
-import { 
-  displayPeserta, 
-  createPesertaSummary, 
-  formatPesertaList,
-  createDetailedReport 
-} from './utils/pesertaFormatter.js';
-
-// Import validator class
-import { 
-  PesertaValidator, 
-  createPassingValidator,
-  createLenientValidator 
-} from './utils/pesertaValidator.js';
-
-// ============================================================================
-// LOAD DATA: async/await + try/catch (ES2022 top-level await)
-// ============================================================================
-// `let`, not `const`: the variable is declared here but assigned inside try {}
-let rawPeserta;
+let riwayat;
 try {
-  rawPeserta = await loadPeserta();
+  riwayat = await loadStore();
 } catch (error) {
-  // One clear message instead of a stack trace, then stop with exit code 1
   console.error(`❌ ${error.message}`);
   process.exit(1);
 }
 
-console.log("=".repeat(60));
-console.log("🎓 SISTEM MANAJEMEN PESERTA TRAINING BRAINMATICS");
-console.log("=".repeat(60));
-console.log();
-
-// ============================================================================
-// TASK 1: Display Raw Data Overview
-// ============================================================================
-console.log("📊 TASK 1: Raw Data Overview");
-console.log("-".repeat(60));
-console.log(`Total raw entries: ${rawPeserta.length}`);
-console.log(`Unique emails: ${getUniqueEmails(rawPeserta).length}`);
-console.log();
-
-// ============================================================================
-// TASK 2: Test displayPeserta with Default Parameters
-// ============================================================================
-console.log("📊 TASK 2: Testing displayPeserta Function");
-console.log("-".repeat(60));
-console.log(displayPeserta("Aditya", 85));      // With LULUS status
-console.log(displayPeserta("Milea", 78));       // With TIDAK LULUS status
-console.log(displayPeserta());                  // With all defaults
-console.log();
-
-// ============================================================================
-// TASK 3: Test Object Destructuring with Renaming
-// ============================================================================
-console.log("📊 TASK 3: Testing Destructuring with Renaming");
-console.log("-".repeat(60));
-const pesertaSample = { 
-  id: 101, 
-  name: "Aditya", 
-  email: "aditya@brainmatics.com", 
-  score: 85 
+const pembaca = createInterface({ input: process.stdin, crlfDelay: Infinity });
+// Satu iterator menjaga urutan jawaban, termasuk input yang dikirim sekaligus.
+const jawaban = pembaca[Symbol.asyncIterator]();
+const akhirInput = Symbol('akhir input');
+const baca = async (pertanyaan = '') => {
+  process.stdout.write(pertanyaan);
+  const { value, done } = await jawaban.next();
+  if (done) throw akhirInput;
+  return value.trim();
 };
-const { name: pesertaNama, email: pesertaEmail, score: nilaiAkhir } = pesertaSample;
-console.log(`Nama: ${pesertaNama}`);
-console.log(`Email: ${pesertaEmail}`);
-console.log(`Nilai Akhir: ${nilaiAkhir}`);
+const bacaEmail = async (pertanyaan = 'Email peserta: ') => (await baca(pertanyaan)).toLowerCase();
+const bacaNilai = async () => {
+  const input = await baca('Nilai (0–100): ');
+  if (input === '') throw new Error('Nilai wajib diisi.');
+  return Number(input);
+};
+const cariPeserta = (email = '') => {
+  const peserta = createPesertaMap(riwayat).get(email);
+  if (!peserta) throw new Error('Peserta tidak ditemukan.');
+  return peserta;
+};
+const simpan = async (hasil = [], pesan = '') => {
+  // Memori baru berubah setelah penyimpanan berhasil.
+  await saveStore(hasil);
+  riwayat = hasil;
+  console.log(pesan);
+};
 
-// ES2018 object rest: take `name` out, collect everything else into `sisanya`
-const { name, ...sisanya } = pesertaSample;
-console.log(`Sisa properti (rest): ${JSON.stringify(sisanya)}`);
-console.log();
-
-// ============================================================================
-// TASK 4: Test Set for Unique Emails
-// ============================================================================
-console.log("📊 TASK 4: Unique Emails Using Set");
-console.log("-".repeat(60));
-const uniqueEmails = getUniqueEmails(rawPeserta);
-console.log(`Found ${uniqueEmails.length} unique emails:`);
-uniqueEmails.forEach((email, index) => {
-  console.log(`  ${index + 1}. ${email}`);
-});
-console.log();
-
-// ============================================================================
-// TASK 5: Test Map for Participant Indexing
-// ============================================================================
-console.log("📊 TASK 5: Participant Map (Email-based Indexing)");
-console.log("-".repeat(60));
-const pesertaMap = createPesertaMap(rawPeserta);
-console.log(`Map size: ${pesertaMap.size}`);
-console.log("\nLatest entry for aditya@brainmatics.com:");
-const adityaData = pesertaMap.get("aditya@brainmatics.com");
-console.log(createDetailedReport(adityaData));
-
-// ES2020 ?. and ??: a missing email gives undefined instead of a crash, then a fallback text
-console.log(`Score tidak-ada@brainmatics.com: ${pesertaMap.get("tidak-ada@brainmatics.com")?.score ?? "tidak ditemukan"}`);
-console.log();
-
-// ============================================================================
-// TASK 6: Test PesertaValidator Class
-// ============================================================================
-console.log("📊 TASK 6: Testing PesertaValidator Class");
-console.log("-".repeat(60));
-
-// Test with standard passing threshold (80-100)
-const passingValidator = createPassingValidator();
-console.log("Standard Validator (80-100):");
-console.log(`  ${passingValidator.formatResult("Aditya", 85)}`);
-console.log(`  ${passingValidator.formatResult("Milea", 75)}`);
-
-// Test with lenient threshold (60-100)
-const lenientValidator = createLenientValidator();
-console.log("\nLenient Validator (60-100):");
-console.log(`  ${lenientValidator.formatResult("Aditya", 85)}`);
-console.log(`  ${lenientValidator.formatResult("Milea", 75)}`);
-console.log();
-
-// ============================================================================
-// TASK 7: Filter by Class and Calculate Statistics
-// ============================================================================
-console.log("📊 TASK 7: Filter by Class & Calculate Statistics");
-console.log("-".repeat(60));
-
-// Get unique participants (no duplicates)
-const uniquePeserta = getUniquePeserta(rawPeserta);
-console.log(`Total unique participants: ${uniquePeserta.length}\n`);
-
-// Filter JavaScript Fundamentals class
-const jsFundamentals = getPesertaByClass(uniquePeserta, "JavaScript Fundamentals");
-console.log(`📚 JavaScript Fundamentals Class (${jsFundamentals.length} students):`);
-jsFundamentals.forEach(peserta => {
-  console.log(`  ${createPesertaSummary(peserta)}`);
-});
-const jsAverage = calculateAverageScore(jsFundamentals);
-console.log(`  ⭐ Average Score: ${jsAverage}`);
-console.log();
-
-// Filter React Basics class
-const reactBasics = getPesertaByClass(uniquePeserta, "React Basics");
-console.log(`📚 React Basics Class (${reactBasics.length} students):`);
-reactBasics.forEach(peserta => {
-  console.log(`  ${createPesertaSummary(peserta)}`);
-});
-const reactAverage = calculateAverageScore(reactBasics);
-console.log(`  ⭐ Average Score: ${reactAverage}`);
-console.log();
-
-// ============================================================================
-// TASK 8: Batch Validation Report
-// ============================================================================
-console.log("📊 TASK 8: Batch Validation Report");
-console.log("-".repeat(60));
-
-const validator = new PesertaValidator(80, 100);
-const validationSummary = validator.validateBatch(uniquePeserta);
-
-console.log("Validation Summary (Threshold: 80-100):");
-console.log(`  Total Participants: ${validationSummary.total}`);
-console.log(`  Valid (LULUS): ${validationSummary.valid}`);
-console.log(`  Invalid (TIDAK LULUS): ${validationSummary.invalid}`);
-console.log(`  Pass Rate: ${validationSummary.validPercentage}%`);
-console.log();
-
-// Show individual validation results
-console.log("Individual Validation Results:");
-uniquePeserta.forEach(({ name, score }) => {
-  console.log(`  ${validator.formatResult(name, score)}`);
-});
-
-// ES2016 includes(): only labels in PesertaValidator.STATUS are valid (case-sensitive)
-console.log(`Validasi status (includes): "LULUS" → ${PesertaValidator.isValidStatus("LULUS")}, "lulus" → ${PesertaValidator.isValidStatus("lulus")}`);
-console.log();
-
-// ============================================================================
-// TASK 9: Complete Participant List
-// ============================================================================
-console.log("📊 TASK 9: Complete Unique Participant List");
-console.log("-".repeat(60));
-console.log(formatPesertaList(uniquePeserta));
-console.log();
+console.log('🎓 SISTEM MANAJEMEN PESERTA TRAINING BRAINMATICS');
+try {
+  let berjalan = true;
+  while (berjalan) {
+    console.log(`
+1. Daftar peserta
+2. Detail peserta dan riwayat tes
+3. Tambah peserta
+4. Ubah biodata peserta
+5. Catat tes ulang
+6. Hapus peserta
+7. Filter berdasarkan kelas
+8. Statistik dan validasi
+0. Keluar`);
+    try {
+      const pilihan = await baca('Pilihan: ');
+      switch (pilihan) {
+        case '0':
+          berjalan = false;
+          break;
+        case '1': {
+          console.log(`Jumlah peserta unik: ${getUniqueEmails(riwayat).length}`);
+          console.log(formatPesertaList(getUniquePeserta(riwayat)));
+          break;
+        }
+        case '2': {
+          const email = await bacaEmail();
+          const peserta = cariPeserta(email);
+          console.log(createDetailedReport(peserta));
+          console.log(createPesertaSummary(peserta));
+          console.log('Riwayat tes (urutan pencatatan):');
+          for (const { id, name, score } of getRiwayatTes(riwayat, email)) {
+            console.log(`Tes ID ${id}: ${displayPeserta(name, score)}`);
+          }
+          break;
+        }
+        case '3': {
+          const name = await baca('Nama: ');
+          const email = await bacaEmail('Email: ');
+          const className = await baca('Kelas: ');
+          const score = await bacaNilai();
+          await simpan(tambahPeserta(riwayat, { name, email, class: className, score }), 'Peserta berhasil ditambahkan.');
+          break;
+        }
+        case '4': {
+          const email = await bacaEmail();
+          const peserta = cariPeserta(email);
+          console.log('Kosongkan isian untuk mempertahankan biodata.');
+          const name = await baca(`Nama [${peserta.name}]: `);
+          const emailBaru = await bacaEmail(`Email [${peserta.email}]: `);
+          const className = await baca(`Kelas [${peserta.class}]: `);
+          const perubahan = {
+            name: name === '' ? peserta.name : name,
+            email: emailBaru === '' ? peserta.email : emailBaru,
+            class: className === '' ? peserta.class : className
+          };
+          await simpan(ubahPeserta(riwayat, email, perubahan), 'Biodata peserta berhasil diperbarui.');
+          break;
+        }
+        case '5': {
+          const email = await bacaEmail();
+          cariPeserta(email);
+          const score = await bacaNilai();
+          await simpan(tambahNilai(riwayat, email, score), 'Tes ulang berhasil dicatat.');
+          break;
+        }
+        case '6': {
+          const email = await bacaEmail();
+          const peserta = cariPeserta(email);
+          const konfirmasi = await baca(`Hapus ${peserta.name} dan seluruh riwayat? Ketik ya: `);
+          if (konfirmasi.toLowerCase() !== 'ya') {
+            console.log('Penghapusan dibatalkan.');
+            break;
+          }
+          await simpan(hapusPeserta(riwayat, email), 'Peserta dan seluruh riwayat berhasil dihapus.');
+          break;
+        }
+        case '7': {
+          const className = await baca('Kelas: ');
+          console.log(formatPesertaList(getPesertaByClass(getUniquePeserta(riwayat), className)));
+          break;
+        }
+        case '8': {
+          const pesertaUnik = getUniquePeserta(riwayat);
+          const standar = createPassingValidator();
+          const rentang = createLenientValidator();
+          const ringkasan = standar.validateBatch(pesertaUnik);
+          console.log(`Jumlah peserta: ${ringkasan.total}`);
+          console.log(`Rata-rata nilai terakhir: ${calculateAverageScore(pesertaUnik)}`);
+          console.log(`LULUS (nilai >=80): ${ringkasan.valid}; TIDAK LULUS: ${ringkasan.invalid}`);
+          console.log('Pemeriksaan rentang 60–100 terpisah dari kelulusan >=80.');
+          for (const { name, score } of pesertaUnik) {
+            const status = PesertaValidator.getStatus(score);
+            console.log(`${name}: ${status}; status valid: ${PesertaValidator.isValidStatus(status)}`);
+            console.log(standar.formatResult(name, score));
+            console.log(`Rentang 60–100: ${rentang.formatResult(name, score)}`);
+            console.log(`Nilai dalam rentang: ${rentang.isValidScore(score)}; ${rentang.getValidationDetails(score).message}`);
+          }
+          break;
+        }
+        default:
+          console.log('Pilihan tidak valid. Masukkan angka 0–8.');
+      }
+    } catch (error) {
+      if (error === akhirInput) {
+        console.log('\nInput berakhir. Operasi dibatalkan.');
+        break;
+      }
+      console.error(`❌ ${error.message}`);
+    }
+  }
+} finally {
+  pembaca.close();
+}
+console.log('Sampai jumpa.');
