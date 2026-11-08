@@ -1,7 +1,7 @@
 // Latihan 01: Lulus atau Tidak Lulus dari nilai tes terakhir
 // Rina took the test three times (70, 76, 82). Only the last test counts.
-// Reads its own copy (latihan/solusi/peserta-retake.json), so practice edits to
-// latihan/peserta-retake.json never change what npm test checks.
+// Reads fixed reference data beside this script. Learners experiment in
+// latihan/proyek instead; keep this reference JSON unchanged.
 
 import { loadPeserta } from '../../utils/pesertaLoader.js';
 import { getUniquePeserta } from '../../utils/pesertaProcessor.js';

@@ -1,4 +1,4 @@
-// Checks every exercise solution in latihan/solusi/ against its expected output.
+// Checks every exercise solution in latihan/referensi/ against its expected output.
 // Each NN-name.expected.txt is paired with NN-name.js; files without an
 // .expected.txt (helper modules like kelasValidator.js) are not run.
 
@@ -9,7 +9,7 @@ import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
 
 const run = promisify(execFile);
-const solusiDir = new URL('./solusi/', import.meta.url);
+const solusiDir = new URL('./referensi/', import.meta.url);
 
 // Same text on every OS: \r\n → \n, no trailing whitespace
 const normalize = (text = '') => text.replace(/\r\n/g, '\n').trimEnd();
@@ -26,15 +26,17 @@ const cekSolusi = async (name) => {
   const script = fileURLToPath(new URL(`${name}.js`, solusiDir));
 
   let actual;
+  let berhasil = true;
   try {
-    const { stdout, stderr } = await run(process.execPath, [script], { cwd: tmpdir() });
+    const { stdout, stderr } = await run(process.execPath, [script], { cwd: tmpdir(), timeout: 10_000 });
     actual = normalize(stdout + stderr);
   } catch (error) {
+    berhasil = false;
     // A crash or a missing file still produces output worth showing
     actual = normalize(`${error.stdout ?? ''}${error.stderr ?? ''}`) || error.message;
   }
 
-  const cocok = actual === expected;
+  const cocok = berhasil && actual === expected;
   console.log(`${cocok ? '✅' : '❌'} ${name}`);
   if (!cocok) {
     console.log(`   Expected: ${JSON.stringify(expected)}`);

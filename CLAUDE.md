@@ -13,10 +13,15 @@ No dependencies, build step, or linter. Native ES modules (`"type": "module"`), 
 ```bash
 npm start   # node main.js: runs the 9 demo "tasks" and prints to console
 npm test    # node test/test-all.js, then node latihan/cek.js; exits 1 on any failure
-npm run cek-latihan   # only the exercise check
+npm run cek-latihan   # only the original exercise solutions
+npm run cek-panduan   # replay guide code and check the completed learner application
 ```
 
-`latihan/cek.js` runs each `latihan/solusi/NN-*.js` from the OS temp directory and compares its stdout with `NN-*.expected.txt`. These are the reference solutions for `EXERCISES.md`. If you change the data or the utils, update the expected files too. A solusi file without an `.expected.txt`, such as `kelasValidator.js`, is a helper module and is not run. `latihan/peserta-retake.json` and `latihan/coba-retake.js` are for students to edit freely. The checker reads its own copy, `latihan/solusi/peserta-retake.json`, so never point a solution at the practice copy.
+The main learner path is `latihan/00-persiapan/` through `latihan/11-pengujian-akhir/`. Learners build one cumulative application in `latihan/proyek/`; the committed starter deliberately contains only package.json and the welcome main.js. Every stage README has full code, exact expected output, explanation, and complete challenge solutions. `instructor.md` links the stages and teaching activities.
+
+`npm run cek-panduan` replays the guide's HTML-marked file blocks in a temporary project, checks outputs and challenge solutions, copies the supplied test suite at stage 11, runs learner scripts, and compares final output with root main.js. It leaves the learner starter untouched. Maintain the `write`, `expected`, `challenge`, `challenge-output`, and `copy` markers when editing examples.
+
+`latihan/cek.js` runs the seven original solutions in `latihan/referensi/` from the OS temp directory and compares stdout with the paired `.expected.txt` files. Helpers and fixed JSON live beside those solutions. Reference solution edits can affect root npm test. Use `npm --prefix latihan/proyek test` after stage 11 to test learner code instead.
 
 There is no test framework, so you cannot select a single test. `test/test-all.js` is top-level sequential code split into numbered `TEST SUITE` blocks. To check one function quickly, import it directly:
 
