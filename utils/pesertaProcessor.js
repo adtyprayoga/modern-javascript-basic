@@ -1,5 +1,6 @@
 // Core business logic for participant processing
 // Demonstrates ES6 features: Set, Map, for...of, destructuring, spread operator, arrow functions
+// plus ES2018 object spread
 
 /**
  * Get unique emails from participant list using Set
@@ -21,10 +22,12 @@ export const getUniqueEmails = (pesertaList = []) => {
 export const createPesertaMap = (pesertaList = []) => {
   const pesertaMap = new Map();
   
-  // Use for...of loop with destructuring to process each participant
-  for (const { id, name, email, class: className, score } of pesertaList) {
-    // Map.set() overwrites previous values, keeping the latest entry
-    pesertaMap.set(email, { id, name, email, class: className, score });
+  // Use for...of loop to process each participant
+  for (const peserta of pesertaList) {
+    // Map.set() overwrites previous values, keeping the latest entry (nilai tes terakhir).
+    // ES2018 object spread { ...peserta } copies every field, including extra ones,
+    // so the Map never shares an object with the raw data.
+    pesertaMap.set(peserta.email, { ...peserta });
   }
   
   return pesertaMap;

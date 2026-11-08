@@ -1,8 +1,9 @@
 // Main application entry point
-// Demonstrates complete ES6 module system with imports and orchestration
+// Demonstrates complete ES6 module system with imports and orchestration,
+// plus async/await + try/catch, object rest, ?. and ??, and includes()
 
-// Import data
-import { rawPeserta } from './data/peserta.js';
+// Import the async data loader (data lives in data/peserta.json)
+import { loadPeserta } from './utils/pesertaLoader.js';
 
 // Import processing functions
 import { 
@@ -28,6 +29,19 @@ import {
   createLenientValidator 
 } from './utils/pesertaValidator.js';
 
+// ============================================================================
+// LOAD DATA: async/await + try/catch (ES2022 top-level await)
+// ============================================================================
+// `let`, not `const`: the variable is declared here but assigned inside try {}
+let rawPeserta;
+try {
+  rawPeserta = await loadPeserta();
+} catch (error) {
+  // One clear message instead of a stack trace, then stop with exit code 1
+  console.error(`❌ ${error.message}`);
+  process.exit(1);
+}
+
 console.log("=".repeat(60));
 console.log("🎓 SISTEM MANAJEMEN PESERTA TRAINING BRAINMATICS");
 console.log("=".repeat(60));
@@ -48,7 +62,7 @@ console.log();
 console.log("📊 TASK 2: Testing displayPeserta Function");
 console.log("-".repeat(60));
 console.log(displayPeserta("Aditya", 85));      // With LULUS status
-console.log(displayPeserta("Milea", 78));       // With BELUM LULUS status
+console.log(displayPeserta("Milea", 78));       // With TIDAK LULUS status
 console.log(displayPeserta());                  // With all defaults
 console.log();
 
@@ -67,6 +81,10 @@ const { name: pesertaNama, email: pesertaEmail, score: nilaiAkhir } = pesertaSam
 console.log(`Nama: ${pesertaNama}`);
 console.log(`Email: ${pesertaEmail}`);
 console.log(`Nilai Akhir: ${nilaiAkhir}`);
+
+// ES2018 object rest: take `name` out, collect everything else into `sisanya`
+const { name, ...sisanya } = pesertaSample;
+console.log(`Sisa properti (rest): ${JSON.stringify(sisanya)}`);
 console.log();
 
 // ============================================================================
@@ -91,6 +109,9 @@ console.log(`Map size: ${pesertaMap.size}`);
 console.log("\nLatest entry for aditya@brainmatics.com:");
 const adityaData = pesertaMap.get("aditya@brainmatics.com");
 console.log(createDetailedReport(adityaData));
+
+// ES2020 ?. and ??: a missing email gives undefined instead of a crash, then a fallback text
+console.log(`Score tidak-ada@brainmatics.com: ${pesertaMap.get("tidak-ada@brainmatics.com")?.score ?? "tidak ditemukan"}`);
 console.log();
 
 // ============================================================================
@@ -154,7 +175,7 @@ const validationSummary = validator.validateBatch(uniquePeserta);
 console.log("Validation Summary (Threshold: 80-100):");
 console.log(`  Total Participants: ${validationSummary.total}`);
 console.log(`  Valid (LULUS): ${validationSummary.valid}`);
-console.log(`  Invalid (BELUM LULUS): ${validationSummary.invalid}`);
+console.log(`  Invalid (TIDAK LULUS): ${validationSummary.invalid}`);
 console.log(`  Pass Rate: ${validationSummary.validPercentage}%`);
 console.log();
 
@@ -163,6 +184,9 @@ console.log("Individual Validation Results:");
 uniquePeserta.forEach(({ name, score }) => {
   console.log(`  ${validator.formatResult(name, score)}`);
 });
+
+// ES2016 includes(): only labels in PesertaValidator.STATUS are valid (case-sensitive)
+console.log(`Validasi status (includes): "LULUS" → ${PesertaValidator.isValidStatus("LULUS")}, "lulus" → ${PesertaValidator.isValidStatus("lulus")}`);
 console.log();
 
 // ============================================================================

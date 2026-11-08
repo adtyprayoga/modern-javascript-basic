@@ -4,9 +4,13 @@
   "description": "ES6 Study Case - Training Management System for Brainmatics",
   "type": "module",
   "main": "main.js",
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "start": "node main.js",
-    "test": "node test/test-all.js"
+    "test": "node test/test-all.js && node latihan/cek.js",
+    "cek-latihan": "node latihan/cek.js"
   },
   "keywords": [
     "es6",

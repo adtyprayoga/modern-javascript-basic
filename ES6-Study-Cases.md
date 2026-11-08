@@ -1,5 +1,7 @@
 # Studi Kasus Latihan ES6 
 
+> Ini studi kasus versi ES6 awal. Studi kasus terkini (ES2016+) ada di `README.md` bagian **Studi Kasus**.
+
 ## Studi Kasus: Sistem Manajemen Peserta Training (Brainmatics Level)
 
 ### Deskripsi Masalah
@@ -28,18 +30,18 @@ export const rawPeserta = [
 #### Task 1.1: Buat Function dengan Default Parameter
 ```javascript
 // Gunakan default parameter untuk status peserta
-// Jika score >= 80, status = "LULUS", jika < 80 = "BELUM LULUS"
+// Jika score >= 80, status = "LULUS", jika < 80 = "TIDAK LULUS"
 // Fungsi harus menggunakan arrow function dan template literal
 
-function displayPeserta(name = "Unknown", score = 0, status = score >= 80 ? "LULUS" : "BELUM LULUS") {
+function displayPeserta(name = "Unknown", score = 0, status = score >= 80 ? "LULUS" : "TIDAK LULUS") {
   // WRITE YOUR CODE HERE
   // Output format: "Nama: [name], Score: [score], Status: [status]"
 }
 
 // Test
 displayPeserta("Aditya", 85);      // Ekspektasi: "Nama: Aditya, Score: 85, Status: LULUS"
-displayPeserta("Milea", 78);       // Ekspektasi: "Nama: Milea, Score: 78, Status: BELUM LULUS"
-displayPeserta();                  // Ekspektasi: "Nama: Unknown, Score: 0, Status: BELUM LULUS"
+displayPeserta("Milea", 78);       // Ekspektasi: "Nama: Milea, Score: 78, Status: TIDAK LULUS"
+displayPeserta();                  // Ekspektasi: "Nama: Unknown, Score: 0, Status: TIDAK LULUS"
 ```
 
 #### Task 1.2: Gunakan Destructuring untuk Extract Data

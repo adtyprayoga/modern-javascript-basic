@@ -7,8 +7,9 @@ This is an **ES6 study case project** for building a Training Management System 
 Follow this modular structure when implementing solutions:
 ```
 /data/
-  peserta.js          # Raw participant data export
+  peserta.json        # Raw participant data, loaded with loadPeserta()
 /utils/
+  pesertaLoader.js    # async/await loader (try/catch, ?., ??)
   pesertaProcessor.js # Core business logic (filtering, calculations)
   pesertaFormatter.js # Display formatting utilities
 main.js               # Main application entry point
@@ -47,18 +48,26 @@ class PesertaValidator {
 
 ### 5. Data Validation Rules
 - **Email uniqueness**: Use Set to filter duplicate emails, keep the latest entry
-- **Score validation**: 60-100 range, >= 80 = "LULUS", < 80 = "BELUM LULUS"
+- **Score validation**: 60-100 range; pass/fail comes only from `PesertaValidator.getStatus(score)`: >= 80 = "LULUS", < 80 = "TIDAK LULUS"
+- **Status validation**: check a status with `PesertaValidator.isValidStatus(status)` (ES2016 `includes()` against `PesertaValidator.STATUS`)
 - **Required destructuring**: Extract `{ id, name, email, class: className, score }` consistently
+
+### 6. ES2016+ Patterns
+- **`??`, not `||`, for fallbacks** where `0` or `""` is a valid value (`score ?? 0`)
+- **`?.` for values that may be missing** (`json?.peserta`, `pesertaMap.get(email)?.score`)
+- **Object rest/spread** to copy or split objects (`{ ...peserta }`, `({ score, ...rest }) =>`)
+- **`includes()`** for membership checks instead of `indexOf() !== -1`
+- **async/await + try/catch** for file I/O; rethrow with an Indonesian message that names the file
 
 ## Key Business Logic
 
 ### Sample Data Structure
 ```javascript
-// Expected in data/peserta.js
-export const rawPeserta = [
-  { id: 101, name: "Aditya Prayoga", email: "aditya@brainmatics.com", class: "JavaScript Fundamentals", score: 85 },
-  // ... duplicates by email should be handled
-];
+// data/peserta.json, loaded with: const rawPeserta = await loadPeserta();
+{ "peserta": [
+  { "id": 101, "name": "Aditya Prayoga", "email": "aditya@brainmatics.com", "class": "JavaScript Fundamentals", "score": 85 }
+  // ... duplicates by email should be handled (last entry = last test)
+] }
 ```
 
 ### Core Functions to Implement
@@ -92,7 +101,7 @@ export const rawPeserta = [
 - Validate output formatting matches exact requirements
 
 ## Development Workflow
-1. Start with `data/peserta.js` - create the raw data export
+1. Start with `data/peserta.json` - the raw data, loaded only through `loadPeserta()`
 2. Implement utility functions in separate modules
 3. Build validator class with constructor and arrow methods
 4. Create main.js to orchestrate the complete workflow

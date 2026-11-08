@@ -1,7 +1,7 @@
 // Unit tests for all ES6 Training Management System components
 // Demonstrates testing patterns with ES6 features
 
-import { rawPeserta } from '../data/peserta.js';
+import { loadPeserta } from '../utils/pesertaLoader.js';
 import { 
   getUniqueEmails, 
   createPesertaMap, 
@@ -11,9 +11,14 @@ import {
 } from '../utils/pesertaProcessor.js';
 import { 
   displayPeserta, 
-  createPesertaSummary 
+  createPesertaSummary,
+  createDetailedReport
 } from '../utils/pesertaFormatter.js';
 import { PesertaValidator } from '../utils/pesertaValidator.js';
+
+// ES2022 top-level await: load the data before any test runs
+const rawPeserta = await loadPeserta();
+const fixture = (name) => new URL(`./fixtures/${name}`, import.meta.url);
 
 // Test utilities
 let testsPassed = 0;
@@ -35,6 +40,18 @@ const assertEqual = (actual, expected, testName) => {
   if (!passed) {
     console.log(`   Expected: ${JSON.stringify(expected)}`);
     console.log(`   Actual: ${JSON.stringify(actual)}`);
+  }
+};
+
+// Async helper: passes when fn() rejects with a message containing messagePart
+const assertRejects = async (fn, messagePart, testName) => {
+  try {
+    await fn();
+    assert(false, testName);
+    console.log("   Expected a rejection, but the promise resolved");
+  } catch (error) {
+    assert(error.message.includes(messagePart), testName);
+    if (!error.message.includes(messagePart)) console.log(`   Actual message: ${error.message}`);
   }
 };
 
@@ -176,22 +193,20 @@ assertEqual(
 
 assertEqual(
   displayPeserta("Milea", 78),
-  "Nama: Milea, Score: 78, Status: BELUM LULUS",
+  "Nama: Milea, Score: 78, Status: TIDAK LULUS",
   "Formats failing score correctly"
 );
 
 assertEqual(
   displayPeserta(),
-  "Nama: Unknown, Score: 0, Status: BELUM LULUS",
+  "Nama: Unknown, Score: 0, Status: TIDAK LULUS",
   "Uses default parameters correctly"
 );
 
-// Test explicit status override
-assertEqual(
-  displayPeserta("Test", 90, "CUSTOM STATUS"),
-  "Nama: Test, Score: 90, Status: CUSTOM STATUS",
-  "Accepts custom status parameter"
-);
+// Test explicit status override: only statuses that pass includes() are kept
+assertEqual(displayPeserta("Test", 90, "TIDAK LULUS"), "Nama: Test, Score: 90, Status: TIDAK LULUS", "Valid status override is kept");
+assertEqual(displayPeserta("Test", 90, "CUSTOM STATUS"), "Nama: Test, Score: 90, Status: LULUS", "Invalid status falls back to computed");
+assertEqual(displayPeserta("Test", 70, "lulus"), "Nama: Test, Score: 70, Status: TIDAK LULUS", "Lowercase status is invalid");
 console.log();
 
 // ============================================================================
@@ -215,6 +230,10 @@ assertEqual(
 // Test with empty object (default values)
 const emptySummary = createPesertaSummary({});
 assert(emptySummary.includes("Unknown"), "Handles empty object with defaults");
+
+// ES2020 ??: default parameters only catch undefined, ?? also catches null
+assertEqual(createPesertaSummary(null), "📚 Unknown - Class: N/A - Score: 0", "Handles null with ??");
+assertEqual(createPesertaSummary({ name: "Nol", class: "C", score: 0 }), "📚 Nol - Class: C - Score: 0", "Score 0 is kept");
 console.log();
 
 // ============================================================================
@@ -264,6 +283,49 @@ assertEqual(
 const defaultValidator = new PesertaValidator();
 assertEqual(defaultValidator.minScore, 60, "Default minScore is 60");
 assertEqual(defaultValidator.maxScore, 100, "Default maxScore is 100");
+
+// Static rules: the validator class is the single source of the pass/fail rule
+assertEqual(PesertaValidator.PASSING_SCORE, 80, "Passing score is 80");
+assertEqual(PesertaValidator.STATUS, ["LULUS", "TIDAK LULUS"], "Status list");
+assertEqual(PesertaValidator.getStatus(80), "LULUS", "80 is LULUS (boundary)");
+assertEqual(PesertaValidator.getStatus(79), "TIDAK LULUS", "79 is TIDAK LULUS (boundary)");
+assertEqual(PesertaValidator.getStatus(), "TIDAK LULUS", "Default score 0 is TIDAK LULUS");
+assert(PesertaValidator.isValidStatus("LULUS"), "includes() accepts LULUS");
+assert(PesertaValidator.isValidStatus("TIDAK LULUS"), "includes() accepts TIDAK LULUS");
+assert(!PesertaValidator.isValidStatus("lulus"), "includes() is case-sensitive");
+assert(!PesertaValidator.isValidStatus("BELUM LULUS"), "Old label is no longer valid");
+assert(!PesertaValidator.isValidStatus(undefined), "undefined is not a status");
+console.log();
+
+// ============================================================================
+// TEST SUITE 10: createDetailedReport Function
+// ============================================================================
+console.log("📦 TEST SUITE 10: createDetailedReport Function");
+console.log("-".repeat(60));
+
+const report = createDetailedReport({ id: 104, name: "Milea Kusuma", email: "milea@brainmatics.com", class: "JavaScript Fundamentals", score: 78 });
+assert(report.includes("  Status   : ❌ TIDAK LULUS"), "Detailed report uses TIDAK LULUS");
+assert(createDetailedReport(null).includes("  Nama     : Unknown"), "Detailed report handles null");
+console.log();
+
+// ============================================================================
+// TEST SUITE 11: loadPeserta (async/await + try/catch, ?. and ??)
+// ============================================================================
+console.log("📦 TEST SUITE 11: loadPeserta Function");
+console.log("-".repeat(60));
+
+assertEqual(rawPeserta.length, 6, "async loadPeserta reads 6 records");
+assertEqual(rawPeserta[2].score, 88, "Records keep their order and scores");
+await assertRejects(() => loadPeserta(fixture("tidak-ada.json")), "Gagal memuat data peserta", "Missing file rejects with Indonesian message");
+await assertRejects(() => loadPeserta(fixture("tidak-ada.json")), "tidak-ada.json", "Error names the file");
+await assertRejects(() => loadPeserta(fixture("rusak.json")), "rusak.json", "Malformed JSON caught by try/catch");
+assertEqual(await loadPeserta(fixture("null.json")), [], "JSON null gives [] via ?. and ??");
+assertEqual(await loadPeserta(fixture("kosong.json")), [], "Missing peserta key gives []");
+const tanpaScore = await loadPeserta(fixture("tanpa-score.json"));
+assertEqual(tanpaScore[0].score, 0, "Missing score becomes 0 via ??");
+assertEqual(tanpaScore[0].catatan, "susulan", "Rest/spread keeps extra fields");
+assertEqual(calculateAverageScore(tanpaScore), 0, "Average is 0, not NaN");
+assertEqual(createPesertaMap(tanpaScore).get("x@brainmatics.com").catatan, "susulan", "createPesertaMap spread keeps extra fields");
 console.log();
 
 // ============================================================================
