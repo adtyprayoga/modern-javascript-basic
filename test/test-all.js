@@ -11,7 +11,8 @@ import {
 } from '../utils/pesertaProcessor.js';
 import { 
   displayPeserta, 
-  createPesertaSummary 
+  createPesertaSummary,
+  createDetailedReport
 } from '../utils/pesertaFormatter.js';
 import { PesertaValidator } from '../utils/pesertaValidator.js';
 
@@ -176,22 +177,20 @@ assertEqual(
 
 assertEqual(
   displayPeserta("Milea", 78),
-  "Nama: Milea, Score: 78, Status: BELUM LULUS",
+  "Nama: Milea, Score: 78, Status: TIDAK LULUS",
   "Formats failing score correctly"
 );
 
 assertEqual(
   displayPeserta(),
-  "Nama: Unknown, Score: 0, Status: BELUM LULUS",
+  "Nama: Unknown, Score: 0, Status: TIDAK LULUS",
   "Uses default parameters correctly"
 );
 
-// Test explicit status override
-assertEqual(
-  displayPeserta("Test", 90, "CUSTOM STATUS"),
-  "Nama: Test, Score: 90, Status: CUSTOM STATUS",
-  "Accepts custom status parameter"
-);
+// Test explicit status override: only statuses that pass includes() are kept
+assertEqual(displayPeserta("Test", 90, "TIDAK LULUS"), "Nama: Test, Score: 90, Status: TIDAK LULUS", "Valid status override is kept");
+assertEqual(displayPeserta("Test", 90, "CUSTOM STATUS"), "Nama: Test, Score: 90, Status: LULUS", "Invalid status falls back to computed");
+assertEqual(displayPeserta("Test", 70, "lulus"), "Nama: Test, Score: 70, Status: TIDAK LULUS", "Lowercase status is invalid");
 console.log();
 
 // ============================================================================
@@ -215,6 +214,10 @@ assertEqual(
 // Test with empty object (default values)
 const emptySummary = createPesertaSummary({});
 assert(emptySummary.includes("Unknown"), "Handles empty object with defaults");
+
+// ES2020 ??: default parameters only catch undefined, ?? also catches null
+assertEqual(createPesertaSummary(null), "📚 Unknown - Class: N/A - Score: 0", "Handles null with ??");
+assertEqual(createPesertaSummary({ name: "Nol", class: "C", score: 0 }), "📚 Nol - Class: C - Score: 0", "Score 0 is kept");
 console.log();
 
 // ============================================================================
@@ -276,6 +279,17 @@ assert(PesertaValidator.isValidStatus("TIDAK LULUS"), "includes() accepts TIDAK 
 assert(!PesertaValidator.isValidStatus("lulus"), "includes() is case-sensitive");
 assert(!PesertaValidator.isValidStatus("BELUM LULUS"), "Old label is no longer valid");
 assert(!PesertaValidator.isValidStatus(undefined), "undefined is not a status");
+console.log();
+
+// ============================================================================
+// TEST SUITE 10: createDetailedReport Function
+// ============================================================================
+console.log("📦 TEST SUITE 10: createDetailedReport Function");
+console.log("-".repeat(60));
+
+const report = createDetailedReport({ id: 104, name: "Milea Kusuma", email: "milea@brainmatics.com", class: "JavaScript Fundamentals", score: 78 });
+assert(report.includes("  Status   : ❌ TIDAK LULUS"), "Detailed report uses TIDAK LULUS");
+assert(createDetailedReport(null).includes("  Nama     : Unknown"), "Detailed report handles null");
 console.log();
 
 // ============================================================================
