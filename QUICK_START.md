@@ -69,6 +69,7 @@ es6-training-management/
 ├── test/
 │   ├── fixtures/               # Broken/empty JSON for loader tests
 │   └── test-all.js             # 79 unit tests
+├── latihan/                    # Exercises: solutions + checker (see EXERCISES.md)
 ├── main.js                     # Run this!
 └── package.json                # ES6 module config
 ```
@@ -182,6 +183,7 @@ Run through this checklist to ensure everything works:
 - [ ] Output shows 9 task demonstrations
 - [ ] `npm test` shows 79 passed tests
 - [ ] No failed tests (0 failures)
+- [ ] `npm test` ends with `Latihan: 7/7 cocok`
 - [ ] Console output is well-formatted
 - [ ] All ES6 features are demonstrated
 

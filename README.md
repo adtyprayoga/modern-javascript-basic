@@ -58,6 +58,11 @@ es6-training-management/
 ├── test/
 │   ├── fixtures/               # Broken/empty JSON files for loader tests
 │   └── test-all.js             # Comprehensive unit tests
+├── latihan/
+│   ├── peserta-retake.json     # Practice data (never edit data/peserta.json)
+│   ├── solusi/                 # Exercise solutions + expected output
+│   └── cek.js                  # Checks every solution's output
+├── EXERCISES.md                # One exercise per study case point
 ├── main.js                     # Application entry point
 ├── package.json                # Project configuration
 └── README.md                   # This file
@@ -201,7 +206,11 @@ Expected output:
 ❌ Tests Failed: 0
 📈 Pass Rate: 100%
 🎉 ALL TESTS PASSED!
+...
+Latihan: 7/7 cocok
 ```
+
+`npm test` runs the unit tests and then `latihan/cek.js`, which runs every exercise solution in `latihan/solusi/` and compares its output with the matching `.expected.txt` file. To check only the exercises, run `npm run cek-latihan`. The exercises themselves are in `EXERCISES.md`.
 
 ## 📊 Data Structure
 

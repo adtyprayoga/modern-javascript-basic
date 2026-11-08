@@ -12,8 +12,11 @@ No dependencies, build step, or linter. Native ES modules (`"type": "module"`), 
 
 ```bash
 npm start   # node main.js: runs the 9 demo "tasks" and prints to console
-npm test    # node test/test-all.js: custom assert harness, exits 1 on any failure
+npm test    # node test/test-all.js, then node latihan/cek.js; exits 1 on any failure
+npm run cek-latihan   # only the exercise check
 ```
+
+`latihan/cek.js` runs each `latihan/solusi/NN-*.js` from the OS temp directory and compares its stdout with `NN-*.expected.txt`. These are the reference solutions for `EXERCISES.md`. If you change the data or the utils, update the expected files too. A solusi file without an `.expected.txt`, such as `kelasValidator.js`, is a helper module and is not run.
 
 There is no test framework, so you cannot select a single test. `test/test-all.js` is top-level sequential code split into numbered `TEST SUITE` blocks. To check one function quickly, import it directly:
 
