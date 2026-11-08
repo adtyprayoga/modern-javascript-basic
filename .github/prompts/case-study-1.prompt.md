@@ -21,7 +21,7 @@ Follow the modular structure to avoid overwhelm:
 - **`data/peserta.json`** - Create the raw participant data (`{ "peserta": [...] }`)
   - 6 participants with properties: id, name, email, class, score
   - Include 2 duplicate emails (Aditya and Zaim)
-  - Use `export const rawPeserta = [...]`
+  - Load it with `const rawPeserta = await loadPeserta();` from `utils/pesertaLoader.js`
 
 #### Step 2: Utility Functions (Core Learning)
 - **`utils/pesertaProcessor.js`** - Data processing logic

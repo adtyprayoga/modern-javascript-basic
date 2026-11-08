@@ -38,7 +38,7 @@ This project implements a complete training management solution showcasing **ES6
 |---|---|---|
 | 1 | Lulus / Tidak Lulus from the last test score | `createPesertaMap` keeps the latest entry per email; `PesertaValidator.getStatus(score)` decides `LULUS` (≥ 80) or `TIDAK LULUS` |
 | 2 | const/let, default parameters | Every function has defaults (`pesertaList = []`); `main.js` uses `let` for data assigned inside `try` |
-| 3 | Destructuring, object rest/spread | `loadPeserta` normalizes with `({ score, ...rest }) => ({ ...rest, score })`; `createPesertaMap` copies with `{ ...peserta }`; `class: className` renaming everywhere |
+| 3 | Destructuring, object rest/spread | `loadPeserta` normalizes with `({ score, ...rest }) => ({ ...rest, score: score ?? 0 })`; `createPesertaMap` copies with `{ ...peserta }`; `class: className` renaming everywhere |
 | 4 | Set for dedup, Map for index | `getUniqueEmails` (Set), `createPesertaMap` (Map keyed by email) |
 | 5 | Validator class with export/import | `utils/pesertaValidator.js`, imported by `utils/pesertaFormatter.js` and `main.js` |
 | 6 | Status validation with `includes()` | `PesertaValidator.isValidStatus(status)`; `displayPeserta` never prints an unknown status |
@@ -228,7 +228,7 @@ Expected output:
 ## 🔑 Key Functions
 
 ### Loading (`utils/pesertaLoader.js`)
-- `loadPeserta(fileUrl)` - async; reads `data/peserta.json`, returns `[]` for an empty file, throws an Indonesian error for a missing or broken file
+- `loadPeserta(fileUrl)` - async; reads `data/peserta.json`, returns `[]` when the JSON is `null` or has no `peserta` key, throws an Indonesian error for a missing or broken file
 
 ### Data Processing (`utils/pesertaProcessor.js`)
 - `getUniqueEmails(pesertaList)` - Extract unique emails using Set

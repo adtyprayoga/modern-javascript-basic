@@ -145,7 +145,7 @@ greet("Aditya"); // ✅ "Hello Aditya"
 
 ### Step 3.3: Apply It
 
-Open `utils/pesertaFormatter.js` and look at `displayPeserta()`:
+Here is a simplified version of `displayPeserta()`. The real one in `utils/pesertaFormatter.js` gets the status from `PesertaValidator.getStatus(score)` and also checks it with `includes()`:
 
 ```javascript
 export const displayPeserta = (

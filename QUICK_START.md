@@ -32,7 +32,7 @@ npm start
 - Complete ES6 feature showcase
 
 ### Option 2: Run All Tests
-Validate the implementation with 52 comprehensive unit tests:
+Validate the implementation with 79 comprehensive unit tests:
 
 ```bash
 npm test
@@ -40,7 +40,7 @@ npm test
 
 **Expected Result:**
 ```
-✅ Tests Passed: 52
+✅ Tests Passed: 79
 ❌ Tests Failed: 0
 📈 Pass Rate: 100%
 🎉 ALL TESTS PASSED!
@@ -60,13 +60,15 @@ node test/test-all.js
 ```
 es6-training-management/
 ├── data/
-│   └── peserta.js              # 6 participants (2 duplicates)
+│   └── peserta.json            # 6 participants (2 duplicates)
 ├── utils/
+│   ├── pesertaLoader.js        # async/await loader (try/catch, ?., ??)
 │   ├── pesertaProcessor.js     # Core logic (Set, Map, filters)
 │   ├── pesertaFormatter.js     # Display formatting
-│   └── pesertaValidator.js     # Validation class
+│   └── pesertaValidator.js     # Validation class + pass/fail rules
 ├── test/
-│   └── test-all.js             # 52 unit tests
+│   ├── fixtures/               # Broken/empty JSON for loader tests
+│   └── test-all.js             # 79 unit tests
 ├── main.js                     # Run this!
 └── package.json                # ES6 module config
 ```
@@ -178,7 +180,7 @@ Run through this checklist to ensure everything works:
 
 - [ ] `npm start` runs without errors
 - [ ] Output shows 9 task demonstrations
-- [ ] `npm test` shows 52 passed tests
+- [ ] `npm test` shows 79 passed tests
 - [ ] No failed tests (0 failures)
 - [ ] Console output is well-formatted
 - [ ] All ES6 features are demonstrated
