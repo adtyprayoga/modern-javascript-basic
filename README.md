@@ -69,8 +69,9 @@ modern-javascript-basic/
 │   ├── fixtures/               # Broken/empty JSON files for loader tests
 │   └── test-all.js             # Comprehensive unit tests
 ├── latihan/
-│   ├── peserta-retake.json     # Practice data (never edit data/peserta.json)
-│   ├── solusi/                 # Exercise solutions + expected output
+│   ├── peserta-retake.json     # Practice data: safe to edit (never edit data/peserta.json)
+│   ├── coba-retake.js          # Practice script for guide Step 18.3
+│   ├── solusi/                 # Exercise solutions, expected output, and their own data copy
 │   └── cek.js                  # Checks every solution's output
 ├── BEGINNER_GUIDE.md           # 18-phase step-by-step guide
 ├── EXERCISES.md                # One exercise per study case point

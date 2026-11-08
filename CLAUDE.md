@@ -16,7 +16,7 @@ npm test    # node test/test-all.js, then node latihan/cek.js; exits 1 on any fa
 npm run cek-latihan   # only the exercise check
 ```
 
-`latihan/cek.js` runs each `latihan/solusi/NN-*.js` from the OS temp directory and compares its stdout with `NN-*.expected.txt`. These are the reference solutions for `EXERCISES.md`. If you change the data or the utils, update the expected files too. A solusi file without an `.expected.txt`, such as `kelasValidator.js`, is a helper module and is not run.
+`latihan/cek.js` runs each `latihan/solusi/NN-*.js` from the OS temp directory and compares its stdout with `NN-*.expected.txt`. These are the reference solutions for `EXERCISES.md`. If you change the data or the utils, update the expected files too. A solusi file without an `.expected.txt`, such as `kelasValidator.js`, is a helper module and is not run. `latihan/peserta-retake.json` and `latihan/coba-retake.js` are for students to edit freely. The checker reads its own copy, `latihan/solusi/peserta-retake.json`, so never point a solution at the practice copy.
 
 There is no test framework, so you cannot select a single test. `test/test-all.js` is top-level sequential code split into numbered `TEST SUITE` blocks. To check one function quickly, import it directly:
 

@@ -37,15 +37,21 @@ Nama: Rina Sari, Score: 82, Status: LULUS
 
 > Gunakan const/let dan function dengan default parameter.
 
-**Task:** Load the default data and remove duplicates with `getUniquePeserta`. Then count how many participants are LULUS, using a `let` counter in a `for...of` loop. Everything else is `const`.
+**Task:**
+1. Write `const hitungLulus = (pesertaList = []) => { ... }`. It counts the LULUS participants using a `let` counter in a `for...of` loop.
+2. Call it on the unique participants (`getUniquePeserta(await loadPeserta())`).
+3. Call it again with **no argument**: the default parameter makes it count an empty list.
 
-**Hint:** Phase 2 (const & let) and Phase 9 (for...of).
+Everything except the counter is `const`.
+
+**Hint:** Phase 2 (const & let), Phase 4 (default parameters), and Phase 9 (for...of).
 
 **File:** `latihan/02-const-let.js`
 
 **Expected output:**
 ```
 Jumlah LULUS: 3
+Jumlah LULUS (tanpa data): 0
 ```
 
 **Solution:** [`latihan/solusi/02-const-let.js`](latihan/solusi/02-const-let.js)

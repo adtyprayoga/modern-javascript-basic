@@ -86,6 +86,8 @@ passingScore = 70;
 Use `let` when you *must* give the variable a new value, like a counter:
 
 ```javascript
+const uniquePeserta = getUniquePeserta(await loadPeserta());  // Phases 8 and 16 explain these
+
 let jumlahLulus = 0;
 for (const { score } of uniquePeserta) {
   if (score >= 80) jumlahLulus++;   // the value changes, so it needs let
@@ -122,7 +124,7 @@ console.log(b);  // ❌ ReferenceError: b is not defined
 
 ### Step 2.5: Find It in Action
 
-- `test/test-all.js`: `let testsPassed = 0;` because the counter goes up after every test
+- `test/test-all.js`: `let testsPassed = 0;` and `let testsFailed = 0;` because the counters go up after every test
 - `main.js`: `let rawPeserta;` because it is assigned inside `try { }`
 - Everywhere else: `const`
 
@@ -875,7 +877,12 @@ loadPeserta()
   .catch((error) => console.error(error.message));
 ```
 
-**🎓 Try This:** Rename `data/peserta.json` to `data/peserta.bak`, run `npm start`, and read the error. Then rename it back.
+**🎓 Try This:** Run `node latihan/solusi/07-async-try-catch.js`. It asks `loadPeserta` for a file that does not exist, so the `catch` branch runs:
+```
+Data tidak bisa dimuat, memakai daftar kosong
+Peserta pertama: tidak ada
+```
+Open the file and find the `try` / `catch`. (You never need to rename or edit `data/peserta.json` to see an error.)
 
 ---
 
@@ -926,7 +933,14 @@ npm test
 ```
 ✅ Tests Passed: 79
 🎉 ALL TESTS PASSED!
+...
+📝 CEK LATIHAN
+✅ 01-nilai-terakhir
+...
+Latihan: 7/7 cocok
 ```
+
+The second part checks the exercise solutions in `latihan/solusi/` (see `EXERCISES.md`).
 
 **If a test fails:**
 ```
@@ -976,13 +990,16 @@ console.log(displayPeserta(name, score));                        // Phase 13: st
 Rina Sari took the test three times. Her scores are in `latihan/peserta-retake.json`: 70, 76, 82.
 
 1. **Predict** her status before you run anything.
-2. Run it:
+2. Run the practice script:
    ```bash
-   node latihan/solusi/01-nilai-terakhir.js
+   node latihan/coba-retake.js
+   # Tes 1: 70
+   # Tes 2: 76
+   # Tes 3: 82
    # Nama: Rina Sari, Score: 82, Status: LULUS
    ```
-3. Open `latihan/peserta-retake.json`, change the **last** score from 82 to 79, and run it again. Now the output is `Score: 79, Status: TIDAK LULUS`.
-4. Change it back to 82.
+3. Open `latihan/peserta-retake.json`, change the **last** score from 82 to 79, and run it again. Now the last line is `Nama: Rina Sari, Score: 79, Status: TIDAK LULUS`.
+4. Change it back to 82, because Exercise 01 in `EXERCISES.md` expects 82. Experimenting here never breaks `npm test`: the checker uses its own copy in `latihan/solusi/`.
 
 **⚠️ Practice only in `latihan/`.** Never edit `data/peserta.json`, because `npm test` depends on it.
 
