@@ -9,14 +9,18 @@
 ### File: `utils/pesertaFormatter.js`
 
 ```javascript
-// ✨ ES6 FEATURES: Arrow Function, Default Parameters, Template Literals, Ternary Operator
+// ✨ ES6 FEATURES: Arrow Function, Default Parameters, Template Literals
+// ✨ ES2016: includes() via PesertaValidator.isValidStatus
 export const displayPeserta = (
   name = "Unknown",           // 📌 DEFAULT PARAMETER: Prevents undefined errors
   score = 0,                  // 📌 DEFAULT PARAMETER: Safe fallback value
-  status = score >= 80 ? "LULUS" : "BELUM LULUS"  // 📌 CALCULATED DEFAULT: Dynamic based on score
+  status = PesertaValidator.getStatus(score)  // 📌 CALCULATED DEFAULT: Dynamic based on score
 ) => {
+  // 📌 VALIDATION: an unknown status ("lulus", "CUSTOM") is replaced by the computed one
+  const finalStatus = PesertaValidator.isValidStatus(status) ? status : PesertaValidator.getStatus(score);
+
   // 📌 TEMPLATE LITERAL: Clean string interpolation with backticks
-  return `Nama: ${name}, Score: ${score}, Status: ${status}`;
+  return `Nama: ${name}, Score: ${score}, Status: ${finalStatus}`;
   //      ^^^^^^ Variable insertion using ${}
 };
 ```
@@ -31,7 +35,8 @@ export const displayPeserta = (
 ```javascript
 displayPeserta("Aditya", 85);    // Uses name & score, calculates status
 displayPeserta("Milea", 78);     // All params provided
-displayPeserta();                // Uses ALL defaults: "Unknown", 0, "BELUM LULUS"
+displayPeserta();                // Uses ALL defaults: "Unknown", 0, "TIDAK LULUS"
+displayPeserta("Test", 90, "lulus"); // Invalid status → "LULUS" (computed from 90)
 ```
 
 ---
@@ -148,7 +153,7 @@ Unique Emails Array (4 emails)
 ### File: `utils/pesertaProcessor.js`
 
 ```javascript
-// ✨ ES6 FEATURES: Map, for...of Loop, Destructuring
+// ✨ ES6 FEATURES: Map, for...of Loop  ✨ ES2018: Object Spread
 export const createPesertaMap = (pesertaList = []) => {
   
   // 📌 MAP: Key-value storage with O(1) lookup (super fast!)
@@ -156,12 +161,12 @@ export const createPesertaMap = (pesertaList = []) => {
   //                 ^^^ Like an object, but better for dynamic keys
   
   // 📌 for...of LOOP: Clean iteration over arrays
-  for (const { id, name, email, class: className, score } of pesertaList) {
-  //          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Destructuring in loop!
+  for (const peserta of pesertaList) {
     
-    // 📌 Map.set(): If email exists, OVERWRITES old value (keeps latest)
-    pesertaMap.set(email, { id, name, email, class: className, score });
-    //         ^^^ Key    ^^^ Value (entire participant object)
+    // 📌 Map.set(): If email exists, OVERWRITES old value (keeps the last test)
+    // 📌 OBJECT SPREAD { ...peserta }: copies every field into a new object
+    pesertaMap.set(peserta.email, { ...peserta });
+    //             ^^^ Key        ^^^ Value (copy of the participant object)
   }
   
   return pesertaMap;
@@ -218,8 +223,22 @@ Final Map Size: 4 (duplicates merged)
 
 ```javascript
 // ✨ ES6 FEATURES: Class, Constructor, Arrow Methods, Default Parameters
+// ✨ ES2022: Static Fields  ✨ ES2016: includes()
 export class PesertaValidator {
   //     ^^^^^ ES6 class keyword
+
+  // 📌 STATIC FIELDS: belong to the class, not to an instance.
+  // Other modules read PesertaValidator.PASSING_SCORE without `new`.
+  static PASSING_SCORE = 80;
+  static STATUS = ["LULUS", "TIDAK LULUS"];
+
+  // 📌 ONE PLACE for the pass/fail rule (the formatter imports it)
+  static getStatus = (score = 0) =>
+    score >= PesertaValidator.PASSING_SCORE ? "LULUS" : "TIDAK LULUS";
+
+  // 📌 includes(): true if the list contains the value (strict, case-sensitive)
+  static isValidStatus = (status) => PesertaValidator.STATUS.includes(status);
+  //                                                  ^^^^^^^^ replaces indexOf(status) !== -1
   
   // 📌 CONSTRUCTOR: Runs when creating new instance
   constructor(minScore = 60, maxScore = 100) {
@@ -425,7 +444,16 @@ import {
   createLenientValidator 
 } from './utils/pesertaValidator.js';
 
-import { rawPeserta } from './data/peserta.js';  // Import data
+import { loadPeserta } from './utils/pesertaLoader.js';  // Async data loader
+
+// 📌 let + try/catch + top-level await (see "ES2016+ Highlights" below)
+let rawPeserta;
+try {
+  rawPeserta = await loadPeserta();
+} catch (error) {
+  console.error(`❌ ${error.message}`);
+  process.exit(1);
+}
 
 // 📌 USE IMPORTED FUNCTIONS:
 console.log("🎓 Demo ES6 Features");
@@ -466,6 +494,77 @@ import { func1, func2 } from './utils/pesertaProcessor.js';  // 📌 Named impor
 
 ---
 
+## 🚀 ES2016+ Highlights
+
+### Object Rest & Spread (ES2018) — `utils/pesertaLoader.js`
+
+```javascript
+// ✨ ES2018: Object Rest + Spread
+pesertaList.map(({ score, ...rest }) => ({ ...rest, score: score ?? 0 }));
+//                        ^^^^^^^ REST: collect every field except score
+//                                         ^^^^^^^ SPREAD: copy them into a new object
+```
+
+```javascript
+// main.js TASK 3
+const { name, ...sisanya } = { id: 101, name: "Aditya", email: "aditya@brainmatics.com", score: 85 };
+// sisanya → { id: 101, email: "aditya@brainmatics.com", score: 85 }
+```
+
+### `includes()` (ES2016) — `PesertaValidator.isValidStatus`
+
+```javascript
+PesertaValidator.isValidStatus("LULUS");       // true
+PesertaValidator.isValidStatus("TIDAK LULUS"); // true
+PesertaValidator.isValidStatus("lulus");       // false: includes() is case-sensitive
+PesertaValidator.isValidStatus("PENDING");     // false: not in the list
+```
+
+### async/await + try/catch (ES2017) — `utils/pesertaLoader.js`
+
+```javascript
+// ✨ ES2017: async function, await  ✨ try/catch for errors
+export const loadPeserta = async (fileUrl = new URL('../data/peserta.json', import.meta.url)) => {
+  try {
+    const text = await readFile(fileUrl, 'utf8');  // 📌 await: pause until the file is read
+    const json = JSON.parse(text);                 // 📌 throws on broken JSON
+    return (json?.peserta ?? []).map(({ score, ...rest }) => ({ ...rest, score: score ?? 0 }));
+  } catch (error) {
+    // 📌 Missing file AND broken JSON both end up here
+    throw new Error(`Gagal memuat data peserta dari ${fileUrl}: ${error.message}`);
+  }
+};
+```
+
+**An async function always returns a Promise.** These two calls are equivalent:
+
+```javascript
+// With await (inside an async function, or at the top level of a module)
+const peserta = await loadPeserta();
+
+// With .then()/.catch()
+loadPeserta()
+  .then((peserta) => console.log(peserta.length))
+  .catch((error) => console.error(error.message));
+```
+
+### Optional Chaining `?.` and Nullish Coalescing `??` (ES2020)
+
+```javascript
+json?.peserta ?? []        // JSON.parse("null") is null → ?. gives undefined → ?? gives []
+score ?? 0                 // undefined/null → 0, but a real 0 stays 0 (|| would also replace 0)
+peserta ?? {}              // formatters accept null; a default parameter only catches undefined
+pesertaMap.get("tidak-ada@brainmatics.com")?.score ?? "tidak ditemukan"  // main.js TASK 5
+```
+
+| Expression | `||` result | `??` result |
+|---|---|---|
+| `0 ?? 80` | `80` | `0` |
+| `"" ?? "N/A"` | `"N/A"` | `""` |
+| `null ?? "N/A"` | `"N/A"` | `"N/A"` |
+
+---
+
 ## 🎓 Summary: ES6 Features Used
 
 ### Core Syntax
@@ -494,6 +593,13 @@ import { func1, func2 } from './utils/pesertaProcessor.js';  // 📌 Named impor
 - ✅ **Constructor** - Initialize instances
 - ✅ **Arrow Methods** - Preserve `this` binding
 - ✅ **Object Shorthand** - `{ name }` instead of `{ name: name }`
+
+### ES2016+
+- ✅ **includes()** (ES2016) - Validate a status against a list
+- ✅ **async/await + try/catch** (ES2017) - Load data from a file
+- ✅ **Object Rest/Spread** (ES2018) - Copy and split objects
+- ✅ **?. and ??** (ES2020) - Safe access and fallbacks for null/undefined
+- ✅ **Static Fields, top-level await** (ES2022) - Class-level rules; await without a wrapper function
 
 ### Modules
 - ✅ **Named Exports** - `export const func = ...`

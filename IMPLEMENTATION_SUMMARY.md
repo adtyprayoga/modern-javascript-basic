@@ -7,7 +7,8 @@ All requirements from the case study have been successfully implemented with com
 ## 📁 Files Created
 
 ### Core Implementation
-1. **`data/peserta.js`** - Raw participant data with duplicates
+1. **`data/peserta.json`** - Raw participant data with duplicates (loaded asynchronously)
+1. **`utils/pesertaLoader.js`** - async/await loader with try/catch, `?.` and `??`
 2. **`utils/pesertaProcessor.js`** - Business logic (filtering, calculations)
 3. **`utils/pesertaFormatter.js`** - Display formatting utilities
 4. **`utils/pesertaValidator.js`** - Validation class
@@ -16,7 +17,7 @@ All requirements from the case study have been successfully implemented with com
 ### Configuration & Documentation
 6. **`package.json`** - ES6 module configuration
 7. **`README.md`** - Comprehensive project documentation
-8. **`test/test-all.js`** - 52 unit tests with 100% pass rate
+8. **`test/test-all.js`** - 79 unit tests with 100% pass rate
 9. **`.github/copilot-instructions.md`** - AI coding agent guidelines
 
 ## 🎯 All Tasks Completed
@@ -54,9 +55,21 @@ All requirements from the case study have been successfully implemented with com
 - Main.js orchestrates all features
 - Demonstrates filter, calculate average, display summaries
 
+## 📋 Studi Kasus ES2016+ (current case)
+
+| # | Requirement | Files |
+|---|---|---|
+| 1 | Lulus / Tidak Lulus from the last test score | `utils/pesertaProcessor.js` (`createPesertaMap`), `utils/pesertaValidator.js` (`getStatus`) |
+| 2 | const/let, default parameters | all modules; `main.js` (`let rawPeserta` + try/catch) |
+| 3 | Destructuring, object rest/spread (ES2018) | `utils/pesertaLoader.js`, `utils/pesertaProcessor.js`, `main.js` TASK 3 |
+| 4 | Set for dedup, Map for index | `utils/pesertaProcessor.js` |
+| 5 | Validator class with export/import | `utils/pesertaValidator.js`, imported by `utils/pesertaFormatter.js` and `main.js` |
+| 6 | Status validation with `includes()` (ES2016) | `PesertaValidator.isValidStatus`, used by `displayPeserta` |
+| 7 | async/await + try/catch; `?.` and `??` | `utils/pesertaLoader.js`, `main.js`, `utils/pesertaFormatter.js` |
+
 ## 🧪 Test Coverage
 
-**52 tests, 100% pass rate** covering:
+**79 tests, 100% pass rate** covering:
 
 - ✅ Data validation (7 tests)
 - ✅ Unique email extraction (7 tests)
@@ -64,9 +77,11 @@ All requirements from the case study have been successfully implemented with com
 - ✅ Class filtering (4 tests)
 - ✅ Score calculations (4 tests)
 - ✅ Unique participant handling (3 tests)
-- ✅ Display formatting (4 tests)
-- ✅ Summary creation (2 tests)
-- ✅ Validator class (15 tests)
+- ✅ Display formatting and status validation (6 tests)
+- ✅ Summary creation, including `null` (4 tests)
+- ✅ Validator class, static rules and `includes()` (25 tests)
+- ✅ Detailed report (2 tests)
+- ✅ Async loading: missing file, broken JSON, `null`/empty JSON, missing score (11 tests)
 - ✅ Edge cases (empty arrays, undefined values)
 
 ## 🎓 ES6 Features Demonstrated

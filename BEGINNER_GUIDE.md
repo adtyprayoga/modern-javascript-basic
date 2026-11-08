@@ -19,7 +19,7 @@ A system that manages training participants with features like:
 
 ### Check Your Setup
 ```bash
-# Check Node.js version (need 14+)
+# Check Node.js version (need 22+)
 node --version
 
 # Navigate to project folder
@@ -40,7 +40,7 @@ cd "es6 - Sistem Manajemen Peserta Training"
 
 ### Step 1.1: Look at What We're Working With
 
-Open `data/peserta.js` and study the structure:
+Open `data/peserta.json` and study the structure (each entry looks like this):
 
 ```javascript
 { 
@@ -151,7 +151,7 @@ Open `utils/pesertaFormatter.js` and look at `displayPeserta()`:
 export const displayPeserta = (
   name = "Unknown",      // Default if no name provided
   score = 0,             // Default if no score provided
-  status = score >= 80 ? "LULUS" : "BELUM LULUS"  // Calculated default!
+  status = score >= 80 ? "LULUS" : "TIDAK LULUS"  // Calculated default!
 ) => {
   return `Nama: ${name}, Score: ${score}, Status: ${status}`;
 };

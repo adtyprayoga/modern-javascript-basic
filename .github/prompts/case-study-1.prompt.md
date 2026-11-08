@@ -18,7 +18,7 @@ Implement a training participant management system that demonstrates ES6 feature
 Follow the modular structure to avoid overwhelm:
 
 #### Step 1: Data Layer (Easy Start)
-- **`data/peserta.js`** - Create the raw participant array
+- **`data/peserta.json`** - Create the raw participant data (`{ "peserta": [...] }`)
   - 6 participants with properties: id, name, email, class, score
   - Include 2 duplicate emails (Aditya and Zaim)
   - Use `export const rawPeserta = [...]`

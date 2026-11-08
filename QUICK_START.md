@@ -3,7 +3,7 @@
 ## 🚀 Getting Started in 30 Seconds
 
 ### Prerequisites
-- Node.js v14 or higher (for ES6 modules support)
+- Node.js v22 or higher
 - No external dependencies needed!
 
 ### Installation
@@ -120,7 +120,7 @@ Latest entry for aditya@brainmatics.com:
 Validation Summary (Threshold: 80-100):
   Total Participants: 4
   Valid (LULUS): 3
-  Invalid (BELUM LULUS): 1
+  Invalid (TIDAK LULUS): 1
   Pass Rate: 75%
 ```
 
@@ -142,7 +142,7 @@ Run individual test suites by opening `test/test-all.js` and checking specific a
 ## 📖 Reading the Code
 
 ### Start Here (in this order):
-1. **`data/peserta.js`** - Understand the data structure
+1. **`data/peserta.json`** - Understand the data structure (loaded by `utils/pesertaLoader.js`)
 2. **`utils/pesertaProcessor.js`** - Core ES6 patterns
 3. **`utils/pesertaFormatter.js`** - Template literals and defaults
 4. **`utils/pesertaValidator.js`** - ES6 class syntax
@@ -188,7 +188,7 @@ Run through this checklist to ensure everything works:
 This is a self-contained educational project. All code is well-commented and documented. If you encounter issues:
 
 1. Check the console output for specific error messages
-2. Verify Node.js version: `node --version` (should be 14+)
+2. Verify Node.js version: `node --version` (should be 22+)
 3. Review the code comments in each file
 4. Consult the comprehensive README.md
 5. Run tests to identify which component has issues

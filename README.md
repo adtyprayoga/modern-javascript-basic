@@ -1,6 +1,6 @@
-# ES6 Training Management System
+# Modern JavaScript (ES6–ES2020) Training Management System
 
-> **Sistem Manajemen Peserta Training** - A comprehensive ES6 study case project demonstrating modern JavaScript features through a practical training participant management system for Brainmatics.
+> **Sistem Manajemen Peserta Training** - A comprehensive ES6+ study case project demonstrating modern JavaScript features through a practical training participant management system for Brainmatics.
 
 ## 📚 Project Overview
 
@@ -16,18 +16,47 @@ This project implements a complete training management solution showcasing **ES6
 - ✅ for...of Loops
 - ✅ Class Syntax with Arrow Methods
 - ✅ Array Methods (map, filter, reduce)
+- ✅ `includes()` for status validation (ES2016)
+- ✅ async/await + try/catch for loading data (ES2017)
+- ✅ Object Rest/Spread (ES2018)
+- ✅ Optional Chaining `?.` and Nullish Coalescing `??` (ES2020)
+- ✅ Static class fields and top-level `await` (ES2022)
+
+> The original ES6-only version is kept in git as the tag `es6-baseline` (`git checkout es6-baseline`).
+
+## 📋 Studi Kasus
+
+> Kelola peserta dan tentukan Lulus atau Tidak Lulus dari nilai tes terakhir.
+> Gunakan const/let dan function dengan default parameter.
+> Terapkan destructuring dan object rest/spread (ES2018).
+> Gunakan Set untuk deduplikasi dan Map untuk index peserta.
+> Buat class validator dan pisahkan dengan export/import.
+> Validasi status peserta dengan includes() (ES2016).
+> Muat data dengan async/await + try/catch; gunakan ?. dan ??.
+
+| # | Requirement | Where in the code |
+|---|---|---|
+| 1 | Lulus / Tidak Lulus from the last test score | `createPesertaMap` keeps the latest entry per email; `PesertaValidator.getStatus(score)` decides `LULUS` (≥ 80) or `TIDAK LULUS` |
+| 2 | const/let, default parameters | Every function has defaults (`pesertaList = []`); `main.js` uses `let` for data assigned inside `try` |
+| 3 | Destructuring, object rest/spread | `loadPeserta` normalizes with `({ score, ...rest }) => ({ ...rest, score })`; `createPesertaMap` copies with `{ ...peserta }`; `class: className` renaming everywhere |
+| 4 | Set for dedup, Map for index | `getUniqueEmails` (Set), `createPesertaMap` (Map keyed by email) |
+| 5 | Validator class with export/import | `utils/pesertaValidator.js`, imported by `utils/pesertaFormatter.js` and `main.js` |
+| 6 | Status validation with `includes()` | `PesertaValidator.isValidStatus(status)`; `displayPeserta` never prints an unknown status |
+| 7 | async/await + try/catch, `?.` and `??` | `utils/pesertaLoader.js` reads `data/peserta.json`; `json?.peserta ?? []`, `score ?? 0`; formatters accept `null` via `peserta ?? {}` |
 
 ## 🏗️ Architecture
 
 ```
 es6-training-management/
 ├── data/
-│   └── peserta.js              # Raw participant data
+│   └── peserta.json            # Raw participant data (loaded asynchronously)
 ├── utils/
+│   ├── pesertaLoader.js        # async/await loader (try/catch, ?., ??)
 │   ├── pesertaProcessor.js     # Core business logic
 │   ├── pesertaFormatter.js     # Display formatting
-│   └── pesertaValidator.js     # Validation class
+│   └── pesertaValidator.js     # Validation class + pass/fail rules
 ├── test/
+│   ├── fixtures/               # Broken/empty JSON files for loader tests
 │   └── test-all.js             # Comprehensive unit tests
 ├── main.js                     # Application entry point
 ├── package.json                # Project configuration
@@ -37,7 +66,7 @@ es6-training-management/
 ## 🚀 Quick Start
 
 ### Prerequisites
-- Node.js v14+ (ES6 modules support)
+- Node.js v22+
 
 ### Installation & Running
 
@@ -69,9 +98,10 @@ import { getUniqueEmails } from './utils/pesertaProcessor.js';
 export const displayPeserta = (
   name = "Unknown", 
   score = 0, 
-  status = score >= 80 ? "LULUS" : "BELUM LULUS"
+  status = PesertaValidator.getStatus(score)
 ) => {
-  return `Nama: ${name}, Score: ${score}, Status: ${status}`;
+  const finalStatus = PesertaValidator.isValidStatus(status) ? status : PesertaValidator.getStatus(score);
+  return `Nama: ${name}, Score: ${score}, Status: ${finalStatus}`;
 };
 ```
 
@@ -95,8 +125,8 @@ export const getUniqueEmails = (pesertaList = []) => {
 ```javascript
 export const createPesertaMap = (pesertaList = []) => {
   const pesertaMap = new Map();
-  for (const { id, name, email, class: className, score } of pesertaList) {
-    pesertaMap.set(email, { id, name, email, class: className, score });
+  for (const peserta of pesertaList) {
+    pesertaMap.set(peserta.email, { ...peserta }); // latest entry wins; ES2018 spread copy
   }
   return pesertaMap;
 };
@@ -105,6 +135,12 @@ export const createPesertaMap = (pesertaList = []) => {
 ### 6. Class with Arrow Methods
 ```javascript
 export class PesertaValidator {
+  static PASSING_SCORE = 80;
+  static STATUS = ["LULUS", "TIDAK LULUS"];
+  static getStatus = (score = 0) =>
+    score >= PesertaValidator.PASSING_SCORE ? "LULUS" : "TIDAK LULUS";
+  static isValidStatus = (status) => PesertaValidator.STATUS.includes(status); // ES2016
+
   constructor(minScore = 60, maxScore = 100) {
     this.minScore = minScore;
     this.maxScore = maxScore;
@@ -116,6 +152,27 @@ export class PesertaValidator {
     const status = this.isValidScore(score) ? "SESUAI STANDAR" : "TIDAK SESUAI";
     return `${name} mendapat score ${score} - ${status}`;
   };
+}
+```
+
+### 7. Async Loading with try/catch, `?.` and `??`
+```javascript
+export const loadPeserta = async (fileUrl = new URL('../data/peserta.json', import.meta.url)) => {
+  try {
+    const json = JSON.parse(await readFile(fileUrl, 'utf8'));
+    return (json?.peserta ?? []).map(({ score, ...rest }) => ({ ...rest, score: score ?? 0 }));
+  } catch (error) {
+    throw new Error(`Gagal memuat data peserta dari ${fileUrl}: ${error.message}`);
+  }
+};
+
+// main.js (top-level await)
+let rawPeserta;
+try {
+  rawPeserta = await loadPeserta();
+} catch (error) {
+  console.error(`❌ ${error.message}`);
+  process.exit(1);
 }
 ```
 
@@ -140,7 +197,7 @@ npm test
 Expected output:
 ```
 🧪 RUNNING UNIT TESTS FOR ES6 TRAINING SYSTEM
-✅ Tests Passed: 55
+✅ Tests Passed: 79
 ❌ Tests Failed: 0
 📈 Pass Rate: 100%
 🎉 ALL TESTS PASSED!
@@ -165,9 +222,13 @@ Expected output:
   - Valid range: 60-100
   - Passing threshold: 80
   - `>= 80` = "LULUS" (Pass)
-  - `< 80` = "BELUM LULUS" (Not Pass)
+  - `< 80` = "TIDAK LULUS" (Not Pass)
+- **Last Test Score**: when an email appears more than once, the last entry is the latest test
 
 ## 🔑 Key Functions
+
+### Loading (`utils/pesertaLoader.js`)
+- `loadPeserta(fileUrl)` - async; reads `data/peserta.json`, returns `[]` for an empty file, throws an Indonesian error for a missing or broken file
 
 ### Data Processing (`utils/pesertaProcessor.js`)
 - `getUniqueEmails(pesertaList)` - Extract unique emails using Set
@@ -184,6 +245,8 @@ Expected output:
 
 ### Validation (`utils/pesertaValidator.js`)
 - `PesertaValidator` class - Score validation with configurable thresholds
+- `PesertaValidator.getStatus(score)` - `LULUS` or `TIDAK LULUS` (threshold `PesertaValidator.PASSING_SCORE` = 80)
+- `PesertaValidator.isValidStatus(status)` - `includes()` check against `PesertaValidator.STATUS`
 - `createPassingValidator()` - Factory for 80-100 threshold
 - `createLenientValidator()` - Factory for 60-100 threshold
 
