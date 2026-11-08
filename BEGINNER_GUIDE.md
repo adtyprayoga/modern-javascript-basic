@@ -12,7 +12,7 @@ A system that manages training participants with features like:
 - Load participant data from a JSON file
 - Display formatted reports
 
-**Time Estimate:** 3.5-4.5 hours at a comfortable pace
+**Time Estimate:** 4-5 hours at a comfortable pace
 
 ---
 
@@ -943,6 +943,55 @@ npm test
 
 ---
 
+## 🚀 Phase 18: Studi Kasus — dari Data ke Status (30 minutes)
+
+### Step 18.1: Follow One Participant
+
+Aditya took the test twice. In `data/peserta.json` his scores are **85**, then **88**. Follow him through the whole system:
+
+```javascript
+const rawPeserta = await loadPeserta();                          // Phase 16: read the JSON file
+const pesertaMap = createPesertaMap(rawPeserta);                 // Phase 8: one entry per email
+const { name, score } = pesertaMap.get("aditya@brainmatics.com"); // Phase 6: destructuring
+console.log(displayPeserta(name, score));                        // Phase 13: status from the score
+// Nama: Aditya Prayoga, Score: 88, Status: LULUS
+```
+
+**🎓 Key Learning:** The last entry is the last test. `Map.set()` replaces 85 with 88, so the status comes from **88**.
+
+### Step 18.2: The Seven Points, and Where You Learned Them
+
+| # | Study case point | Phase | File |
+|---|---|---|---|
+| 1 | Lulus / Tidak Lulus from the last test score | 8, 13, 18 | `utils/pesertaProcessor.js`, `utils/pesertaValidator.js` |
+| 2 | const/let and default parameters | 2, 4 | every file |
+| 3 | Destructuring and object rest/spread | 6, 14 | `utils/pesertaLoader.js`, `utils/pesertaProcessor.js` |
+| 4 | Set for dedup, Map for the index | 7, 8 | `utils/pesertaProcessor.js` |
+| 5 | Validator class with export/import | 11, 12, 13 | `utils/pesertaValidator.js` |
+| 6 | Status validation with `includes()` | 13 | `utils/pesertaValidator.js`, `utils/pesertaFormatter.js` |
+| 7 | async/await + try/catch, `?.` and `??` | 15, 16 | `utils/pesertaLoader.js`, `main.js` |
+
+### Step 18.3: Try This
+
+Rina Sari took the test three times. Her scores are in `latihan/peserta-retake.json`: 70, 76, 82.
+
+1. **Predict** her status before you run anything.
+2. Run it:
+   ```bash
+   node latihan/solusi/01-nilai-terakhir.js
+   # Nama: Rina Sari, Score: 82, Status: LULUS
+   ```
+3. Open `latihan/peserta-retake.json`, change the **last** score from 82 to 79, and run it again. Now the output is `Score: 79, Status: TIDAK LULUS`.
+4. Change it back to 82.
+
+**⚠️ Practice only in `latihan/`.** Never edit `data/peserta.json`, because `npm test` depends on it.
+
+### Step 18.4: Next
+
+Do the seven exercises in `EXERCISES.md`, one for each point in the table above. Check your answers with `npm run cek-latihan`.
+
+---
+
 ## 🎯 Learning Checkpoints
 
 After completing each phase, you should be able to:
@@ -964,6 +1013,7 @@ After completing each phase, you should be able to:
 - [x] **Phase 15:** Handle missing values with `?.` and `??`
 - [x] **Phase 16:** Load data with async/await and try/catch
 - [x] **Phase 17:** Run and test your code
+- [x] **Phase 18:** Trace a participant from the JSON file to LULUS / TIDAK LULUS
 
 ---
 
