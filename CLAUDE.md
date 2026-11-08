@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-Teaching material: an ES6+ study case ("Sistem Manajemen Peserta Training" for Brainmatics). The code exists to *demonstrate* JavaScript features to beginners, so idiomatic style and teaching comments matter as much as correctness. The current problem statement is the 7-point **Studi Kasus** in `README.md`, which covers ES2016+ features: `includes()`, async/await, object rest/spread, `?.` and `??`. `ES6-Study-Cases.md` is the original ES6 exercise, and the git tag `es6-baseline` holds that version of the code. Domain terms and user-facing strings are Indonesian (`peserta` = participant, `LULUS` = pass, `TIDAK LULUS` = not passed).
+Teaching material: an ES6+ study case ("Sistem Manajemen Peserta Training" for Brainmatics). The code exists to *demonstrate* JavaScript features to beginners, so idiomatic style and teaching comments matter as much as correctness. The current problem statement is the 7-point **Studi Kasus** in `README.md`, which covers ES2016+ features: `includes()`, async/await, object rest/spread, `?.` and `??`. `docs/archive/ES6-Study-Cases.md` is the historical ES6 exercise, and the git tag `es6-baseline` holds that version of the code. Domain terms and user-facing strings are Indonesian (`peserta` = participant, `LULUS` = pass, `TIDAK LULUS` = not passed).
 
 ## Commands
 
@@ -52,4 +52,6 @@ Non-obvious behavior:
 
 ## Docs
 
-The root markdown files (`README.md`, `BEGINNER_GUIDE.md`, `CODE_HIGHLIGHTS.md`, `COMMON_ERRORS.md`, `QUICK_START.md`, `IMPLEMENTATION_SUMMARY.md`) are learner-facing and quote code snippets and expected output. If you change a function signature, output string, or test count, grep these files and update them.
+`README.md` is the entry point, `instructor.md` is the teaching guide, and `latihan/README.md` is the only practice index. Setup instructions live in `docs/QUICK_START.md`. Concept explanations, annotated code, and troubleshooting live in `docs/reference/BEGINNER_GUIDE.md`, `docs/reference/CODE_HIGHLIGHTS.md`, and `docs/reference/COMMON_ERRORS.md`.
+
+If you change a function signature, output string, or test count, search the active documentation and update affected examples. Commands and code paths in the reference guides are relative to the repository root, not the document directory. `docs/archive/` contains historical requirements, implementation notes, and plans with an archive notice. Preserve their original commands and paths as historical content; they are not current learner instructions.

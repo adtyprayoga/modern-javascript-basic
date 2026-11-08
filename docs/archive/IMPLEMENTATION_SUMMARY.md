@@ -1,5 +1,7 @@
 # Implementation Summary - ES6 Training Management System
 
+> Arsip historis. Dokumen ini mencatat struktur dan keputusan saat ditulis; perintah dan path di dalamnya dapat memakai struktur lama. Gunakan [panduan aktif](../../README.md) untuk materi terkini.
+
 ## ✅ Implementation Status: COMPLETE
 
 All requirements from the case study have been successfully implemented with comprehensive ES6 feature demonstrations, unit tests, and documentation.

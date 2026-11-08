@@ -1,5 +1,7 @@
 # ES6 Code Highlights - Annotated Implementation
 
+> Run commands from the repository root, the directory containing `package.json` and `main.js`. Code paths in this reference are relative to that root. Follow the [practice index](../../latihan/README.md) for guided coding.
+
 > **Study Guide:** This document highlights the ES6 features in each implementation with annotations explaining what each feature does and why it's used.
 
 ---
@@ -627,3 +629,25 @@ pesertaMap.get("tidak-ada@brainmatics.com")?.score ?? "tidak ditemukan"  // main
 ---
 
 *Study this document alongside the actual code files to see ES6 features in action!*
+
+
+## Application reference
+
+The input file `data/peserta.json` contains a `peserta` array. Each participant has `id`, `name`, `email`, `class`, and `score`. Six test records become four unique participants after deduplication.
+
+The last occurrence of an email supplies its participant data, even when the last score is lower. A Map retains the order of each email's first insertion. The pass threshold is 80, while an instance of `PesertaValidator` checks a separate configurable range, defaulting to 60–100.
+
+| Module | Exports and behavior |
+|---|---|
+| `utils/pesertaLoader.js` | `loadPeserta(fileUrl)` reads JSON asynchronously. It returns `[]` for JSON `null` or a missing `peserta` key, defaults missing scores to zero, and throws an Indonesian error naming a missing or malformed file. |
+| `utils/pesertaProcessor.js` | `getUniqueEmails(list)` returns unique email values. `createPesertaMap(list)` keeps the last record per email. `getUniquePeserta(list)` returns its values as an array. `getPesertaByClass(list, className)` filters a class. `calculateAverageScore(list)` rounds the average to two decimals and returns zero for an empty list. |
+| `utils/pesertaFormatter.js` | `displayPeserta(name, score, status)` formats a participant and replaces an unknown status with the computed one. `createPesertaSummary(peserta)` creates a one-line summary. `formatPesertaList(list)` numbers the list. `createDetailedReport(peserta)` creates the detailed report. |
+| `utils/pesertaValidator.js` | `PesertaValidator` checks score ranges. Its static `getStatus(score)` determines pass/fail and `isValidStatus(status)` checks the allowed labels. `createPassingValidator()` uses 80–100; `createLenientValidator()` uses 60–100. |
+
+Output formats include:
+
+```text
+Nama: Aditya Prayoga, Score: 88, Status: LULUS
+📚 Aditya Prayoga - Class: JavaScript Fundamentals - Score: 88
+Aditya Prayoga mendapat score 88 - SESUAI STANDAR
+```

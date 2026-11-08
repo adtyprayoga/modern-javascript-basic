@@ -1,5 +1,7 @@
 # Beginner Guide: Study-Case Phases Implementation Plan
 
+> Arsip historis. Dokumen ini mencatat struktur dan keputusan saat ditulis; perintah dan path di dalamnya dapat memakai struktur lama. Gunakan [panduan aktif](../../../README.md) untuk materi terkini.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Make `BEGINNER_GUIDE.md` teach all seven points of the study case, and give students a hands-on exercise for each point whose answer is checked automatically.

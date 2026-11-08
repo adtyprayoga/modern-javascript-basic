@@ -1,6 +1,8 @@
-# Studi Kasus Latihan ES6 
+# Studi Kasus Latihan ES6
 
-> Ini studi kasus versi ES6 awal. Studi kasus terkini (ES2016+) ada di `README.md` bagian **Studi Kasus**.
+> Arsip historis. Dokumen ini mencatat struktur dan keputusan saat ditulis; perintah dan path di dalamnya dapat memakai struktur lama. Gunakan [panduan aktif](../../README.md) untuk materi terkini.
+
+> Ini studi kasus versi ES6 awal. Studi kasus terkini ada di [README utama](../../README.md) bagian **Studi Kasus**.
 
 ## Studi Kasus: Sistem Manajemen Peserta Training (Brainmatics Level)
 

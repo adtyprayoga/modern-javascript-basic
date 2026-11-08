@@ -1,5 +1,7 @@
 # Common Errors & Solutions - ES6 Training System
 
+> Run commands from the repository root, the directory containing `package.json` and `main.js`. Code paths in this reference are relative to that root. Follow the [practice index](../../latihan/README.md) for guided coding.
+
 > **Everyone makes these mistakes!** This guide helps you quickly identify and fix common ES6 errors. Keep this open while coding.
 
 ---
@@ -639,7 +641,7 @@ Before asking:
 2. ✅ Check this guide for similar errors
 3. ✅ Try console.log() debugging
 4. ✅ Search the error message online
-5. ✅ Review the relevant section in BEGINNER_GUIDE.md
+5. ✅ Review the relevant section in the [beginner guide](BEGINNER_GUIDE.md)
 
 When asking for help, provide:
 1. 📝 The exact error message

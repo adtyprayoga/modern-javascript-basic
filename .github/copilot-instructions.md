@@ -17,10 +17,12 @@ main.js               # Main application entry point
 
 ## Core ES6 Patterns & Requirements
 
+The completed root application is a reference. Learners build one cumulative application in `latihan/proyek/` by following [stages 00–11](../latihan/README.md). Use the current [study case](../README.md) and [instructor guide](../instructor.md). Commands are run from the repository root.
+
 ### 1. Module System
 - **Always use ES6 modules**: `export`/`import` syntax
 - **Named exports preferred**: `export const functionName = () => {}`
-- **Import specific functions**: `import { getPesertaByClass } from './utils/processor.js'`
+- **Import specific functions**: `import { getPesertaByClass } from './utils/pesertaProcessor.js'`
 
 ### 2. Function Definitions
 - **Arrow functions for utilities**: `const calculateAverage = (list = []) => {}`
@@ -47,7 +49,7 @@ class PesertaValidator {
 ```
 
 ### 5. Data Validation Rules
-- **Email uniqueness**: Use Set to filter duplicate emails, keep the latest entry
+- **Email uniqueness**: Use Set for unique email values and Map keyed by email to keep the latest participant entry
 - **Score validation**: 60-100 range; pass/fail comes only from `PesertaValidator.getStatus(score)`: >= 80 = "LULUS", < 80 = "TIDAK LULUS"
 - **Status validation**: check a status with `PesertaValidator.isValidStatus(status)` (ES2016 `includes()` against `PesertaValidator.STATUS`)
 - **Required destructuring**: Extract `{ id, name, email, class: className, score }` consistently

@@ -10,12 +10,13 @@ Implement a training participant management system that demonstrates ES6 feature
 ## 📚 Implementation Requirements
 
 ### 1. **Start with Documentation** 
-- Read `ES6-Study-Cases.md` for the complete problem description
+- Read the current seven-point study case in [README.md](../../README.md). The [original ES6 case](../../docs/archive/ES6-Study-Cases.md) is historical.
+- For guided practice, follow [stages 00–11](../../latihan/README.md) and build one cumulative application in `latihan/proyek/`. The root application is the completed reference.
 - Review `.github/copilot-instructions.md` for ES6 patterns and examples
 - Understand the data structure and business rules before coding
 
-### 2. **Code Files to Create** (in this order)
-Follow the modular structure to avoid overwhelm:
+### 2. **Reference application structure**
+The paths below describe the completed root reference. For learner work, follow the numbered practice guides and create files inside `latihan/proyek/` in the order shown there. Do not overwrite the root reference while guiding a learner.
 
 #### Step 1: Data Layer (Easy Start)
 - **`data/peserta.json`** - Create the raw participant data (`{ "peserta": [...] }`)
@@ -246,12 +247,12 @@ console.log(`Unique emails: ${getUniqueEmails(rawPeserta)}`);
 4. **Celebrate small wins** - Each working function is progress!
 5. **Don't skip the tests** - They teach you how to verify your code works
 
-## 📖 Additional Resources to Create
+## 📖 Existing resources
 
-- **BEGINNER_GUIDE.md** - Step-by-step walkthrough with screenshots
-- **COMMON_ERRORS.md** - Troubleshooting guide
-- **ES6_REFERENCE.md** - Quick lookup for ES6 features used
-- **EXERCISES.md** - Extra practice problems
+- [Beginner guide](../../docs/reference/BEGINNER_GUIDE.md) explains concepts.
+- [Common errors](../../docs/reference/COMMON_ERRORS.md) covers troubleshooting.
+- [Code highlights](../../docs/reference/CODE_HIGHLIGHTS.md) annotates the reference implementation.
+- [Practice index](../../latihan/README.md) links all guided stages and additional exercise references.
 
 ---
 

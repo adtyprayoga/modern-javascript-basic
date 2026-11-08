@@ -1,6 +1,8 @@
 # Beginner's Step-by-Step Guide to ES6 Training System
 
-> This is the concept reference. For complete guided coding from starter to finished application, follow [practice stages 00–11](latihan/README.md). Continue working in the same `latihan/proyek/` folder at every stage.
+> Run commands from the repository root, the directory containing `package.json` and `main.js`. Code paths in this reference are relative to that root. Follow the [practice index](../../latihan/README.md) for guided coding.
+
+> This is the concept reference. For complete guided coding from starter to finished application, follow [practice stages 00–11](../../latihan/README.md). Continue working in the same `latihan/proyek/` folder at every stage.
 
 ## 🎯 What You'll Build
 
@@ -940,7 +942,7 @@ npm test
 Latihan: 7/7 cocok
 ```
 
-The second part checks the exercise solutions in `latihan/referensi/` (see `EXERCISES.md`).
+The second part checks the exercise solutions in `latihan/referensi/` (see [additional exercise references](../../latihan/referensi/README.md)).
 
 **If a test fails:**
 ```
@@ -987,7 +989,7 @@ console.log(displayPeserta(name, score));                        // Phase 13: st
 
 ### Step 18.3: Try This
 
-Open [stage 05: Set, Map, and the last test](latihan/05-set-map-nilai-terakhir/README.md). Complete its challenge in your learner project. Rina's scores are 90 then 79; the expected last score is 79, even though 90 is higher.
+Open [stage 05: Set, Map, and the last test](../../latihan/05-set-map-nilai-terakhir/README.md). Complete its challenge in your learner project. Rina's scores are 90 then 79; the expected last score is 79, even though 90 is higher.
 
 After writing the challenge file, run it from the repository root:
 
@@ -1007,7 +1009,7 @@ Practice in your learner project. Keep the root data/peserta.json and the fixed 
 
 ### Step 18.4: Next
 
-Follow [practice stages 00–11](latihan/README.md) to build the entire application. Each folder contains complete code, expected output, and challenge solutions. At stage 11, run `npm --prefix latihan/proyek test` to check your application. `npm run cek-latihan` checks the seven original reference solutions only.
+Follow [practice stages 00–11](../../latihan/README.md) to build the entire application. Each folder contains complete code, expected output, and challenge solutions. At stage 11, run `npm --prefix latihan/proyek test` to check your application. `npm run cek-latihan` checks the seven original reference solutions only.
 
 ---
 
@@ -1107,8 +1109,8 @@ If you've made it this far, you've learned:
 ---
 
 **Next Steps:**
-1. Review `COMMON_ERRORS.md` for troubleshooting
-2. Try `EXERCISES.md` for additional practice
+1. Review [common errors](COMMON_ERRORS.md) for troubleshooting
+2. Follow the [practice stages](../../latihan/README.md) to build your application
 3. Build your own variations of this project
 4. Help other beginners learn ES6!
 

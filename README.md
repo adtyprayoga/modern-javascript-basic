@@ -1,368 +1,88 @@
-# Modern JavaScript (ES6–ES2022) Training Management System
+# Modern JavaScript: Sistem Manajemen Peserta Training
 
-> **Sistem Manajemen Peserta Training** - A comprehensive ES6+ study case project demonstrating modern JavaScript features through a practical training participant management system for Brainmatics.
+Materi praktik JavaScript ES6–ES2022 untuk training Brainmatics. Peserta membangun satu aplikasi di `latihan/proyek/`, dari program pembuka sampai laporan peserta dan pengujian. Setiap tahap menyediakan kode lengkap, penjelasan, output, dan tantangan beserta penyelesaiannya.
 
-## 📚 Project Overview
-
-This project implements a complete training management solution showcasing **ES6+ features** including:
-- ✅ ES6 Modules (import/export)
-- ✅ Arrow Functions
-- ✅ Default Parameters
-- ✅ Template Literals
-- ✅ Destructuring (with renaming)
-- ✅ Spread Operator
-- ✅ Set for Uniqueness
-- ✅ Map for Key-Value Storage
-- ✅ for...of Loops
-- ✅ Class Syntax with Arrow Methods
-- ✅ Array Methods (map, filter, reduce)
-- ✅ `includes()` for status validation (ES2016)
-- ✅ async/await + try/catch for loading data (ES2017)
-- ✅ Object Rest/Spread (ES2018)
-- ✅ Optional Chaining `?.` and Nullish Coalescing `??` (ES2020)
-- ✅ Static class fields and top-level `await` (ES2022)
-
-> The original ES6-only version is kept in git as the tag `es6-baseline` (`git checkout es6-baseline`).
-
-## 📋 Studi Kasus
-
-> Kelola peserta dan tentukan Lulus atau Tidak Lulus dari nilai tes terakhir.
-> Gunakan const/let dan function dengan default parameter.
-> Terapkan destructuring dan object rest/spread (ES2018).
-> Gunakan Set untuk deduplikasi dan Map untuk index peserta.
-> Buat class validator dan pisahkan dengan export/import.
-> Validasi status peserta dengan includes() (ES2016).
-> Muat data dengan async/await + try/catch; gunakan ?. dan ??.
-
-| # | Requirement | Where in the code | Guide phase | Exercise |
-|---|---|---|---|---|
-| 1 | Lulus / Tidak Lulus from the last test score | `createPesertaMap` keeps the latest entry per email; `PesertaValidator.getStatus(score)` decides `LULUS` (≥ 80) or `TIDAK LULUS` | 8, 13, 18 | [05](latihan/05-set-map-nilai-terakhir/README.md), [10](latihan/10-integrasi-aplikasi/README.md) |
-| 2 | const/let, default parameters | Every function has defaults (`pesertaList = []`); `main.js` uses `let` for data assigned inside `try` | 2, 4 | [01](latihan/01-data-const-let/README.md), [02](latihan/02-function-dan-output/README.md) |
-| 3 | Destructuring, object rest/spread | `loadPeserta` normalizes with `({ score, ...rest }) => ({ ...rest, score: score ?? 0 })`; `createPesertaMap` copies with `{ ...peserta }`; `class: className` renaming everywhere | 6, 14 | [03](latihan/03-destructuring-rest-spread/README.md) |
-| 4 | Set for dedup, Map for index | `getUniqueEmails` (Set), `createPesertaMap` (Map keyed by email) | 7, 8 | [05](latihan/05-set-map-nilai-terakhir/README.md) |
-| 5 | Validator class with export/import | `utils/pesertaValidator.js`, imported by `utils/pesertaFormatter.js` and `main.js` | 11, 12, 13 | [07](latihan/07-class-validator/README.md), [08](latihan/08-module-dan-formatter/README.md) |
-| 6 | Status validation with `includes()` | `PesertaValidator.isValidStatus(status)`; `displayPeserta` never prints an unknown status | 13 | [07](latihan/07-class-validator/README.md) |
-| 7 | async/await + try/catch, `?.` and `??` | `utils/pesertaLoader.js` reads `data/peserta.json`; `json?.peserta ?? []`, `score ?? 0`; formatters accept `null` via `peserta ?? {}` | 15, 16 | [09](latihan/09-async-loader/README.md) |
-
-## 🎓 Learning Path
-
-Mulai dari [praktik proyek bertahap](latihan/README.md). Peserta menulis satu aplikasi di `latihan/proyek/` melalui tahap 00–11, dari program pembuka sampai laporan lengkap dan pengujian. Setiap tahap menyediakan kode lengkap, output, penjelasan, serta tantangan dengan penyelesaian.
+## Mulai di sini
 
 | Kebutuhan | Panduan |
 |---|---|
-| Menyiapkan lingkungan | [Quick start](QUICK_START.md) |
-| Membangun aplikasi sendiri | [Tahap 00–11](latihan/README.md) |
-| Mencari daftar latihan | [EXERCISES.md](EXERCISES.md) |
-| Mengajar dan membahas praktik | [instructor.md](instructor.md) |
-| Membaca penjelasan konsep | [Beginner guide](BEGINNER_GUIDE.md) |
-| Menelusuri kode referensi | [Code highlights](CODE_HIGHLIGHTS.md) |
-| Memperbaiki kesalahan umum | [Common errors](COMMON_ERRORS.md) |
+| Menyiapkan Node.js dan menjalankan starter | [Quick start](docs/QUICK_START.md) |
+| Membangun aplikasi sendiri | [Praktik tahap 00–11](latihan/README.md) |
+| Mengajar dan membahas praktik | [Panduan instruktur](instructor.md) |
+| Memahami konsep JavaScript | [Beginner guide](docs/reference/BEGINNER_GUIDE.md) |
+| Menelusuri implementasi referensi | [Code highlights](docs/reference/CODE_HIGHLIGHTS.md) |
+| Mengatasi kesalahan umum | [Common errors](docs/reference/COMMON_ERRORS.md) |
 
-## 🏗️ Architecture
+## Studi Kasus
 
-```
-modern-javascript-basic/
-├── data/
-│   └── peserta.json            # Raw participant data (loaded asynchronously)
-├── utils/
-│   ├── pesertaLoader.js        # async/await loader (try/catch, ?., ??)
-│   ├── pesertaProcessor.js     # Core business logic
-│   ├── pesertaFormatter.js     # Display formatting
-│   └── pesertaValidator.js     # Validation class + pass/fail rules
-├── test/
-│   ├── fixtures/               # Broken/empty JSON files for loader tests
-│   └── test-all.js             # Comprehensive unit tests
-├── latihan/
-│   ├── README.md               # Ordered practice index
-│   ├── 00-persiapan/           # Each numbered folder contains a full README
-│   ├── 01-data-const-let/
-│   ├── 02-function-dan-output/
-│   ├── 03-destructuring-rest-spread/
-│   ├── 04-perulangan-peserta/
-│   ├── 05-set-map-nilai-terakhir/
-│   ├── 06-filter-dan-statistik/
-│   ├── 07-class-validator/
-│   ├── 08-module-dan-formatter/
-│   ├── 09-async-loader/
-│   ├── 10-integrasi-aplikasi/
-│   ├── 11-pengujian-akhir/
-│   ├── proyek/                 # Learner starter; build here throughout the course
-│   ├── referensi/              # Seven original exercise solutions and fixed data
-│   ├── cek.js                  # Checks original solutions
-│   └── verifikasi-panduan.js   # Replays guide code in a temporary project
-├── BEGINNER_GUIDE.md           # 18-phase step-by-step guide
-├── instructor.md              # How to teach it (for trainers)
-├── EXERCISES.md                # Ordered practice index
-├── main.js                     # Application entry point
-├── package.json                # Project configuration
-└── README.md                   # This file
-```
+Kelola peserta training dan tentukan status dari nilai tes terakhir. Aplikasi membaca enam riwayat tes dari JSON dan menghasilkan empat peserta unik berdasarkan email.
 
-## 🚀 Quick Start
+| Ketentuan | Praktik |
+|---|---|
+| Tentukan LULUS atau TIDAK LULUS dari nilai terakhir, bukan nilai tertinggi | [Set, Map, dan nilai terakhir](latihan/05-set-map-nilai-terakhir/README.md) |
+| Gunakan const/let dan function dengan default parameter | [Data](latihan/01-data-const-let/README.md), [function dan output](latihan/02-function-dan-output/README.md) |
+| Terapkan destructuring serta object rest/spread | [Destructuring, rest, dan spread](latihan/03-destructuring-rest-spread/README.md) |
+| Gunakan Set untuk nilai unik dan Map untuk indeks peserta | [Set dan Map](latihan/05-set-map-nilai-terakhir/README.md) |
+| Buat class validator dan pisahkan module dengan export/import | [Class validator](latihan/07-class-validator/README.md), [module dan formatter](latihan/08-module-dan-formatter/README.md) |
+| Validasi status dengan includes() | [Class validator](latihan/07-class-validator/README.md) |
+| Muat JSON dengan async/await dan try/catch; gunakan ?. dan ?? | [Async loader](latihan/09-async-loader/README.md) |
 
-### Prerequisites
-- Node.js v22+
+Nilai minimal kelulusan adalah 80. Pemeriksaan rentang nilai oleh validator adalah aturan terpisah, dengan rentang bawaan 60–100. Laporan akhir berisi empat peserta dan tiga peserta LULUS.
 
-### Installation & Running
+## Jalankan proyek
+
+Gunakan Node.js 22 atau lebih baru. Tidak perlu memasang dependency. Jalankan semua perintah dari root repository, yaitu direktori yang berisi `package.json` dan `main.js`.
+
+Untuk proyek peserta:
 
 ```bash
-# No installation needed - uses native ES6 modules
-
-# Run the main application
-npm start
-
-# Run all tests (unit tests, then the exercise check)
-npm test
-
-# Check only the exercise solutions
-npm run cek-latihan
-
-# Verify the code and outputs shown in the practice guides
-npm run cek-panduan
-
-# Run the learner project (starter first, complete after the practice)
 npm --prefix latihan/proyek start
 ```
 
-## 📖 Feature Demonstrations
+Starter menampilkan pesan pembuka. Lanjutkan [tahap 00](latihan/00-persiapan/README.md) untuk mulai menulis aplikasi. Setelah tahap 11, jalankan `npm --prefix latihan/proyek test` untuk menguji kode peserta.
 
-### 1. Module System
-All files use ES6 `import`/`export` syntax:
+Untuk aplikasi referensi dan pemeriksaan materi:
 
-```javascript
-// Export
-export const getUniqueEmails = (pesertaList = []) => { ... };
+| Perintah | Hasil |
+|---|---|
+| `npm start` | Menampilkan aplikasi referensi dengan TASK 1–9. |
+| `npm test` | Menjalankan 79 pengujian referensi dan memeriksa tujuh solusi tambahan. |
+| `npm run cek-latihan` | Memeriksa tujuh solusi tambahan di `latihan/referensi/`. |
+| `npm run cek-panduan` | Memeriksa kode dan output panduan dalam proyek sementara, lalu menguji aplikasi hasil praktik. |
 
-// Import
-import { getUniqueEmails } from './utils/pesertaProcessor.js';
+Pengujian root dan pemeriksaan panduan tidak menilai progres kode peserta. Pemeriksa panduan tidak menimpa proyek peserta.
+
+## Struktur repository
+
+```text
+modern-javascript-basic/
+├── README.md                 # Titik masuk materi
+├── instructor.md             # Kegiatan mengajar dan pembahasan
+├── CLAUDE.md                 # Panduan pemeliharaan untuk agen
+├── docs/
+│   ├── QUICK_START.md        # Persiapan dan perintah awal
+│   ├── reference/            # Konsep, implementasi, dan kesalahan umum
+│   └── archive/              # Studi kasus awal, ringkasan, dan rencana lama
+├── latihan/
+│   ├── README.md             # Indeks utama tahap 00–11
+│   ├── 00-persiapan/         # Awal praktik; folder bernomor berlanjut sampai 11
+│   ├── proyek/               # Satu proyek yang dikerjakan peserta
+│   ├── referensi/            # Tujuh solusi latihan tambahan
+│   ├── cek.js                # Pemeriksa solusi tambahan
+│   └── verifikasi-panduan.js # Pemeriksa panduan bertahap
+├── data/                     # Data aplikasi referensi
+├── utils/                    # Loader, processor, formatter, dan validator
+├── test/                     # Pengujian dan fixture referensi
+├── main.js                   # Aplikasi referensi
+└── package.json
 ```
 
-### 2. Default Parameters & Arrow Functions
-```javascript
-export const displayPeserta = (
-  name = "Unknown", 
-  score = 0, 
-  status = PesertaValidator.getStatus(score)
-) => {
-  const finalStatus = PesertaValidator.isValidStatus(status) ? status : PesertaValidator.getStatus(score);
-  return `Nama: ${name}, Score: ${score}, Status: ${finalStatus}`;
-};
-```
+Alur aplikasi referensi adalah JSON → loader → processor → formatter dan validator → laporan di `main.js`. Saat memperbarui materi, pertahankan marker blok kode pada panduan dan jalankan `npm run cek-panduan`.
 
-### 3. Destructuring with Renaming
-```javascript
-// Avoid 'class' keyword conflict
-for (const { id, name, email, class: className, score } of pesertaList) {
-  // Process with renamed 'className'
-}
-```
+## Arsip
 
-### 4. Set for Uniqueness
-```javascript
-export const getUniqueEmails = (pesertaList = []) => {
-  const emailSet = new Set(pesertaList.map(p => p.email));
-  return [...emailSet]; // Spread back to array
-};
-```
+[Studi kasus ES6 awal](docs/archive/ES6-Study-Cases.md), [ringkasan implementasi](docs/archive/IMPLEMENTATION_SUMMARY.md), dan [rencana kerja lama](docs/archive/plans/) disimpan sebagai catatan historis. Versi kode ES6 awal tersedia pada tag Git `es6-baseline`.
 
-### 5. Map for O(1) Lookups
-```javascript
-export const createPesertaMap = (pesertaList = []) => {
-  const pesertaMap = new Map();
-  for (const peserta of pesertaList) {
-    pesertaMap.set(peserta.email, { ...peserta }); // latest entry wins; ES2018 spread copy
-  }
-  return pesertaMap;
-};
-```
+## Author dan lisensi
 
-### 6. Class with Arrow Methods
-```javascript
-export class PesertaValidator {
-  static PASSING_SCORE = 80;
-  static STATUS = ["LULUS", "TIDAK LULUS"];
-  static getStatus = (score = 0) =>
-    score >= PesertaValidator.PASSING_SCORE ? "LULUS" : "TIDAK LULUS";
-  static isValidStatus = (status) => PesertaValidator.STATUS.includes(status); // ES2016
-
-  constructor(minScore = 60, maxScore = 100) {
-    this.minScore = minScore;
-    this.maxScore = maxScore;
-  }
-  
-  isValidScore = (score) => score >= this.minScore && score <= this.maxScore;
-  
-  formatResult = (name, score) => {
-    const status = this.isValidScore(score) ? "SESUAI STANDAR" : "TIDAK SESUAI";
-    return `${name} mendapat score ${score} - ${status}`;
-  };
-}
-```
-
-### 7. Async Loading with try/catch, `?.` and `??`
-```javascript
-export const loadPeserta = async (fileUrl = new URL('../data/peserta.json', import.meta.url)) => {
-  try {
-    const json = JSON.parse(await readFile(fileUrl, 'utf8'));
-    return (json?.peserta ?? []).map(({ score, ...rest }) => ({ ...rest, score: score ?? 0 }));
-  } catch (error) {
-    throw new Error(`Gagal memuat data peserta dari ${fileUrl}: ${error.message}`);
-  }
-};
-
-// main.js (top-level await)
-let rawPeserta;
-try {
-  rawPeserta = await loadPeserta();
-} catch (error) {
-  console.error(`❌ ${error.message}`);
-  process.exit(1);
-}
-```
-
-## 🧪 Testing
-
-The project includes comprehensive unit tests covering:
-
-- ✅ Data validation
-- ✅ Unique email extraction
-- ✅ Participant Map creation
-- ✅ Class filtering
-- ✅ Score calculations
-- ✅ Display formatting
-- ✅ Validator class functionality, including the pass/fail boundary (80 / 79)
-- ✅ Status validation with `includes()` (case-sensitive, unknown labels rejected)
-- ✅ Async loading: missing file, broken JSON, `null` or empty JSON, missing score
-- ✅ Edge cases (empty arrays, undefined and `null` parameters)
-
-Run tests with:
-```bash
-npm test
-```
-
-Expected output:
-```
-🧪 RUNNING UNIT TESTS FOR ES6 TRAINING SYSTEM
-✅ Tests Passed: 79
-❌ Tests Failed: 0
-📈 Pass Rate: 100%
-🎉 ALL TESTS PASSED!
-...
-Latihan: 7/7 cocok
-```
-
-`npm test` runs the reference application's unit tests and then `latihan/cek.js`, which checks the seven solutions in `latihan/referensi/` against their `.expected.txt` files. `npm run cek-latihan` checks only those solutions.
-
-`npm run cek-panduan` replays the numbered guides in a temporary learner project, checks every demonstrated output and challenge solution, runs the completed learner tests, and compares the final application output with the reference. It does not overwrite the learner starter or answers.
-
-After stage 11, use `npm --prefix latihan/proyek test` to test the learner's own application. Root tests and guide verification do not assess their current answers.
-
-## 📊 Data Structure
-
-### Participant Object
-```javascript
-{
-  id: 101,
-  name: "Aditya Prayoga",
-  email: "aditya@brainmatics.com",
-  class: "JavaScript Fundamentals",
-  score: 85
-}
-```
-
-### Business Rules
-- **Email Uniqueness**: Duplicates removed, latest entry kept
-- **Score Validation**: 
-  - Valid range: 60-100
-  - Passing threshold: 80
-  - `>= 80` = "LULUS" (Pass)
-  - `< 80` = "TIDAK LULUS" (Not Pass)
-- **Last Test Score**: when an email appears more than once, the last entry is the latest test
-
-## 🔑 Key Functions
-
-### Loading (`utils/pesertaLoader.js`)
-- `loadPeserta(fileUrl)` - async; reads `data/peserta.json`, returns `[]` when the JSON is `null` or has no `peserta` key, throws an Indonesian error for a missing or broken file
-
-### Data Processing (`utils/pesertaProcessor.js`)
-- `getUniqueEmails(pesertaList)` - Extract unique emails using Set
-- `createPesertaMap(pesertaList)` - Create email-indexed Map
-- `getPesertaByClass(pesertaList, className)` - Filter by class
-- `calculateAverageScore(pesertaList)` - Calculate average score
-- `getUniquePeserta(pesertaList)` - Remove duplicate participants
-
-### Formatting (`utils/pesertaFormatter.js`)
-- `displayPeserta(name, score, status)` - Format participant info
-- `createPesertaSummary(peserta)` - Create emoji summary
-- `formatPesertaList(pesertaList)` - Format numbered list
-- `createDetailedReport(peserta)` - Generate detailed report
-
-### Validation (`utils/pesertaValidator.js`)
-- `PesertaValidator` class - Score validation with configurable thresholds
-- `PesertaValidator.getStatus(score)` - `LULUS` or `TIDAK LULUS` (threshold `PesertaValidator.PASSING_SCORE` = 80)
-- `PesertaValidator.isValidStatus(status)` - `includes()` check against `PesertaValidator.STATUS`
-- `createPassingValidator()` - Factory for 80-100 threshold
-- `createLenientValidator()` - Factory for 60-100 threshold
-
-## 💡 Learning Objectives
-
-This project teaches:
-
-1. **Modular Code Organization** - Separation of concerns across files
-2. **ES6 Syntax Mastery** - Practical use of modern JavaScript features
-3. **Functional Programming** - Pure functions, immutability principles
-4. **Data Structures** - Efficient use of Set and Map
-5. **Class-based OOP** - Modern class syntax with arrow methods
-6. **Error Handling** - Default parameters, `?.` / `??` for missing values, and try/catch around async loading
-7. **Asynchronous Code** - async/await and Promises for reading files
-8. **Testing** - Unit test patterns, plus exercise solutions checked against their expected output
-
-## 🎯 Use Cases
-
-The system demonstrates handling of:
-- ✅ Duplicate data management
-- ✅ Data filtering and aggregation
-- ✅ Score validation and reporting
-- ✅ Multi-class participant tracking
-- ✅ Statistical calculations
-- ✅ Formatted output generation
-- ✅ Loading data from a JSON file, with one clear error when it fails
-
-## 📝 Output Examples
-
-### Participant Display
-```
-Nama: Aditya Prayoga, Score: 88, Status: LULUS
-```
-
-### Summary Format
-```
-📚 Aditya Prayoga - Class: JavaScript Fundamentals - Score: 88
-```
-
-### Validation Result
-```
-Aditya Prayoga mendapat score 88 - SESUAI STANDAR
-```
-
-## 🤝 Contributing
-
-This is an educational project. Feel free to:
-- Add new ES6+ feature demonstrations
-- Improve test coverage
-- Enhance documentation
-- Create additional utility functions
-- Update practice guides with complete file blocks, exact output, and challenge solutions; run `npm run cek-panduan` to check them.
-
-## 📄 License
-
-MIT License - Feel free to use this for learning purposes.
-
-## 👨‍🏫 Author
-
-**Brainmatics Training**  
-ES6+ Study Case - Training Management System
-
----
-
-**Happy Learning! 🚀**
+Brainmatics Training. Materi ini menggunakan lisensi MIT.

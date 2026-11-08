@@ -1,5 +1,7 @@
 # Studi Kasus ES2016+ Implementation Plan
 
+> Arsip historis. Dokumen ini mencatat struktur dan keputusan saat ditulis; perintah dan path di dalamnya dapat memakai struktur lama. Gunakan [panduan aktif](../../../README.md) untuk materi terkini.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Reshape the training system so each of the seven points in the study case below is implemented and visible in the code.

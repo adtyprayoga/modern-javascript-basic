@@ -42,7 +42,7 @@ Script test baru ditambahkan pada tahap 11. Sebelum tahap itu, belum tersedia pe
 
 ## Gunakan bahan referensi
 
-Buka [panduan instruktur](../instructor.md) untuk kegiatan mengajar dan pembahasan. [Beginner guide](../BEGINNER_GUIDE.md) menjelaskan konsep lebih lanjut.
+Buka [panduan instruktur](../instructor.md) untuk kegiatan mengajar dan pembahasan. [Beginner guide](../docs/reference/BEGINNER_GUIDE.md) menjelaskan konsep lebih lanjut.
 
 Folder [referensi/](referensi/README.md) menyimpan tujuh latihan tambahan dari studi kasus lama. `npm run cek-latihan` memeriksa solusi tambahan tersebut, bukan progres proyekmu. `npm test` di root menguji aplikasi referensi dan tujuh solusi tambahan.
 

@@ -252,8 +252,8 @@ Data yang boleh diubah untuk eksperimen adalah data di proyek peserta. Root `dat
 ## Referensi setelah kelas
 
 - [Seluruh tahap praktik](latihan/README.md)
-- [Penjelasan konsep di beginner guide](BEGINNER_GUIDE.md)
+- [Penjelasan konsep di beginner guide](docs/reference/BEGINNER_GUIDE.md)
 - [Solusi latihan tambahan lama](latihan/referensi/README.md)
-- [Kesalahan JavaScript yang umum](COMMON_ERRORS.md)
+- [Kesalahan JavaScript yang umum](docs/reference/COMMON_ERRORS.md)
 
 `npm run cek-latihan` hanya memeriksa tujuh solusi tambahan. `npm run cek-panduan` memeriksa kode materi pada proyek sementara. Keduanya tidak menilai jawaban di folder proyek peserta. Gunakan perintah dengan --prefix untuk memeriksa hasil peserta.

@@ -1,5 +1,7 @@
 # Praktik proyek bertahap Implementation Plan
 
+> Arsip historis. Dokumen ini mencatat struktur dan keputusan saat ditulis; perintah dan path di dalamnya dapat memakai struktur lama. Gunakan [panduan aktif](../../../README.md) untuk materi terkini.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:executing-plans untuk menjalankan rencana per tugas. Gunakan checkbox untuk mencatat penyelesaian.
 
 **Goal:** Peserta menulis kode dari awal sampai memiliki aplikasi manajemen peserta training lengkap yang dapat diuji.
