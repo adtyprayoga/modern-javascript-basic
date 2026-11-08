@@ -1,7 +1,7 @@
 // Unit tests for all ES6 Training Management System components
 // Demonstrates testing patterns with ES6 features
 
-import { rawPeserta } from '../data/peserta.js';
+import { loadPeserta } from '../utils/pesertaLoader.js';
 import { 
   getUniqueEmails, 
   createPesertaMap, 
@@ -15,6 +15,10 @@ import {
   createDetailedReport
 } from '../utils/pesertaFormatter.js';
 import { PesertaValidator } from '../utils/pesertaValidator.js';
+
+// ES2022 top-level await: load the data before any test runs
+const rawPeserta = await loadPeserta();
+const fixture = (name) => new URL(`./fixtures/${name}`, import.meta.url);
 
 // Test utilities
 let testsPassed = 0;
@@ -36,6 +40,18 @@ const assertEqual = (actual, expected, testName) => {
   if (!passed) {
     console.log(`   Expected: ${JSON.stringify(expected)}`);
     console.log(`   Actual: ${JSON.stringify(actual)}`);
+  }
+};
+
+// Async helper: passes when fn() rejects with a message containing messagePart
+const assertRejects = async (fn, messagePart, testName) => {
+  try {
+    await fn();
+    assert(false, testName);
+    console.log("   Expected a rejection, but the promise resolved");
+  } catch (error) {
+    assert(error.message.includes(messagePart), testName);
+    if (!error.message.includes(messagePart)) console.log(`   Actual message: ${error.message}`);
   }
 };
 
@@ -290,6 +306,26 @@ console.log("-".repeat(60));
 const report = createDetailedReport({ id: 104, name: "Milea Kusuma", email: "milea@brainmatics.com", class: "JavaScript Fundamentals", score: 78 });
 assert(report.includes("  Status   : ❌ TIDAK LULUS"), "Detailed report uses TIDAK LULUS");
 assert(createDetailedReport(null).includes("  Nama     : Unknown"), "Detailed report handles null");
+console.log();
+
+// ============================================================================
+// TEST SUITE 11: loadPeserta (async/await + try/catch, ?. and ??)
+// ============================================================================
+console.log("📦 TEST SUITE 11: loadPeserta Function");
+console.log("-".repeat(60));
+
+assertEqual(rawPeserta.length, 6, "async loadPeserta reads 6 records");
+assertEqual(rawPeserta[2].score, 88, "Records keep their order and scores");
+await assertRejects(() => loadPeserta(fixture("tidak-ada.json")), "Gagal memuat data peserta", "Missing file rejects with Indonesian message");
+await assertRejects(() => loadPeserta(fixture("tidak-ada.json")), "tidak-ada.json", "Error names the file");
+await assertRejects(() => loadPeserta(fixture("rusak.json")), "rusak.json", "Malformed JSON caught by try/catch");
+assertEqual(await loadPeserta(fixture("null.json")), [], "JSON null gives [] via ?. and ??");
+assertEqual(await loadPeserta(fixture("kosong.json")), [], "Missing peserta key gives []");
+const tanpaScore = await loadPeserta(fixture("tanpa-score.json"));
+assertEqual(tanpaScore[0].score, 0, "Missing score becomes 0 via ??");
+assertEqual(tanpaScore[0].catatan, "susulan", "Rest/spread keeps extra fields");
+assertEqual(calculateAverageScore(tanpaScore), 0, "Average is 0, not NaN");
+assertEqual(createPesertaMap(tanpaScore).get("x@brainmatics.com").catatan, "susulan", "createPesertaMap spread keeps extra fields");
 console.log();
 
 // ============================================================================
