@@ -12,7 +12,7 @@ A system that manages training participants with features like:
 - Load participant data from a JSON file
 - Display formatted reports
 
-**Time Estimate:** 3-4 hours at a comfortable pace
+**Time Estimate:** 3.5-4.5 hours at a comfortable pace
 
 ---
 
@@ -67,9 +67,70 @@ Look carefully - you'll see:
 
 ---
 
-## 🚀 Phase 2: Your First ES6 Function (20 minutes)
+## 🚀 Phase 2: const & let (15 minutes)
 
-### Step 2.1: Understanding Arrow Functions
+### Step 2.1: `const` by Default
+
+Use `const` for a value that never gets a new value:
+
+```javascript
+const passingScore = 80;
+passingScore = 70;
+// ❌ TypeError: Assignment to constant variable.
+```
+
+**🎓 Key Learning:** `const` protects you from changing a value by accident. Start with `const` every time.
+
+### Step 2.2: `let` When the Value Changes
+
+Use `let` when you *must* give the variable a new value, like a counter:
+
+```javascript
+let jumlahLulus = 0;
+for (const { score } of uniquePeserta) {
+  if (score >= 80) jumlahLulus++;   // the value changes, so it needs let
+}
+console.log(jumlahLulus);  // 3
+```
+
+You will see the other common case in Step 16.3: `let rawPeserta;` is declared first and gets its value later, inside `try`.
+
+### Step 2.3: A `const` Object Can Still Change Inside
+
+`const` stops you from replacing the *variable*. It does not freeze the object:
+
+```javascript
+const peserta = { score: 78 };
+peserta.score = 86;   // ✅ allowed: same object, new value inside
+peserta = {};         // ❌ TypeError: Assignment to constant variable.
+```
+
+### Step 2.4: Why Not `var`?
+
+`var` ignores blocks `{ }`. `let` and `const` stay inside them:
+
+```javascript
+if (true) {
+  var a = 1;
+  let b = 2;
+}
+console.log(a);  // 1  (var leaked out of the block!)
+console.log(b);  // ❌ ReferenceError: b is not defined
+```
+
+**⚠️ Rule:** Never use `var` in this project. Use `const`, and switch to `let` only when the value must change.
+
+### Step 2.5: Find It in Action
+
+- `test/test-all.js`: `let testsPassed = 0;` because the counter goes up after every test
+- `main.js`: `let rawPeserta;` because it is assigned inside `try { }`
+- Everywhere else: `const`
+
+---
+
+## 🚀 Phase 3: Your First ES6 Function (20 minutes)
+
+### Step 3.1: Understanding Arrow Functions
 
 **Old Way (ES5):**
 ```javascript
@@ -93,7 +154,7 @@ const greet = (name) => `Hello ${name}`;
 - Works better with `this` keyword
 - More readable for simple functions
 
-### Step 2.2: Test It Yourself
+### Step 3.2: Test It Yourself
 
 Create a file `test-arrow.js` and try:
 
@@ -121,9 +182,9 @@ Arrow: 8
 
 ---
 
-## 🚀 Phase 3: Default Parameters (15 minutes)
+## 🚀 Phase 4: Default Parameters (15 minutes)
 
-### Step 3.1: The Problem Without Defaults
+### Step 4.1: The Problem Without Defaults
 
 ```javascript
 const greet = (name) => {
@@ -133,7 +194,7 @@ const greet = (name) => {
 greet();  // 💥 "Hello undefined" - Oops!
 ```
 
-### Step 3.2: The Solution
+### Step 4.2: The Solution
 
 ```javascript
 const greet = (name = "Guest") => {
@@ -144,7 +205,7 @@ greet();        // ✅ "Hello Guest"
 greet("Aditya"); // ✅ "Hello Aditya"
 ```
 
-### Step 3.3: Apply It
+### Step 4.3: Apply It
 
 Here is a simplified version of `displayPeserta()`. The real one in `utils/pesertaFormatter.js` gets the status from `PesertaValidator.getStatus(score)` and also checks it with `includes()`:
 
@@ -167,9 +228,9 @@ console.log(displayPeserta("Aditya", 85));       // Calculates status
 
 ---
 
-## 🚀 Phase 4: Template Literals (10 minutes)
+## 🚀 Phase 5: Template Literals (10 minutes)
 
-### Step 4.1: Old vs New String Building
+### Step 5.1: Old vs New String Building
 
 **Old Way (Messy):**
 ```javascript
@@ -181,7 +242,7 @@ const message = "Hello " + name + ", your score is " + score + ".";
 const message = `Hello ${name}, your score is ${score}.`;
 ```
 
-### Step 4.2: Multi-line Strings
+### Step 5.2: Multi-line Strings
 
 **Old Way (Ugly):**
 ```javascript
@@ -203,9 +264,9 @@ Status: ${status}
 
 ---
 
-## 🚀 Phase 5: Destructuring (20 minutes)
+## 🚀 Phase 6: Destructuring (20 minutes)
 
-### Step 5.1: Without Destructuring
+### Step 6.1: Without Destructuring
 
 ```javascript
 const participant = {
@@ -226,7 +287,7 @@ const participantScore = participant.score;
 - Long variable names
 - Lots of typing!
 
-### Step 5.2: With Destructuring
+### Step 6.2: With Destructuring
 
 ```javascript
 // Extract multiple properties at once!
@@ -239,7 +300,7 @@ console.log(score);  // 85
 
 **🎉 Magic!** One line does the work of three!
 
-### Step 5.3: Destructuring with Renaming
+### Step 6.3: Destructuring with Renaming
 
 **Problem:** `class` is a JavaScript keyword, we can't use it as a variable name.
 
@@ -257,7 +318,7 @@ console.log(className);  // "JavaScript Fundamentals"
 
 **🎓 Read as:** "Take the `class` property and call it `className`"
 
-### Step 5.4: Find It in Action
+### Step 6.4: Find It in Action
 
 Open `utils/pesertaProcessor.js` and find this pattern:
 
@@ -270,9 +331,9 @@ for (const { id, name, email, class: className, score } of pesertaList) {
 
 ---
 
-## 🚀 Phase 6: Set for Uniqueness (25 minutes)
+## 🚀 Phase 7: Set for Uniqueness (25 minutes)
 
-### Step 6.1: Understanding the Problem
+### Step 7.1: Understanding the Problem
 
 You have this array:
 ```javascript
@@ -298,7 +359,7 @@ for (let i = 0; i < emails.length; i++) {
 // Lots of code, slow for large arrays
 ```
 
-### Step 6.2: ES6 Set (Simple & Fast!)
+### Step 7.2: ES6 Set (Simple & Fast!)
 
 ```javascript
 const uniqueEmails = [...new Set(emails)];
@@ -310,7 +371,7 @@ const uniqueEmails = [...new Set(emails)];
 1. `new Set(emails)` - Creates a Set (only keeps unique values)
 2. `[...  ]` - Spread operator converts Set back to Array
 
-### Step 6.3: Visualize It
+### Step 7.3: Visualize It
 
 ```javascript
 console.log("Original:", emails);
@@ -320,7 +381,7 @@ console.log("After Set:", [...new Set(emails)]);
 // ["aditya@test.com", "zaim@test.com", "milea@test.com"]
 ```
 
-### Step 6.4: Apply It
+### Step 7.4: Apply It
 
 Look at `getUniqueEmails()` in `pesertaProcessor.js`:
 
@@ -344,13 +405,13 @@ return [...new Set(pesertaList.map(p => p.email))];
 
 ---
 
-## 🚀 Phase 7: Map for Fast Lookups (30 minutes)
+## 🚀 Phase 8: Map for Fast Lookups (30 minutes)
 
-### Step 7.1: The Problem
+### Step 8.1: The Problem
 
 Find the latest entry for each email. With arrays, you'd need nested loops (slow!).
 
-### Step 7.2: Understanding Map
+### Step 8.2: Understanding Map
 
 **Map** is like a smart dictionary:
 - **Key:** Email address
@@ -365,7 +426,7 @@ phoneBook.set("Zaim", "08198765432");
 console.log(phoneBook.get("Aditya"));  // "08123456789"
 ```
 
-### Step 7.3: Our Use Case
+### Step 8.3: Our Use Case
 
 ```javascript
 const pesertaMap = new Map();
@@ -380,7 +441,7 @@ console.log(pesertaMap.get("aditya@test.com"));
 // { id: 103, score: 88 } ← Latest entry kept!
 ```
 
-### Step 7.4: Complete Implementation
+### Step 8.4: Complete Implementation
 
 Study `createPesertaMap()` in `pesertaProcessor.js`:
 
@@ -392,7 +453,7 @@ export const createPesertaMap = (pesertaList = []) => {
   for (const peserta of pesertaList) {
     // If email exists, this REPLACES the old entry (the last test wins)
     // If email is new, this ADDS a new entry
-    // { ...peserta } copies the object (object spread, see Phase 13)
+    // { ...peserta } copies the object (object spread, see Phase 14)
     pesertaMap.set(peserta.email, { ...peserta });
   }
   
@@ -415,9 +476,9 @@ console.log(map.size);  // What will this be? (Answer: 2, not 3!)
 
 ---
 
-## 🚀 Phase 8: for...of Loops (15 minutes)
+## 🚀 Phase 9: for...of Loops (15 minutes)
 
-### Step 8.1: Old vs New Loops
+### Step 9.1: Old vs New Loops
 
 **Old for loop:**
 ```javascript
@@ -438,7 +499,7 @@ for (const item of array) {
 - Cleaner, more readable
 - Works with destructuring!
 
-### Step 8.2: for...of + Destructuring = 🎉
+### Step 9.2: for...of + Destructuring = 🎉
 
 ```javascript
 const participants = [
@@ -460,9 +521,9 @@ Zaim scored 92
 
 ---
 
-## 🚀 Phase 9: Array Methods (30 minutes)
+## 🚀 Phase 10: Array Methods (30 minutes)
 
-### Step 9.1: map() - Transform Each Item
+### Step 10.1: map() - Transform Each Item
 
 **Purpose:** Create a new array by transforming each element.
 
@@ -478,7 +539,7 @@ const names = participants.map(p => p.name);
 // ["Aditya", "Zaim", "Milea"]
 ```
 
-### Step 9.2: filter() - Keep Only What Matches
+### Step 10.2: filter() - Keep Only What Matches
 
 **Purpose:** Create a new array with only items that pass a test.
 
@@ -494,7 +555,7 @@ const passed = participants.filter(p => p.score >= 80);
 // Only participants with score 80 or above
 ```
 
-### Step 9.3: reduce() - Combine Into One Value
+### Step 10.3: reduce() - Combine Into One Value
 
 **Purpose:** Reduce an array to a single value (sum, average, etc.)
 
@@ -514,9 +575,9 @@ const average = totalScore / participants.length;
 
 ---
 
-## 🚀 Phase 10: ES6 Classes (25 minutes)
+## 🚀 Phase 11: ES6 Classes (25 minutes)
 
-### Step 10.1: Old vs New Classes
+### Step 11.1: Old vs New Classes
 
 **Old Way (Prototypes - Confusing!):**
 ```javascript
@@ -542,7 +603,7 @@ class Validator {
 }
 ```
 
-### Step 10.2: Arrow Methods in Classes
+### Step 11.2: Arrow Methods in Classes
 
 ```javascript
 class PesertaValidator {
@@ -558,7 +619,7 @@ class PesertaValidator {
 }
 ```
 
-### Step 10.3: Using the Class
+### Step 11.3: Using the Class
 
 ```javascript
 // Create an instance
@@ -571,15 +632,15 @@ console.log(validator.isValidScore(75));  // false
 
 ---
 
-## 🚀 Phase 11: Module System (20 minutes)
+## 🚀 Phase 12: Module System (20 minutes)
 
-### Step 11.1: Why Modules?
+### Step 12.1: Why Modules?
 
 **Problem without modules:** All code in one giant file = messy!
 
 **Solution:** Split into logical files, import what you need.
 
-### Step 11.2: Exporting
+### Step 12.2: Exporting
 
 **In `utils/pesertaProcessor.js`:**
 ```javascript
@@ -597,7 +658,7 @@ export class PesertaValidator { ... }
 export const createPassingValidator = () => { ... };
 ```
 
-### Step 11.3: Importing
+### Step 12.3: Importing
 
 **In `main.js`:**
 ```javascript
@@ -607,7 +668,7 @@ import { getUniqueEmails, calculateAverageScore } from './utils/pesertaProcessor
 // Import class
 import { PesertaValidator } from './utils/pesertaValidator.js';
 
-// Import the data loader (Phase 15 explains how it works)
+// Import the data loader (Phase 16 explains how it works)
 import { loadPeserta } from './utils/pesertaLoader.js';
 const rawPeserta = await loadPeserta();
 
@@ -620,11 +681,11 @@ const validator = new PesertaValidator(80, 100);
 
 ---
 
-## 🚀 Phase 12: includes() for Status Validation — ES2016 (20 minutes)
+## 🚀 Phase 13: includes() for Status Validation — ES2016 (20 minutes)
 
-### Step 12.1: Is This Value in the List?
+### Step 13.1: Is This Value in the List?
 
-You already met `includes()` in Step 6.1. It answers one question: *is this value in the array?*
+You already met `includes()` in Step 7.1. It answers one question: *is this value in the array?*
 
 ```javascript
 const STATUS = ["LULUS", "TIDAK LULUS"];
@@ -639,7 +700,7 @@ STATUS.includes("lulus");         // false: includes() is case-sensitive
 STATUS.includes("BELUM LULUS");   // false: not in the list
 ```
 
-### Step 12.2: One Place for the Pass/Fail Rule
+### Step 13.2: One Place for the Pass/Fail Rule
 
 Open `utils/pesertaValidator.js`. The rule for LULUS / TIDAK LULUS lives in the class as **static** members. Static members belong to the class itself, so you use them without `new`:
 
@@ -652,7 +713,7 @@ export class PesertaValidator {
     score >= PesertaValidator.PASSING_SCORE ? "LULUS" : "TIDAK LULUS";
 
   static isValidStatus = (status) => PesertaValidator.STATUS.includes(status);
-  // ...constructor and the other methods from Phase 10
+  // ...constructor and the other methods from Phase 11
 }
 
 PesertaValidator.getStatus(80);          // "LULUS" (80 counts as passing)
@@ -662,7 +723,7 @@ PesertaValidator.isValidStatus("lulus"); // false
 
 **🎓 Why one place?** `pesertaFormatter.js` imports `PesertaValidator` and calls `getStatus()`. If the passing score ever changes, you edit one line.
 
-### Step 12.3: Apply It
+### Step 13.3: Apply It
 
 `displayPeserta()` never prints a status that is not in the list:
 
@@ -676,11 +737,11 @@ displayPeserta("Aditya", 90, "lulus");         // invalid → computed from the 
 
 ---
 
-## 🚀 Phase 13: Object Rest & Spread — ES2018 (20 minutes)
+## 🚀 Phase 14: Object Rest & Spread — ES2018 (20 minutes)
 
-### Step 13.1: Spread Copies an Object
+### Step 14.1: Spread Copies an Object
 
-In Phase 6 you spread a Set into an array with `[...set]`. The same `...` works on objects:
+In Phase 7 you spread a Set into an array with `[...set]`. The same `...` works on objects:
 
 ```javascript
 const peserta = { id: 101, name: "Aditya", score: 85 };
@@ -692,7 +753,7 @@ console.log(retake);  // { id: 101, name: "Aditya", score: 88 }
 console.log(peserta); // unchanged: { id: 101, name: "Aditya", score: 85 }
 ```
 
-### Step 13.2: Rest Collects "Everything Else"
+### Step 14.2: Rest Collects "Everything Else"
 
 In destructuring, `...` collects the fields you did not name:
 
@@ -706,11 +767,11 @@ console.log(sisanya);  // { id: 101, email: "aditya@brainmatics.com", score: 85 
 
 **🎓 Rule of thumb:** `...` on the **left** of `=` is *rest* (collect). On the **right** it is *spread* (copy out).
 
-### Step 13.3: Find It in Action
+### Step 14.3: Find It in Action
 
-- `createPesertaMap()` stores `{ ...peserta }` (Step 7.4)
+- `createPesertaMap()` stores `{ ...peserta }` (Step 8.4)
 - `main.js` TASK 3 prints `sisanya`
-- `loadPeserta()` uses both at once (Phase 15):
+- `loadPeserta()` uses both at once (Phase 16):
 
 ```javascript
 ({ score, ...rest }) => ({ ...rest, score: score ?? 0 })
@@ -719,9 +780,9 @@ console.log(sisanya);  // { id: 101, email: "aditya@brainmatics.com", score: 85 
 
 ---
 
-## 🚀 Phase 14: Optional Chaining ?. and Nullish Coalescing ?? — ES2020 (20 minutes)
+## 🚀 Phase 15: Optional Chaining ?. and Nullish Coalescing ?? — ES2020 (20 minutes)
 
-### Step 14.1: The Problem
+### Step 15.1: The Problem
 
 ```javascript
 const pesertaMap = new Map();  // empty: nobody is in it
@@ -730,14 +791,14 @@ pesertaMap.get("tidak-ada@brainmatics.com").score;
 // ❌ TypeError: Cannot read properties of undefined (reading 'score')
 ```
 
-### Step 14.2: ?. Stops Instead of Crashing
+### Step 15.2: ?. Stops Instead of Crashing
 
 ```javascript
 pesertaMap.get("tidak-ada@brainmatics.com")?.score;
 // undefined (no crash): ?. stops when the value on its left is null or undefined
 ```
 
-### Step 14.3: ?? Gives a Fallback
+### Step 15.3: ?? Gives a Fallback
 
 ```javascript
 const score = pesertaMap.get("tidak-ada@brainmatics.com")?.score ?? "tidak ditemukan";
@@ -751,21 +812,21 @@ console.log(score);  // "tidak ditemukan"
 0 ?? 80;   // 0   ✅ ?? only replaces null and undefined
 ```
 
-### Step 14.4: Find It in Action
+### Step 15.4: Find It in Action
 
 - `main.js` TASK 5 prints `Score tidak-ada@brainmatics.com: tidak ditemukan`
 - `createPesertaSummary(null)` works because it destructures `peserta ?? {}`. A default parameter (`peserta = {}`) only catches `undefined`, not `null`.
-- `loadPeserta()` uses `json?.peserta ?? []` and `score ?? 0` (Phase 15)
+- `loadPeserta()` uses `json?.peserta ?? []` and `score ?? 0` (Phase 16)
 
 ---
 
-## 🚀 Phase 15: async/await + try/catch — ES2017 (30 minutes)
+## 🚀 Phase 16: async/await + try/catch — ES2017 (30 minutes)
 
-### Step 15.1: Why Async?
+### Step 16.1: Why Async?
 
 Reading a file takes time. Node.js does not stop and wait. It gives you a **Promise**: a value that arrives later. `await` pauses *your function* until the value is ready.
 
-### Step 15.2: Read the Loader
+### Step 16.2: Read the Loader
 
 Open `utils/pesertaLoader.js`:
 
@@ -776,8 +837,8 @@ export const loadPeserta = async (fileUrl = new URL('../data/peserta.json', impo
   try {
     const text = await readFile(fileUrl, 'utf8');  // wait for the file
     const json = JSON.parse(text);                 // throws if the JSON is broken
-    const pesertaList = json?.peserta ?? [];       // Phase 14
-    return pesertaList.map(({ score, ...rest }) => ({ ...rest, score: score ?? 0 }));  // Phase 13
+    const pesertaList = json?.peserta ?? [];       // Phase 15
+    return pesertaList.map(({ score, ...rest }) => ({ ...rest, score: score ?? 0 }));  // Phase 14
   } catch (error) {
     // A missing file AND broken JSON both land here
     throw new Error(`Gagal memuat data peserta dari ${fileUrl}: ${error.message}`);
@@ -790,7 +851,7 @@ export const loadPeserta = async (fileUrl = new URL('../data/peserta.json', impo
 2. `await` waits for `readFile` to finish
 3. `try { ... } catch (error) { ... }` catches anything that goes wrong inside `try`
 
-### Step 15.3: Use It in main.js
+### Step 16.3: Use It in main.js
 
 ```javascript
 let rawPeserta;   // let, not const: it gets its value inside try
@@ -804,7 +865,7 @@ try {
 
 **🎓 Notice:** `await` here is not inside any function. Modules allow *top-level await* (ES2022).
 
-### Step 15.4: The Same Thing with .then()
+### Step 16.4: The Same Thing with .then()
 
 An async function returns a Promise, so this also works:
 
@@ -818,9 +879,9 @@ loadPeserta()
 
 ---
 
-## 🚀 Phase 16: Running & Testing (30 minutes)
+## 🚀 Phase 17: Running & Testing (30 minutes)
 
-### Step 16.1: Run the Main Application
+### Step 17.1: Run the Main Application
 
 ```bash
 npm start
@@ -832,7 +893,7 @@ npm start
 3. Numbers make sense (4 unique emails from 6 entries)
 4. Calculations are correct
 
-### Step 16.2: Read the Output Carefully
+### Step 17.2: Read the Output Carefully
 
 Each section teaches you something:
 
@@ -855,7 +916,7 @@ Score tidak-ada@brainmatics.com: tidak ditemukan
 Validasi status (includes): "LULUS" → true, "lulus" → false
 ```
 
-### Step 16.3: Run the Tests
+### Step 17.3: Run the Tests
 
 ```bash
 npm test
@@ -887,21 +948,22 @@ npm test
 After completing each phase, you should be able to:
 
 - [x] **Phase 1:** Understand object structure and identify duplicates
-- [x] **Phase 2:** Write and use arrow functions
-- [x] **Phase 3:** Use default parameters to prevent errors
-- [x] **Phase 4:** Build strings with template literals
-- [x] **Phase 5:** Extract object properties with destructuring
-- [x] **Phase 6:** Remove duplicates with Set
-- [x] **Phase 7:** Use Map for efficient data lookups
-- [x] **Phase 8:** Loop with for...of and destructuring
-- [x] **Phase 9:** Transform data with map, filter, reduce
-- [x] **Phase 10:** Create classes with ES6 syntax
-- [x] **Phase 11:** Organize code with modules
-- [x] **Phase 12:** Validate a status with `includes()` and use static class rules
-- [x] **Phase 13:** Copy and split objects with rest/spread
-- [x] **Phase 14:** Handle missing values with `?.` and `??`
-- [x] **Phase 15:** Load data with async/await and try/catch
-- [x] **Phase 16:** Run and test your code
+- [x] **Phase 2:** Choose const or let, and know why var is avoided
+- [x] **Phase 3:** Write and use arrow functions
+- [x] **Phase 4:** Use default parameters to prevent errors
+- [x] **Phase 5:** Build strings with template literals
+- [x] **Phase 6:** Extract object properties with destructuring
+- [x] **Phase 7:** Remove duplicates with Set
+- [x] **Phase 8:** Use Map for efficient data lookups
+- [x] **Phase 9:** Loop with for...of and destructuring
+- [x] **Phase 10:** Transform data with map, filter, reduce
+- [x] **Phase 11:** Create classes with ES6 syntax
+- [x] **Phase 12:** Organize code with modules
+- [x] **Phase 13:** Validate a status with `includes()` and use static class rules
+- [x] **Phase 14:** Copy and split objects with rest/spread
+- [x] **Phase 15:** Handle missing values with `?.` and `??`
+- [x] **Phase 16:** Load data with async/await and try/catch
+- [x] **Phase 17:** Run and test your code
 
 ---
 
