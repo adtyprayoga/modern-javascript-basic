@@ -53,6 +53,7 @@ This project implements a complete training management solution showcasing **ES6
 | 3 | [`EXERCISES.md`](EXERCISES.md) | 7 hands-on exercises, one per study case point, with solutions in `latihan/solusi/` |
 | 4 | [`CODE_HIGHLIGHTS.md`](CODE_HIGHLIGHTS.md) | The real code, annotated feature by feature |
 | — | [`COMMON_ERRORS.md`](COMMON_ERRORS.md) | Errors beginners hit, and how to fix them |
+| — | [`INSTRUCTOR_GUIDE.md`](INSTRUCTOR_GUIDE.md) | For trainers: a two-session teaching plan, demos, check questions, and assessment |
 
 ## 🏗️ Architecture
 
@@ -74,6 +75,7 @@ modern-javascript-basic/
 │   ├── solusi/                 # Exercise solutions, expected output, and their own data copy
 │   └── cek.js                  # Checks every solution's output
 ├── BEGINNER_GUIDE.md           # 18-phase step-by-step guide
+├── INSTRUCTOR_GUIDE.md         # How to teach it (for trainers)
 ├── EXERCISES.md                # One exercise per study case point
 ├── main.js                     # Application entry point
 ├── package.json                # Project configuration
