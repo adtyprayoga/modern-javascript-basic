@@ -1,6 +1,6 @@
 # Instructor Guide: Teaching the Studi Kasus
 
-> For the trainer. Learners follow `BEGINNER_GUIDE.md` and `EXERCISES.md`. This guide tells you how to run the class around them: what to show, what to ask, and what usually goes wrong.
+> For the trainer. Learners follow `BEGINNER_GUIDE.md` and `EXERCISES.md`. This guide is your lesson script: for each of the 18 topics, what to say, what to type live (with its exact output), what to ask, and which mistake to show on purpose.
 
 ## 🎯 Outcome
 
@@ -47,107 +47,726 @@ git restore data/peserta.json latihan/peserta-retake.json
 
 The guide's phases add up to about **6.5 hours** of self-study. The `4-5 hours` in the header of `BEGINNER_GUIDE.md` is too low. Taught live, the material fits into **two sessions of 4 hours**:
 
-| Session | Block | Guide phases | Case points | Minutes |
+| Session | Segment | Topics (= guide phases) | Case points | Minutes |
 |---|---|---|---|---|
-| 1 | Setup and the case | — | all | 15 |
-| 1 | A: Data, const & let | 1–2 | 2 | 25 |
-| 1 | B: Functions, defaults, template literals | 3–5 | 2 | 35 |
+| 1 | Opening: the case | — | all | 10 |
+| 1 | The data; const & let | 1–2 | 1, 2 | 25 |
+| 1 | Arrow functions, defaults, template literals | 3–5 | 2 | 35 |
 | 1 | *Break* | | | 10 |
-| 1 | C: Destructuring | 6 | 3 | 20 |
-| 1 | D: Set, Map, for...of | 7–9 | 1, 4 | 55 |
+| 1 | Destructuring | 6 | 3 | 15 |
+| 1 | Set, Map and the last test, for...of | 7–9 | 1, 4 | 55 |
 | 1 | *Break* | | | 10 |
-| 1 | E: Array methods, classes, modules | 10–12 | 5 | 60 |
-| 1 | Exit ticket | | | 10 |
+| 1 | map/filter/reduce, classes, modules | 10–12 | 3, 5 | 65 |
+| 1 | Exit ticket | | | 15 |
 | 2 | Recap quiz | | | 10 |
-| 2 | F: `includes()` and static rules | 13 | 1, 5, 6 | 20 |
-| 2 | G: Object rest & spread | 14 | 3 | 20 |
-| 2 | H: `?.` and `??` | 15 | 7 | 20 |
+| 2 | `includes()` and the pass/fail rule | 13 | 1, 5, 6 | 20 |
+| 2 | Object rest & spread | 14 | 3 | 20 |
+| 2 | `?.` and `??` | 15 | 7 | 20 |
 | 2 | *Break* | | | 10 |
-| 2 | I: async/await + try/catch | 16 | 7 | 30 |
-| 2 | J: Run & test, then the capstone | 17–18 | 1 | 40 |
+| 2 | async/await + try/catch | 16 | 7 | 30 |
+| 2 | Running & testing | 17 | — | 15 |
+| 2 | The whole case, from data to status | 18 | all | 20 |
 | 2 | *Break* | | | 10 |
 | 2 | Lab: Exercises 01–07 | — | all | 60 |
-| 2 | Solution review and exit ticket | | | 20 |
+| 2 | Solution review and exit ticket | | | 25 |
 
 **Other formats:**
-- **One-day intensive:** run both sessions with lunch between them. Shorten Block E to 45 minutes and the lab to 45 minutes.
+- **One-day intensive:** run both sessions with lunch between them. Shorten Topics 10–12 to 50 minutes and the lab to 45 minutes.
 - **Self-paced with office hours:** learners do 6 phases per week for 3 weeks, then the exercises. Use the exit tickets as weekly check-ins.
-
-Each block below has: **Show** (live demo), **Say** (the one message to land), **Ask** (a check with its answer), and **Watch for** (the usual mistake).
 
 ---
 
-## 📘 Session 1: ES6 Foundations
+## 🧑‍💻 Live-Coding Setup
 
-### Setup and the case (15 min)
+Teach from one scratch file: **`latihan/demo.js`**.
+- Clear it at the start of each topic and type the code shown.
+- Run it with `node latihan/demo.js`.
+- Imports start with `../utils/` because the file sits in `latihan/`.
+- `npm test` never reads it: the checker reads only `latihan/solusi/`.
+- Delete it after class with `rm latihan/demo.js`.
 
-**Show:** Open `README.md` at **Studi Kasus** and read the seven lines aloud. Then run:
+Every code block marked **Type and run** prints exactly the **Output** shown, on Node 22 or higher. If live typing goes wrong, paste the block.
 
-```bash
-npm start
+Each topic follows the same steps:
+1. **Hook:** the problem, in one or two sentences.
+2. **Live code:** type it, run it, and read the output aloud.
+3. **Explain:** the two or three points to make.
+4. **In the project:** where the feature lives in the real code.
+5. **Check:** questions, with answers.
+6. **Show the mistake:** make the usual error on purpose, then fix it.
+7. **Transition:** one line that leads into the next topic.
+
+---
+
+## 📘 Session 1: ES6 Foundations (Topics 1–12)
+
+### Opening (10 min)
+
+1. Open `README.md` at **Studi Kasus** and read the seven lines aloud.
+2. Run `npm start` and scroll through TASK 1 to TASK 9.
+3. Say: *"By the end of tomorrow you can write every line of this program yourself, and explain why it is written this way."*
+4. Ask: *"Which participants appear twice?"* **Answer:** Aditya and Zaim. TASK 1 shows 6 entries but 4 unique emails.
+
+---
+
+### Topic 1: The Data (10 min) · Guide Phase 1 · Case point 1
+
+**Goal:** learners can read one participant record, and they notice the duplicate emails.
+
+**Step 1 — Hook.** *"Before writing code, we need to know what the data looks like. What can go wrong with this list?"*
+
+**Step 2 — Live code.** Open `data/peserta.json` on screen first. Then type and run:
+
+<!-- demo -->
+```javascript
+import { loadPeserta } from '../utils/pesertaLoader.js';
+const rawPeserta = await loadPeserta();
+console.log("Jumlah data:", rawPeserta.length);
+console.log(rawPeserta[0]);
+console.log(rawPeserta.map((p) => p.email));
+```
+**Output:**
+```
+Jumlah data: 6
+{
+  id: 101,
+  name: 'Aditya Prayoga',
+  email: 'aditya@brainmatics.com',
+  class: 'JavaScript Fundamentals',
+  score: 85
+}
+[
+  'aditya@brainmatics.com',
+  'zaim@brainmatics.com',
+  'aditya@brainmatics.com',
+  'milea@brainmatics.com',
+  'pratama@brainmatics.com',
+  'zaim@brainmatics.com'
+]
 ```
 
-**Say:** "By the end of tomorrow you can write every line of this program yourself, and explain why it is written this way."
+**Step 3 — Explain.**
+- One object is one participant: `id`, `name`, `email`, `class`, `score`.
+- Aditya and Zaim appear **twice**, because they took the test again. The later entry is the **last test** (*nilai tes terakhir*), which is case point 1.
+- Say: *"Treat the first two lines as 'load the data' for now. Topic 16 explains `await`."*
 
-**Ask:** "In the output, which participants appear twice in the data?" **Answer:** Aditya and Zaim. TASK 1 shows 6 raw entries but 4 unique emails.
+**Step 4 — In the project.** `data/peserta.json`, wrapped in `{ "peserta": [ ... ] }`.
 
-### Block A: Data, const & let (Phases 1–2, 25 min)
+**Step 5 — Check.** *"How many different people are in the list?"* **Answer:** 4.
 
-**Show:** Open `data/peserta.json`. Point at the two Aditya entries (85, then 88) and keep them on screen; Block D comes back to them.
+**Step 6 — Show the mistake.** None yet. Instead, keep the two Aditya entries (85, then 88) on screen and say *"Remember these numbers."* Topic 8 comes back to them.
 
-**Say:** "Start with `const`. Use `let` only when the value must change. Never use `var`."
+**Transition:** *"Before we process this data, one rule about variables: `const` or `let`?"*
 
-**Ask:** "Can you change `peserta.score` if `peserta` is a `const`?" **Answer:** Yes. `const` stops you from replacing the variable, not from changing the object inside it (Step 2.3).
+---
 
-**Watch for:** learners who think `const` makes an object read-only. Show `peserta = {}`, which throws `TypeError: Assignment to constant variable.`
+### Topic 2: const & let (15 min) · Guide Phase 2 · Case point 2
 
-### Block B: Functions, defaults, template literals (Phases 3–5, 35 min)
+**Goal:** learners choose `const` by default, use `let` only when the value changes, and never use `var`.
 
-**Show:** TASK 2 in the `npm start` output:
+**Step 1 — Hook.** *"JavaScript has three ways to make a variable. We use two of them, and here is why."*
 
+**Step 2 — Live code: const.** Type and run:
+
+<!-- demo -->
+```javascript
+const passingScore = 80;
+passingScore = 70;
 ```
-Nama: Aditya, Score: 85, Status: LULUS
-Nama: Milea, Score: 78, Status: TIDAK LULUS
+**Output:**
+```
+TypeError: Assignment to constant variable.
+```
+
+**Step 3 — Live code: let for a counter.** Type and run:
+
+<!-- demo -->
+```javascript
+const scores = [88, 94, 78, 95];
+let jumlahLulus = 0;
+for (const score of scores) {
+  if (score >= 80) jumlahLulus++;
+}
+console.log(jumlahLulus);
+```
+**Output:**
+```
+3
+```
+
+**Step 4 — Live code: a const object can still change.** Type and run:
+
+<!-- demo -->
+```javascript
+const peserta = { name: "Milea", score: 78 };
+peserta.score = 86;
+console.log(peserta);
+```
+**Output:**
+```
+{ name: 'Milea', score: 86 }
+```
+
+**Step 5 — Live code: why not var.** Type and run:
+
+<!-- demo -->
+```javascript
+if (true) {
+  var a = 1;
+  let b = 2;
+}
+console.log(a);
+console.log(b);
+```
+**Output:**
+```
+1
+ReferenceError: b is not defined
+```
+
+**Step 6 — Explain.**
+- `const` means *this name always points to the same value*. Start with it every time.
+- `let` is for values that must change: counters, and values assigned later inside `try`.
+- `var` leaks out of `{ }` blocks. That causes bugs, so never use it.
+
+**Step 7 — In the project.** `test/test-all.js` has `let testsPassed = 0;` and `let testsFailed = 0;`. `main.js` has `let rawPeserta;`, assigned inside `try`. Everything else uses `const`.
+
+**Step 8 — Check.**
+- *"Counter in a loop: const or let?"* **Answer:** `let`.
+- *"Can you change `peserta.score` if `peserta` is a const?"* **Answer:** Yes. You can't do `peserta = {}`.
+
+**Transition:** *"Now that we can store values, let's write functions, the short way."*
+
+---
+
+### Topic 3: Arrow Functions (15 min) · Guide Phase 3 · Case point 2
+
+**Goal:** learners write arrow functions with and without braces, and know when `return` is needed.
+
+**Step 1 — Hook.** *"Every function in this project is written as an arrow. Let's see why."*
+
+**Step 2 — Live code.** Type and run:
+
+<!-- demo -->
+```javascript
+function tambahBonusLama(score) {
+  return score + 5;
+}
+const tambahBonus = (score) => score + 5;
+console.log(tambahBonusLama(75), tambahBonus(75));
+```
+**Output:**
+```
+80 80
+```
+
+**Step 3 — Explain.**
+- Both functions do the same thing. The arrow drops the words `function` and `return`.
+- When there are no braces, the expression after `=>` **is** the return value.
+- Arrow functions are stored in a `const` (Topic 2).
+
+**Step 4 — In the project.** `utils/pesertaProcessor.js`: every export is `export const name = (...) => { ... }`.
+
+**Step 5 — Check.** *"Rewrite `function kali2(x) { return x * 2; }` as an arrow."* **Answer:** `const kali2 = (x) => x * 2;`
+
+**Step 6 — Show the mistake: braces without return.** Type and run:
+
+<!-- demo -->
+```javascript
+const tambahSalah = (score) => { score + 5; };
+const tambahBenar = (score) => { return score + 5; };
+console.log(tambahSalah(75), tambahBenar(75));
+```
+**Output:**
+```
+undefined 80
+```
+Say: *"Once you add braces, you must write `return`."* See `COMMON_ERRORS.md` → Arrow Function Errors.
+
+**Transition:** *"What happens when someone calls our function with no arguments?"*
+
+---
+
+### Topic 4: Default Parameters (10 min) · Guide Phase 4 · Case point 2
+
+**Goal:** learners give every parameter a sensible default, and know defaults only catch `undefined`.
+
+**Step 1 — Hook.** *"If someone forgets an argument, we want a sensible value, not a crash."*
+
+**Step 2 — Live code.** Type and run:
+
+<!-- demo -->
+```javascript
+const sapa = (nama = "Peserta") => "Halo, " + nama;
+console.log(sapa("Aditya"));
+console.log(sapa());
+console.log(sapa(undefined));
+console.log(sapa(null));
+```
+**Output:**
+```
+Halo, Aditya
+Halo, Peserta
+Halo, Peserta
+Halo, null
+```
+
+**Step 3 — Explain.**
+- The default is used when the argument is **missing or `undefined`**.
+- `null` is a real value, so the default does **not** apply. Say: *"Remember this. Topic 15 fixes it with `??`."*
+
+**Step 4 — In the project.** Type and run:
+
+<!-- demo -->
+```javascript
+import { displayPeserta } from '../utils/pesertaFormatter.js';
+console.log(displayPeserta());
+console.log(displayPeserta("Milea", 78));
+```
+**Output:**
+```
 Nama: Unknown, Score: 0, Status: TIDAK LULUS
+Nama: Milea, Score: 78, Status: TIDAK LULUS
+```
+Open `utils/pesertaFormatter.js` and point at `status = PesertaValidator.getStatus(score)`. A default can be **computed** from an earlier parameter.
+
+**Step 5 — Check.** *"Why does `displayPeserta()` say TIDAK LULUS?"* **Answer:** `score` defaults to 0, and the status is computed from that 0.
+
+**Transition:** *"We've been building strings with `+`. There's a cleaner way."*
+
+---
+
+### Topic 5: Template Literals (10 min) · Guide Phase 5 · Case point 2
+
+**Goal:** learners build strings with backticks and `${}`, including expressions.
+
+**Step 1 — Hook.** *"Look at all the `+` and quotes in this line. Easy to get wrong."*
+
+**Step 2 — Live code.** Type and run:
+
+<!-- demo -->
+```javascript
+const name = "Milea";
+const score = 78;
+console.log("Nama: " + name + ", Score: " + score);
+console.log(`Nama: ${name}, Score: ${score}`);
+console.log(`Status: ${score >= 80 ? "LULUS" : "TIDAK LULUS"}`);
+console.log("Nama: ${name}");
+```
+**Output:**
+```
+Nama: Milea, Score: 78
+Nama: Milea, Score: 78
+Status: TIDAK LULUS
+Nama: ${name}
 ```
 
-**Say:** "The third line called `displayPeserta()` with no arguments. Default parameters filled in every value."
+**Step 3 — Explain.**
+- Backticks `` ` `` allow `${...}`. Anything inside the braces is evaluated, even a ternary.
+- The last line used **double quotes**, so `${name}` was printed literally.
 
-**Ask:** "Why is the third status TIDAK LULUS?" **Answer:** `score` defaults to 0, and the status default is computed from that score. 0 is below 80.
+**Step 4 — In the project.** `displayPeserta` returns `` `Nama: ${name}, Score: ${score}, Status: ${finalStatus}` ``.
 
-**Watch for:** single or double quotes used instead of backticks, so `${name}` prints literally (`COMMON_ERRORS.md` → Template Literal Errors).
+**Step 5 — Check.** *"Why did the last line print `${name}`?"* **Answer:** it used `"` instead of backticks.
 
-### Block C: Destructuring (Phase 6, 20 min)
+**Step 6 — Show the mistake.** That was the last line of the demo. See `COMMON_ERRORS.md` → Template Literal Errors.
 
-**Show:** `const { class: className } = peserta;`, then try `const { class } = peserta;` and let it fail.
+**Transition:** *"Our records are objects. Let's pull values out of them quickly."*
 
-**Say:** "`class` is a reserved word. Rename it while you destructure."
+---
 
-**Ask:** "What does `{ name: pesertaNama } = peserta` create?" **Answer:** a variable `pesertaNama`. There is no variable called `name`.
+### Topic 6: Destructuring (15 min) · Guide Phase 6 · Case point 3
 
-**Watch for:** `COMMON_ERRORS.md` → Destructuring Errors ("Unexpected token 'class'").
+**Goal:** learners extract properties, rename while extracting, and handle the reserved word `class`.
 
-### Block D: Set, Map, for...of (Phases 7–9, 55 min)
+**Step 1 — Hook.** *"Writing `peserta.name`, `peserta.score` and `peserta.class` again and again is noisy."*
 
-**Show:** TASK 4 (Set, 4 unique emails) and TASK 5 (Map). Go back to the Aditya entries from Block A: the Map holds **88**.
+**Step 2 — Live code.** Type and run:
 
-**Say:** "`Map.set()` with an email that already exists *replaces* the old value. That is how we get the *last* test score, which is case point 1."
+<!-- demo -->
+```javascript
+const peserta = { id: 104, name: "Milea Kusuma", class: "JavaScript Fundamentals", score: 78 };
+const { name, score } = peserta;
+console.log(name, score);
+const { name: pesertaNama, class: className } = peserta;
+console.log(pesertaNama, className);
+```
+**Output:**
+```
+Milea Kusuma 78
+Milea Kusuma JavaScript Fundamentals
+```
 
-**Ask:** "`new Set(["a", "b", "a"]).size`?" **Answer:** `2`.
+**Step 3 — Explain.**
+- `{ name, score } = peserta` creates two variables at once.
+- `{ name: pesertaNama }` means *take `name` and call it `pesertaNama`*.
+- `class` is a reserved word, so it **must** be renamed: `class: className`.
 
-**Watch for:** `mySet[0]`, which gives `undefined`. A Set is not an array; spread it first with `[...mySet]` (`COMMON_ERRORS.md` → Set & Map Errors).
+**Step 4 — In the project.** `utils/pesertaFormatter.js`, `createPesertaSummary`: `const { name = "Unknown", score = 0, class: className = "N/A" } = ...`. That line combines destructuring, renaming and defaults.
 
-### Block E: Array methods, classes, modules (Phases 10–12, 60 min)
+**Step 5 — Check.** *"After `const { name: pesertaNama } = peserta;`, does a variable `name` exist?"* **Answer:** No, only `pesertaNama`.
 
-**Show:** `utils/pesertaValidator.js`. Point out the `export` on the class, then the `import` at the top of `utils/pesertaFormatter.js`.
+**Step 6 — Show the mistake.** Type and run:
 
-**Say:** "One file, one job. The validator decides LULUS or TIDAK LULUS. Every other file imports that decision instead of repeating it."
+<!-- demo -->
+```javascript
+const peserta = { class: "React Basics" };
+const { class } = peserta;
+```
+**Output:**
+```
+SyntaxError: Unexpected token 'class'
+```
+Fix: `const { class: className } = peserta;`. See `COMMON_ERRORS.md` → Destructuring Errors.
 
-**Ask:** "What breaks if you write `import ... from './utils/pesertaValidator'` without `.js`?" **Answer:** Node can't find the module. Native ES modules need the extension.
+**Transition:** *"Back to Topic 1: duplicate emails. How do we remove them?"*
 
-**Watch for:** missing `.js` in imports, and calling a class without `new` (`COMMON_ERRORS.md` → Module & Import Errors, Class Errors).
+---
 
-### Exit ticket, Session 1 (10 min)
+### Topic 7: Set (20 min) · Guide Phase 7 · Case point 4
+
+**Goal:** learners remove duplicates with a Set, and convert it back to an array.
+
+**Step 1 — Hook.** *"We have 6 entries but only 4 people. We need each email once."*
+
+**Step 2 — Live code.** Type and run:
+
+<!-- demo -->
+```javascript
+const emails = ["aditya@brainmatics.com", "zaim@brainmatics.com", "aditya@brainmatics.com"];
+const unik = new Set(emails);
+console.log(unik.size);
+console.log(unik[0]);
+console.log([...unik]);
+```
+**Output:**
+```
+2
+undefined
+[ 'aditya@brainmatics.com', 'zaim@brainmatics.com' ]
+```
+
+**Step 3 — Explain.**
+- A Set keeps **one copy** of each value. Duplicates are dropped automatically.
+- A Set is **not an array**, so `unik[0]` is `undefined`. Spread it with `[...unik]` to get an array.
+
+**Step 4 — In the project.** Type and run:
+
+<!-- demo -->
+```javascript
+import { loadPeserta } from '../utils/pesertaLoader.js';
+import { getUniqueEmails } from '../utils/pesertaProcessor.js';
+const rawPeserta = await loadPeserta();
+console.log(rawPeserta.length, getUniqueEmails(rawPeserta).length);
+```
+**Output:**
+```
+6 4
+```
+Open `getUniqueEmails` in `utils/pesertaProcessor.js`. It is one line: `[...new Set(pesertaList.map(p => p.email))]`.
+
+**Step 5 — Check.** *"What is `new Set(["a", "b", "a"]).size`?"* **Answer:** `2`.
+
+**Step 6 — Show the mistake.** That was `unik[0]` in the demo. See `COMMON_ERRORS.md` → Set & Map Errors.
+
+**Transition:** *"A Set tells us WHICH emails exist. But we need each person's data, and only their last test."*
+
+---
+
+### Topic 8: Map, and the Last Test Score (25 min) · Guide Phase 8 · Case point 1, 4
+
+**Goal:** learners use a Map as an index by email, and explain why it keeps the **last** test.
+
+**Step 1 — Hook.** *"Aditya scored 85, then 88. Which score decides LULUS or TIDAK LULUS? The last one."*
+
+**Step 2 — Live code.** Type and run:
+
+<!-- demo -->
+```javascript
+const nilai = new Map();
+nilai.set("aditya@brainmatics.com", 85);
+nilai.set("aditya@brainmatics.com", 88);
+console.log(nilai.get("aditya@brainmatics.com"));
+console.log(nilai.size);
+console.log(nilai.get("tidak-ada@brainmatics.com"));
+```
+**Output:**
+```
+88
+1
+undefined
+```
+
+**Step 3 — Explain.**
+- `set` with an **existing key replaces** the value. Writing the entries in file order therefore leaves the **last test**. This is the heart of case point 1.
+- `get` finds a value by key directly, with no searching through the array.
+- A missing key returns `undefined`. Keep that in mind for Topic 15.
+
+**Step 4 — In the project.** Type and run:
+
+<!-- demo -->
+```javascript
+import { loadPeserta } from '../utils/pesertaLoader.js';
+import { createPesertaMap } from '../utils/pesertaProcessor.js';
+const pesertaMap = createPesertaMap(await loadPeserta());
+console.log(pesertaMap.size);
+console.log(pesertaMap.get("aditya@brainmatics.com").score);
+```
+**Output:**
+```
+4
+88
+```
+Open `createPesertaMap`: `pesertaMap.set(peserta.email, { ...peserta })`. The `{ ...peserta }` part is Topic 14.
+
+**Step 5 — Check.**
+- *"Aditya has 85, then 88. Which does the Map keep?"* **Answer:** 88, because `set` replaces the earlier value.
+- *"What if the file had 88 first, then 85?"* **Answer:** 85. The *last entry* counts, not the highest score.
+
+**Transition:** *"We keep writing loops. Let's make them cleaner."*
+
+---
+
+### Topic 9: for...of (10 min) · Guide Phase 9 · Case point 2
+
+**Goal:** learners loop with `for...of`, including destructuring inside the loop.
+
+**Step 1 — Hook.** *"`i`, `length` and `scores[i]` are three chances to make an off-by-one mistake."*
+
+**Step 2 — Live code.** Type and run:
+
+<!-- demo -->
+```javascript
+const scores = [85, 92, 88];
+for (let i = 0; i < scores.length; i++) {
+  console.log(i, scores[i]);
+}
+for (const score of scores) {
+  console.log(score);
+}
+const pesertaList = [{ name: "Aditya", score: 88 }, { name: "Milea", score: 78 }];
+for (const { name, score } of pesertaList) {
+  console.log(`${name}: ${score}`);
+}
+```
+**Output:**
+```
+0 85
+1 92
+2 88
+85
+92
+88
+Aditya: 88
+Milea: 78
+```
+
+**Step 3 — Explain.**
+- `for...of` gives you each **value**, with no index to manage.
+- Combined with destructuring (Topic 6), each item unpacks right in the loop header.
+- `const` works in `for...of` because each round gets a fresh variable.
+
+**Step 4 — In the project.** `getPesertaByClass` in `utils/pesertaProcessor.js` uses `for (const { ..., class: pesertaClass, ... } of pesertaList)`.
+
+**Step 5 — Show the mistake.** Type and run:
+
+<!-- demo -->
+```javascript
+const peserta = { name: "Aditya", score: 88 };
+for (const x of peserta) {
+  console.log(x);
+}
+```
+**Output:**
+```
+TypeError: peserta is not iterable
+```
+Say: *"`for...of` works on arrays, Sets and Maps, not on plain objects."* See `COMMON_ERRORS.md` → for...of Errors.
+
+**Transition:** *"For common jobs like transforming, filtering and summing, arrays have built-in methods."*
+
+---
+
+### Topic 10: map, filter, reduce (25 min) · Guide Phase 10 · Case point 3
+
+**Goal:** learners transform a list with `map`, select with `filter`, and combine with `reduce`.
+
+**Step 1 — Hook.** *"Three questions: what are the names, who passed, and what is the average?"*
+
+**Step 2 — Live code.** Type and run:
+
+<!-- demo -->
+```javascript
+const pesertaList = [
+  { name: "Aditya", score: 88 },
+  { name: "Zaim", score: 94 },
+  { name: "Milea", score: 78 },
+];
+const nama = pesertaList.map(({ name }) => name);
+const lulus = pesertaList.filter(({ score }) => score >= 80);
+const total = pesertaList.reduce((sum, { score }) => sum + score, 0);
+console.log(nama);
+console.log(lulus.length);
+console.log(total, total / pesertaList.length);
+```
+**Output:**
+```
+[ 'Aditya', 'Zaim', 'Milea' ]
+2
+260 86.66666666666667
+```
+
+**Step 3 — Explain.**
+- `map` returns a new array of the **same length**, with each item transformed.
+- `filter` returns the items where the function returns `true`.
+- `reduce` folds the whole list into **one value**. The `0` is the starting value.
+
+**Step 4 — In the project.** Type and run:
+
+<!-- demo -->
+```javascript
+import { calculateAverageScore } from '../utils/pesertaProcessor.js';
+console.log(calculateAverageScore([{ score: 88 }, { score: 94 }, { score: 78 }]));
+console.log(calculateAverageScore([]));
+```
+**Output:**
+```
+86.67
+0
+```
+The project's version rounds to 2 decimals and handles an empty list.
+
+**Step 5 — Check.** *"Which method answers 'how many passed?'"* **Answer:** `filter`, then `.length`.
+
+**Step 6 — Show the mistake: reduce with no start value.** Type and run:
+
+<!-- demo -->
+```javascript
+const kosong = [];
+console.log(kosong.reduce((sum, score) => sum + score));
+```
+**Output:**
+```
+TypeError: Reduce of empty array with no initial value
+```
+Fix: always pass the start value, `reduce(fn, 0)`. See `COMMON_ERRORS.md` → Array Method Errors.
+
+**Transition:** *"Rules like 'a valid score is between 60 and 100' belong together, in a class."*
+
+---
+
+### Topic 11: Classes (25 min) · Guide Phase 11 · Case point 5
+
+**Goal:** learners write a class with a constructor and arrow methods, and use `new`.
+
+**Step 1 — Hook.** *"We need validators with different rules: strict (80–100) and lenient (60–100). One blueprint, many instances."*
+
+**Step 2 — Live code.** Type and run:
+
+<!-- demo -->
+```javascript
+class Validator {
+  constructor(minScore = 60, maxScore = 100) {
+    this.minScore = minScore;
+    this.maxScore = maxScore;
+  }
+  isValidScore = (score) => score >= this.minScore && score <= this.maxScore;
+}
+const ketat = new Validator(80, 100);
+console.log(ketat.isValidScore(85), ketat.isValidScore(75));
+const cek = ketat.isValidScore;
+console.log(cek(90));
+```
+**Output:**
+```
+true false
+true
+```
+
+**Step 3 — Explain.**
+- The `constructor` runs on `new`. It stores the rules on `this`.
+- `isValidScore = (score) => ...` is an **arrow method**. `this` stays bound, so it still works when copied into `cek`.
+
+**Step 4 — Contrast with a normal method.** Type and run:
+
+<!-- demo -->
+```javascript
+class ValidatorLama {
+  constructor(minScore) {
+    this.minScore = minScore;
+  }
+  isValid(score) {
+    return score >= this.minScore;
+  }
+}
+const cek = new ValidatorLama(80).isValid;
+console.log(cek(90));
+```
+**Output:**
+```
+TypeError: Cannot read properties of undefined (reading 'minScore')
+```
+Say: *"A normal method loses `this` when you pass it around. That's why the project uses arrow methods."*
+
+**Step 5 — In the project.** `utils/pesertaValidator.js`: the `PesertaValidator` constructor, `isValidScore`, and `formatResult`.
+
+**Step 6 — Show the mistake: forgetting `new`.** Type and run:
+
+<!-- demo -->
+```javascript
+class Validator {}
+const v = Validator();
+```
+**Output:**
+```
+TypeError: Class constructor Validator cannot be invoked without 'new'
+```
+See `COMMON_ERRORS.md` → Class Errors.
+
+**Transition:** *"The validator lives in its own file. How do other files use it?"*
+
+---
+
+### Topic 12: Modules (15 min) · Guide Phase 12 · Case point 5
+
+**Goal:** learners export from one file, import into another, and always write the `.js` extension.
+
+**Step 1 — Hook.** *"One giant file is hard to read. One job per file, and files share with `export` and `import`."*
+
+**Step 2 — Live code.** Open `utils/pesertaValidator.js` and point at `export class` and `export const createPassingValidator`. Then type and run:
+
+<!-- demo -->
+```javascript
+import { createPassingValidator, createLenientValidator } from '../utils/pesertaValidator.js';
+console.log(createPassingValidator().formatResult("Milea", 78));
+console.log(createLenientValidator().formatResult("Milea", 78));
+```
+**Output:**
+```
+Milea mendapat score 78 - TIDAK SESUAI
+Milea mendapat score 78 - SESUAI STANDAR
+```
+
+**Step 3 — Explain.**
+- `export` makes a name available to other files. `import { name } from './file.js'` brings it in.
+- Same score, different validator, different result: each instance keeps its own rules.
+- `package.json` has `"type": "module"`. That is what enables `import` in Node.
+
+**Step 4 — In the project.** `utils/pesertaFormatter.js` imports `PesertaValidator`, and `main.js` imports from all four utils files.
+
+**Step 5 — Show the mistake: no `.js`.** Type and run:
+
+<!-- demo prefix -->
+```javascript
+import { PesertaValidator } from '../utils/pesertaValidator';
+```
+**Output:**
+```
+Error [ERR_MODULE_NOT_FOUND]: Cannot find module
+```
+The full message continues with the absolute path. Fix: `'../utils/pesertaValidator.js'`. See `COMMON_ERRORS.md` → Module & Import Errors.
+
+### Exit ticket, Session 1 (15 min)
 
 Learners answer on paper or in chat:
 
@@ -157,87 +776,327 @@ Learners answer on paper or in chat:
 
 ---
 
-## 📗 Session 2: The ES2016+ Case Features
+## 📗 Session 2: The ES2016+ Case Features (Topics 13–18)
 
 ### Recap quiz (10 min)
 
 Ask the Session 1 exit-ticket questions out loud. Spend more time on any question that more than a third of the class missed.
 
-### Block F: `includes()` and static rules (Phase 13, 20 min)
+---
 
-**Show:** the before/after of the pass/fail rule:
+### Topic 13: includes() and the Pass/Fail Rule (20 min) · Guide Phase 13 · Case point 1, 5, 6
+
+**Goal:** learners validate a status with `includes()`, and know where the LULUS / TIDAK LULUS rule lives.
+
+**Step 1 — Hook.** *"Someone passes the status `"lulus"` in lowercase. Should we print it? We need a list of allowed statuses."*
+
+**Step 2 — Live code.** Type and run:
+
+<!-- demo -->
+```javascript
+const STATUS = ["LULUS", "TIDAK LULUS"];
+console.log(STATUS.indexOf("LULUS") !== -1, STATUS.includes("LULUS"));
+console.log(STATUS.includes("lulus"));
+console.log([NaN].indexOf(NaN), [NaN].includes(NaN));
+```
+**Output:**
+```
+true true
+false
+-1 true
+```
+
+**Step 3 — Explain.**
+- `includes()` (ES2016) answers yes or no, and reads better than `indexOf(...) !== -1`.
+- It is **case-sensitive**: `"lulus"` is not `"LULUS"`.
+- Bonus: it finds `NaN`, which `indexOf` can't.
+
+**Step 4 — In the project.** Type and run:
+
+<!-- demo -->
+```javascript
+import { PesertaValidator } from '../utils/pesertaValidator.js';
+import { displayPeserta } from '../utils/pesertaFormatter.js';
+console.log(PesertaValidator.STATUS);
+console.log(PesertaValidator.getStatus(80), PesertaValidator.getStatus(79));
+console.log(PesertaValidator.isValidStatus("TIDAK LULUS"), PesertaValidator.isValidStatus("BELUM LULUS"));
+console.log(displayPeserta("Test", 90, "lulus"));
+```
+**Output:**
+```
+[ 'LULUS', 'TIDAK LULUS' ]
+LULUS TIDAK LULUS
+true false
+Nama: Test, Score: 90, Status: LULUS
+```
+Point out `static` in `utils/pesertaValidator.js`: these belong to the class itself, so no `new` is needed. Then show the before and after:
 
 ```bash
 git diff es6-baseline HEAD -- utils/pesertaFormatter.js
 ```
 
-The old version repeats `score >= 80 ? "LULUS" : "BELUM LULUS"` in three places. The new one calls `PesertaValidator.getStatus(score)`.
+The old code repeated `score >= 80 ? "LULUS" : "BELUM LULUS"` in three places. Now it calls `PesertaValidator.getStatus(score)` from one place.
 
-**Say:** "The rule lives in one place now. `includes()` checks whether a status is allowed."
+**Step 5 — Check.**
+- *"Is a score of exactly 80 LULUS?"* **Answer:** Yes, because the rule is `>= 80`.
+- *"What does `displayPeserta` do with `"lulus"`?"* **Answer:** it replaces it with the status computed from the score.
 
-**Ask:** `["LULUS"].includes("lulus")`? **Answer:** `false`, because `includes()` is case-sensitive.
+**Transition:** *"Next, copying and splitting objects, which we've already seen in `createPesertaMap`."*
 
-**Watch for:** learners expecting a lowercase `"lulus"` to be accepted. Show `displayPeserta("Test", 90, "lulus")`: the invalid status is replaced, and the output says `Status: LULUS`.
+---
 
-### Block G: Object rest & spread (Phase 14, 20 min)
+### Topic 14: Object Rest & Spread (20 min) · Guide Phase 14 · Case point 3
 
-**Show:** TASK 3 in the `npm start` output:
+**Goal:** learners copy and update an object with spread, split one with rest, and know that `=` is not a copy.
+
+**Step 1 — Hook.** *"Aditya retakes the test. We want a new record with the new score, without changing the old one."*
+
+**Step 2 — Live code.** Type and run:
+
+<!-- demo -->
+```javascript
+const peserta = { id: 101, name: "Aditya", email: "aditya@brainmatics.com", score: 85 };
+const retake = { ...peserta, score: 88 };
+console.log(retake.score, peserta.score);
+const { email, ...tanpaEmail } = peserta;
+console.log(tanpaEmail);
+```
+**Output:**
+```
+88 85
+{ id: 101, name: 'Aditya', score: 85 }
+```
+
+**Step 3 — Explain.**
+- **Spread** `{ ...peserta, score: 88 }` copies every field, then overrides `score`. The original is unchanged.
+- **Rest** `{ email, ...tanpaEmail }` takes `email` out and collects everything else.
+- Rule of thumb: `...` on the **left** of `=` collects (rest); on the **right** it copies out (spread).
+
+**Step 4 — Show the mistake: `=` is not a copy.** Type and run:
+
+<!-- demo -->
+```javascript
+const peserta = { name: "Aditya", score: 85 };
+const bukanSalinan = peserta;
+bukanSalinan.score = 0;
+console.log(peserta.score);
+const salinan = { ...peserta, score: 99 };
+console.log(peserta.score, salinan.score);
+```
+**Output:**
+```
+0
+0 99
+```
+Say: *"`=` gives the same object a second name. Changing it through either name changes the original."*
+
+**Step 5 — In the project.**
+- `createPesertaMap` stores `{ ...peserta }`.
+- `loadPeserta` uses both at once: `({ score, ...rest }) => ({ ...rest, score: score ?? 0 })`.
+- `main.js` TASK 3 prints `Sisa properti (rest): ...`.
+
+**Step 6 — Check.** *"In `const { name, ...sisanya } = peserta`, is `name` inside `sisanya`?"* **Answer:** No. Rest collects only the fields you didn't name.
+
+**Transition:** *"In Topic 8, a missing email gave `undefined`. What happens when we read `.score` from that?"*
+
+---
+
+### Topic 15: ?. and ?? (20 min) · Guide Phase 15 · Case point 7
+
+**Goal:** learners read values that may be missing with `?.`, give fallbacks with `??`, and know why `||` is wrong for scores.
+
+**Step 1 — Hook.** Type and run:
+
+<!-- demo -->
+```javascript
+const pesertaMap = new Map();
+console.log(pesertaMap.get("tidak-ada@brainmatics.com").score);
+```
+**Output:**
+```
+TypeError: Cannot read properties of undefined (reading 'score')
+```
+*"One missing email crashes the whole program."*
+
+**Step 2 — Live code.** Type and run:
+
+<!-- demo -->
+```javascript
+const pesertaMap = new Map([["aditya@brainmatics.com", { score: 88 }]]);
+console.log(pesertaMap.get("tidak-ada@brainmatics.com")?.score);
+console.log(pesertaMap.get("tidak-ada@brainmatics.com")?.score ?? "tidak ditemukan");
+console.log(0 || 80, 0 ?? 80);
+console.log(null ?? "N/A", undefined ?? "N/A");
+```
+**Output:**
+```
+undefined
+tidak ditemukan
+80 0
+N/A N/A
+```
+
+**Step 3 — Explain.**
+- `?.` stops and gives `undefined` when the left side is `null` or `undefined`, so there is no crash.
+- `??` gives a fallback **only** for `null` or `undefined`.
+- `||` also replaces `0` and `""`. A score of 0 is a real score, so `0 || 80` silently loses it. **This is the most important point of the topic.**
+- Callback to Topic 4: a default parameter doesn't catch `null`, but `??` does.
+
+**Step 4 — In the project.** Type and run:
+
+<!-- demo -->
+```javascript
+import { createPesertaSummary } from '../utils/pesertaFormatter.js';
+console.log(createPesertaSummary(null));
+console.log(createPesertaSummary({ name: "Nol", class: "React Basics", score: 0 }));
+```
+**Output:**
+```
+📚 Unknown - Class: N/A - Score: 0
+📚 Nol - Class: React Basics - Score: 0
+```
+Point at `peserta ?? {}` in `createPesertaSummary`, and at `json?.peserta ?? []` and `score ?? 0` in `utils/pesertaLoader.js`.
+
+**Step 5 — Check.** *"What are `0 || 80` and `0 ?? 80`?"* **Answer:** `80` and `0`.
+
+**Transition:** *"Every demo so far loaded data with `await`. Time to understand it."*
+
+---
+
+### Topic 16: async/await + try/catch (30 min) · Guide Phase 16 · Case point 7
+
+**Goal:** learners know an async function returns a Promise, use `await` and `.then()`, and handle failure with `try`/`catch`.
+
+**Step 1 — Hook.** *"Reading a file takes time. JavaScript doesn't stop and wait. It gives us a **Promise**: a value that arrives later."*
+
+**Step 2 — Live code: await and try/catch.** Type and run:
+
+<!-- demo -->
+```javascript
+import { loadPeserta } from '../utils/pesertaLoader.js';
+const janji = loadPeserta();
+console.log(janji instanceof Promise);
+const peserta = await janji;
+console.log(peserta.length);
+try {
+  await loadPeserta(new URL('./tidak-ada.json', import.meta.url));
+} catch (error) {
+  console.log(error.message.startsWith("Gagal memuat data peserta"));
+}
+```
+**Output:**
+```
+true
+6
+true
+```
+
+**Step 3 — Live code: the order of .then().** Type and run, and ask learners to **predict the order first**:
+
+<!-- demo -->
+```javascript
+import { loadPeserta } from '../utils/pesertaLoader.js';
+loadPeserta()
+  .then((peserta) => console.log("then:", peserta.length))
+  .catch((error) => console.log(error.message));
+console.log("baris ini jalan duluan");
+```
+**Output:**
+```
+baris ini jalan duluan
+then: 6
+```
+
+**Step 4 — Explain.**
+- `async` makes a function return a Promise. `await` pauses *this code* until the Promise resolves.
+- `.then()` does the same job without `await`. The line after it runs **first**, because the file isn't read yet.
+- `try { ... } catch (error) { ... }`: a missing file or broken JSON lands in `catch`, and the program doesn't crash.
+- `await` works at the top level here because this file is a module (ES2022).
+
+**Step 5 — In the project.** Open `utils/pesertaLoader.js` and read it top to bottom. Then open the top of `main.js` (`let rawPeserta; try { ... } catch ...`). Ask: *"Why `let` here?"* **Answer:** it is assigned inside `try`. Then run `node latihan/solusi/07-async-try-catch.js` to show the `catch` branch without touching real data.
+
+**Step 6 — Show the mistake: forgetting await.** Type and run:
+
+<!-- demo -->
+```javascript
+import { loadPeserta } from '../utils/pesertaLoader.js';
+const peserta = loadPeserta();
+console.log(peserta.length);
+```
+**Output:**
+```
+undefined
+```
+Say: *"`peserta` is the Promise, not the list. Add `await`."*
+
+**Watch for:** learners renaming `data/peserta.json` to see an error. If someone does, run the reset command from **Before Class**.
+
+**Transition:** *"How do we know the whole system still works? Tests."*
+
+---
+
+### Topic 17: Running & Testing (15 min) · Guide Phase 17
+
+**Goal:** learners run `npm start` and `npm test`, and read a failing test.
+
+**Step 1 — Live: green.** Run `npm test`. It shows the unit tests (`✅ Tests Passed: 79`), then `📝 CEK LATIHAN` and `Latihan: 7/7 cocok`.
+
+**Step 2 — Live: break a rule on purpose.** In `utils/pesertaValidator.js`, change `static PASSING_SCORE = 80;` to `85` and run `npm test`. Among the output:
 
 ```
-Sisa properti (rest): {"id":101,"email":"aditya@brainmatics.com","score":85}
+❌ FAIL: Passing score is 80
+❌ FAIL: 80 is LULUS (boundary)
+✅ Tests Passed: 77
+❌ Tests Failed: 2
 ```
 
-**Say:** "`...` on the left of `=` collects (rest). `...` on the right copies out (spread)."
+The command exits with code 1, and the exercise check doesn't run, because the unit tests failed first.
 
-**Ask:** "In `const { name, ...sisanya } = peserta`, is `name` inside `sisanya`?" **Answer:** No. Rest collects only the fields you did not name.
-
-**Watch for:** confusing object spread with the array spread `[...set]` from Block D. They use the same `...` syntax but build different things.
-
-### Block H: `?.` and `??` (Phase 15, 20 min)
-
-**Show:** TASK 5:
-
-```
-Score tidak-ada@brainmatics.com: tidak ditemukan
-```
-
-Then remove the `?.` in a scratch file and show the `TypeError`.
-
-**Say:** "`?.` stops instead of crashing. `??` gives a fallback only for `null` or `undefined`."
-
-**Ask:** "What are `0 || 80` and `0 ?? 80`?" **Answer:** `80` and `0`. A score of 0 is real, so `||` loses it.
-
-**Watch for:** learners replacing `??` with `||` "because it's the same". It isn't, and this is the most important point in the block.
-
-### Block I: async/await + try/catch (Phase 16, 30 min)
-
-**Show:** `utils/pesertaLoader.js`, then the top of `main.js` (`let rawPeserta; try { ... }`). Then run:
-
+**Step 3 — Restore.**
 ```bash
-node latihan/solusi/07-async-try-catch.js
+git restore utils/pesertaValidator.js
 ```
 
-This shows the `catch` branch without touching the real data file.
+**Step 4 — Explain.** *"A test names the behaviour it protects. 'Passing score is 80' failing tells you exactly what changed."*
 
-**Say:** "An `async` function always returns a Promise. `await` waits for it. `try`/`catch` catches anything that goes wrong while you wait."
+**Step 5 — Check.** *"Which two tests failed, and why only those two?"* **Answer:** the two that check the value 80 itself. Every real score in the data is still on the same side of the new threshold.
 
-**Ask:** "Why is `rawPeserta` declared with `let` in `main.js`?" **Answer:** It is declared before `try` and assigned inside it, so it gets a new value later.
+**Transition:** *"Now let's put all seven points together."*
 
-**Watch for:** learners renaming `data/peserta.json` to see an error and forgetting to rename it back. Use exercise 07 for the demo instead. If it happens anyway, run the reset command from **Before Class**.
+---
 
-### Block J: Run & test, then the capstone (Phases 17–18, 40 min)
+### Topic 18: The Whole Case, from Data to Status (20 min) · Guide Phase 18 · Case point 1, all
 
-**Show:** `npm test`. The unit tests come first, then `📝 CEK LATIHAN` and `Latihan: 7/7 cocok`. Then do Step 18.3 live:
+**Goal:** learners trace one participant through the whole system, and can name where each case point lives.
 
-```bash
-node latihan/coba-retake.js
+**Step 1 — Live code: trace Aditya.** Type and run:
+
+<!-- demo -->
+```javascript
+import { loadPeserta } from '../utils/pesertaLoader.js';
+import { createPesertaMap } from '../utils/pesertaProcessor.js';
+import { displayPeserta } from '../utils/pesertaFormatter.js';
+const rawPeserta = await loadPeserta();
+const pesertaMap = createPesertaMap(rawPeserta);
+const { name, score } = pesertaMap.get("aditya@brainmatics.com");
+console.log(displayPeserta(name, score));
 ```
+**Output:**
+```
+Nama: Aditya Prayoga, Score: 88, Status: LULUS
+```
+Point at each line and name its topic: load (16), Map with the last test (8), destructuring (6), status (13).
 
-Change Rina's last score in `latihan/peserta-retake.json` from 82 to 79, run it again, and the status becomes `TIDAK LULUS`. Change it back.
+**Step 2 — Live: change the last test.**
+1. Run `node latihan/coba-retake.js`. It prints Rina's three tests (70, 76, 82) and `Status: LULUS`.
+2. Change her last score in `latihan/peserta-retake.json` to 79, run it again, and the status becomes `TIDAK LULUS`.
+3. Change it back to 82.
 
-**Say:** "Seven points, one flow: load the file → keep the last test per email → decide the status."
+Say: *"`npm test` doesn't read this file, so experimenting here is safe."*
 
-**Ask:** "Did editing `latihan/peserta-retake.json` break `npm test`?" **Answer:** No. The checker reads its own copy in `latihan/solusi/`, so the `latihan/` files are safe to edit.
+**Step 3 — Map the seven points.** Show the table in `BEGINNER_GUIDE.md` Step 18.2, and ask the class to fill in the **Phase** column from memory before you reveal it.
+
+**Transition:** *"Your turn. Seven exercises, one per point."*
 
 ### Lab: Exercises 01–07 (60 min)
 
@@ -265,7 +1124,7 @@ No output except `cocok` means a match. On Windows, compare by eye with the **Ex
 
 **Fast finishers:** see **Stretch Tasks** below.
 
-### Solution review and exit ticket (20 min)
+### Solution review and exit ticket (25 min)
 
 Open each file in `latihan/solusi/` on screen and ask one learner to explain one line. Then:
 
