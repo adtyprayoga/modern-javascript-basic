@@ -1,0 +1,20 @@
+{
+  "name": "es6-training-management-system",
+  "version": "1.0.0",
+  "description": "ES6 Study Case - Training Management System for Brainmatics",
+  "type": "module",
+  "main": "main.js",
+  "scripts": {
+    "start": "node main.js",
+    "test": "node test/test-all.js"
+  },
+  "keywords": [
+    "es6",
+    "javascript",
+    "training",
+    "brainmatics",
+    "study-case"
+  ],
+  "author": "Brainmatics",
+  "license": "MIT"
+}
