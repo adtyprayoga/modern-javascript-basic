@@ -8,10 +8,11 @@ A system that manages training participants with features like:
 - Remove duplicate participants
 - Filter by class
 - Calculate averages
-- Validate scores
+- Validate scores and decide LULUS / TIDAK LULUS from the last test score
+- Load participant data from a JSON file
 - Display formatted reports
 
-**Time Estimate:** 2-3 hours at a comfortable pace
+**Time Estimate:** 3-4 hours at a comfortable pace
 
 ---
 
@@ -388,10 +389,11 @@ export const createPesertaMap = (pesertaList = []) => {
   const pesertaMap = new Map();
   
   // Loop through all participants
-  for (const { id, name, email, class: className, score } of pesertaList) {
-    // If email exists, this REPLACES the old entry
+  for (const peserta of pesertaList) {
+    // If email exists, this REPLACES the old entry (the last test wins)
     // If email is new, this ADDS a new entry
-    pesertaMap.set(email, { id, name, email, class: className, score });
+    // { ...peserta } copies the object (object spread, see Phase 13)
+    pesertaMap.set(peserta.email, { ...peserta });
   }
   
   return pesertaMap;
@@ -582,8 +584,8 @@ console.log(validator.isValidScore(75));  // false
 **In `utils/pesertaProcessor.js`:**
 ```javascript
 // Named export - can export multiple things
-export const getUniqueEmails = (list) => { ... };
-export const calculateAverage = (list) => { ... };
+export const getUniqueEmails = (pesertaList = []) => { ... };
+export const calculateAverageScore = (pesertaList = []) => { ... };
 ```
 
 **In `utils/pesertaValidator.js`:**
@@ -592,7 +594,7 @@ export const calculateAverage = (list) => { ... };
 export class PesertaValidator { ... }
 
 // Export function
-export const createValidator = () => { ... };
+export const createPassingValidator = () => { ... };
 ```
 
 ### Step 11.3: Importing
@@ -600,10 +602,14 @@ export const createValidator = () => { ... };
 **In `main.js`:**
 ```javascript
 // Import specific functions
-import { getUniqueEmails, calculateAverage } from './utils/pesertaProcessor.js';
+import { getUniqueEmails, calculateAverageScore } from './utils/pesertaProcessor.js';
 
 // Import class
 import { PesertaValidator } from './utils/pesertaValidator.js';
+
+// Import the data loader (Phase 15 explains how it works)
+import { loadPeserta } from './utils/pesertaLoader.js';
+const rawPeserta = await loadPeserta();
 
 // Now use them!
 const emails = getUniqueEmails(rawPeserta);
@@ -614,9 +620,207 @@ const validator = new PesertaValidator(80, 100);
 
 ---
 
-## 🚀 Phase 12: Running & Testing (30 minutes)
+## 🚀 Phase 12: includes() for Status Validation — ES2016 (20 minutes)
 
-### Step 12.1: Run the Main Application
+### Step 12.1: Is This Value in the List?
+
+You already met `includes()` in Step 6.1. It answers one question: *is this value in the array?*
+
+```javascript
+const STATUS = ["LULUS", "TIDAK LULUS"];
+
+// Old way: indexOf returns a position, or -1 if not found
+STATUS.indexOf("LULUS") !== -1;   // true (hard to read!)
+
+// New way (ES2016): includes returns true or false
+STATUS.includes("LULUS");         // true
+STATUS.includes("TIDAK LULUS");   // true
+STATUS.includes("lulus");         // false: includes() is case-sensitive
+STATUS.includes("BELUM LULUS");   // false: not in the list
+```
+
+### Step 12.2: One Place for the Pass/Fail Rule
+
+Open `utils/pesertaValidator.js`. The rule for LULUS / TIDAK LULUS lives in the class as **static** members. Static members belong to the class itself, so you use them without `new`:
+
+```javascript
+export class PesertaValidator {
+  static PASSING_SCORE = 80;
+  static STATUS = ["LULUS", "TIDAK LULUS"];
+
+  static getStatus = (score = 0) =>
+    score >= PesertaValidator.PASSING_SCORE ? "LULUS" : "TIDAK LULUS";
+
+  static isValidStatus = (status) => PesertaValidator.STATUS.includes(status);
+  // ...constructor and the other methods from Phase 10
+}
+
+PesertaValidator.getStatus(80);          // "LULUS" (80 counts as passing)
+PesertaValidator.getStatus(79);          // "TIDAK LULUS"
+PesertaValidator.isValidStatus("lulus"); // false
+```
+
+**🎓 Why one place?** `pesertaFormatter.js` imports `PesertaValidator` and calls `getStatus()`. If the passing score ever changes, you edit one line.
+
+### Step 12.3: Apply It
+
+`displayPeserta()` never prints a status that is not in the list:
+
+```javascript
+displayPeserta("Aditya", 90, "TIDAK LULUS");   // valid → kept
+// "Nama: Aditya, Score: 90, Status: TIDAK LULUS"
+
+displayPeserta("Aditya", 90, "lulus");         // invalid → computed from the score
+// "Nama: Aditya, Score: 90, Status: LULUS"
+```
+
+---
+
+## 🚀 Phase 13: Object Rest & Spread — ES2018 (20 minutes)
+
+### Step 13.1: Spread Copies an Object
+
+In Phase 6 you spread a Set into an array with `[...set]`. The same `...` works on objects:
+
+```javascript
+const peserta = { id: 101, name: "Aditya", score: 85 };
+
+const copy = { ...peserta };                  // a new object with the same fields
+const retake = { ...peserta, score: 88 };     // copy, then replace score
+
+console.log(retake);  // { id: 101, name: "Aditya", score: 88 }
+console.log(peserta); // unchanged: { id: 101, name: "Aditya", score: 85 }
+```
+
+### Step 13.2: Rest Collects "Everything Else"
+
+In destructuring, `...` collects the fields you did not name:
+
+```javascript
+const pesertaSample = { id: 101, name: "Aditya", email: "aditya@brainmatics.com", score: 85 };
+
+const { name, ...sisanya } = pesertaSample;
+console.log(name);     // "Aditya"
+console.log(sisanya);  // { id: 101, email: "aditya@brainmatics.com", score: 85 }
+```
+
+**🎓 Rule of thumb:** `...` on the **left** of `=` is *rest* (collect). On the **right** it is *spread* (copy out).
+
+### Step 13.3: Find It in Action
+
+- `createPesertaMap()` stores `{ ...peserta }` (Step 7.4)
+- `main.js` TASK 3 prints `sisanya`
+- `loadPeserta()` uses both at once (Phase 15):
+
+```javascript
+({ score, ...rest }) => ({ ...rest, score: score ?? 0 })
+//        ^^^^^^^ rest          ^^^^^^^ spread
+```
+
+---
+
+## 🚀 Phase 14: Optional Chaining ?. and Nullish Coalescing ?? — ES2020 (20 minutes)
+
+### Step 14.1: The Problem
+
+```javascript
+const pesertaMap = new Map();  // empty: nobody is in it
+
+pesertaMap.get("tidak-ada@brainmatics.com").score;
+// ❌ TypeError: Cannot read properties of undefined (reading 'score')
+```
+
+### Step 14.2: ?. Stops Instead of Crashing
+
+```javascript
+pesertaMap.get("tidak-ada@brainmatics.com")?.score;
+// undefined (no crash): ?. stops when the value on its left is null or undefined
+```
+
+### Step 14.3: ?? Gives a Fallback
+
+```javascript
+const score = pesertaMap.get("tidak-ada@brainmatics.com")?.score ?? "tidak ditemukan";
+console.log(score);  // "tidak ditemukan"
+```
+
+**⚠️ Why not `||`?** `||` also replaces `0` and `""`. A score of 0 is a real score:
+
+```javascript
+0 || 80;   // 80  ❌ the real score is lost
+0 ?? 80;   // 0   ✅ ?? only replaces null and undefined
+```
+
+### Step 14.4: Find It in Action
+
+- `main.js` TASK 5 prints `Score tidak-ada@brainmatics.com: tidak ditemukan`
+- `createPesertaSummary(null)` works because it destructures `peserta ?? {}`. A default parameter (`peserta = {}`) only catches `undefined`, not `null`.
+- `loadPeserta()` uses `json?.peserta ?? []` and `score ?? 0` (Phase 15)
+
+---
+
+## 🚀 Phase 15: async/await + try/catch — ES2017 (30 minutes)
+
+### Step 15.1: Why Async?
+
+Reading a file takes time. Node.js does not stop and wait. It gives you a **Promise**: a value that arrives later. `await` pauses *your function* until the value is ready.
+
+### Step 15.2: Read the Loader
+
+Open `utils/pesertaLoader.js`:
+
+```javascript
+import { readFile } from 'node:fs/promises';
+
+export const loadPeserta = async (fileUrl = new URL('../data/peserta.json', import.meta.url)) => {
+  try {
+    const text = await readFile(fileUrl, 'utf8');  // wait for the file
+    const json = JSON.parse(text);                 // throws if the JSON is broken
+    const pesertaList = json?.peserta ?? [];       // Phase 14
+    return pesertaList.map(({ score, ...rest }) => ({ ...rest, score: score ?? 0 }));  // Phase 13
+  } catch (error) {
+    // A missing file AND broken JSON both land here
+    throw new Error(`Gagal memuat data peserta dari ${fileUrl}: ${error.message}`);
+  }
+};
+```
+
+**Breaking It Down:**
+1. `async` makes the function return a Promise
+2. `await` waits for `readFile` to finish
+3. `try { ... } catch (error) { ... }` catches anything that goes wrong inside `try`
+
+### Step 15.3: Use It in main.js
+
+```javascript
+let rawPeserta;   // let, not const: it gets its value inside try
+try {
+  rawPeserta = await loadPeserta();
+} catch (error) {
+  console.error(`❌ ${error.message}`);
+  process.exit(1);
+}
+```
+
+**🎓 Notice:** `await` here is not inside any function. Modules allow *top-level await* (ES2022).
+
+### Step 15.4: The Same Thing with .then()
+
+An async function returns a Promise, so this also works:
+
+```javascript
+loadPeserta()
+  .then((peserta) => console.log(`${peserta.length} peserta`))
+  .catch((error) => console.error(error.message));
+```
+
+**🎓 Try This:** Rename `data/peserta.json` to `data/peserta.bak`, run `npm start`, and read the error. Then rename it back.
+
+---
+
+## 🚀 Phase 16: Running & Testing (30 minutes)
+
+### Step 16.1: Run the Main Application
 
 ```bash
 npm start
@@ -628,7 +832,7 @@ npm start
 3. Numbers make sense (4 unique emails from 6 entries)
 4. Calculations are correct
 
-### Step 12.2: Read the Output Carefully
+### Step 16.2: Read the Output Carefully
 
 Each section teaches you something:
 
@@ -644,7 +848,14 @@ Found 4 unique emails:
 
 **🎓 Ask yourself:** Why 4 emails from 6 entries? (Answer: 2 duplicates removed!)
 
-### Step 12.3: Run the Tests
+**Also find these lines** (Phases 13–15):
+```
+Sisa properti (rest): {"id":101,"email":"aditya@brainmatics.com","score":85}
+Score tidak-ada@brainmatics.com: tidak ditemukan
+Validasi status (includes): "LULUS" → true, "lulus" → false
+```
+
+### Step 16.3: Run the Tests
 
 ```bash
 npm test
@@ -652,7 +863,7 @@ npm test
 
 **If all tests pass:**
 ```
-✅ Tests Passed: 52
+✅ Tests Passed: 79
 🎉 ALL TESTS PASSED!
 ```
 
@@ -686,7 +897,11 @@ After completing each phase, you should be able to:
 - [x] **Phase 9:** Transform data with map, filter, reduce
 - [x] **Phase 10:** Create classes with ES6 syntax
 - [x] **Phase 11:** Organize code with modules
-- [x] **Phase 12:** Run and test your code
+- [x] **Phase 12:** Validate a status with `includes()` and use static class rules
+- [x] **Phase 13:** Copy and split objects with rest/spread
+- [x] **Phase 14:** Handle missing values with `?.` and `??`
+- [x] **Phase 15:** Load data with async/await and try/catch
+- [x] **Phase 16:** Run and test your code
 
 ---
 
@@ -750,13 +965,13 @@ import { func } from './utils/module.js';
 ## 🎉 Congratulations!
 
 If you've made it this far, you've learned:
-- ✅ 11 major ES6 features
+- ✅ 11 major ES6 features, plus `includes()`, object rest/spread, `?.`/`??`, and async/await (ES2016–ES2020)
 - ✅ Real-world data processing patterns
 - ✅ Modular code organization
 - ✅ Testing and validation
 - ✅ Best practices for clean code
 
-**You're now ready to use ES6 in real projects!** 🚀
+**You're now ready to use modern JavaScript in real projects!** 🚀
 
 ---
 
